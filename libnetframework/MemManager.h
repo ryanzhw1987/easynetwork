@@ -98,55 +98,15 @@ public:
     //获取一个slot, NULL表示没有空间
     void* get_slot();
     //判断一个slot是否属于当前page. true属于,false不属于
-    bool is_slot(void* slot);
+    bool is_slot(void* slot){return (char*)slot>=m_ptr && (char*)slot<=m_ptr+m_total*m_slot_size;}
     //是否还有空闲slot.true有, false没有
-    bool have_slot();
+    bool have_slot(){return m_used<m_total;}
 private:
     unsigned int m_slot_size;
     unsigned int m_total;
     unsigned int m_used;
     char* m_ptr;
 };
-
-MemPage::MemPage(unsigned int slot_size, unsigned int slot_total/*=32*/)
-{
-    m_slot_size = slot_size;
-
-    m_used = 0;
-    m_total = 0;
-    m_ptr = NULL;
-    if((m_ptr=(char*)calloc(slot_total, m_slot_size)) != NULL)
-        m_total = slot_total;
-}
-
-MemPage::~MemPage()
-{
-    if(m_ptr != NULL)
-        free(m_ptr);
-    m_ptr = NULL;
-    m_total = 0;       
-}
-
-void* MemPage::get_slot()
-{
-    char* slot = NULL;
-    if(m_used < m_total)
-    {
-        slot = m_ptr + m_used*m_slot_size;
-        ++m_used;
-    }
-
-    return (void*)slot;
-}
-
-bool MemPage::is_slot(void* slot)
-{
-    return (char*)slot>=m_ptr && (char*)slot<=m_ptr+m_total*m_slot_size;
-}
-bool MemPage::have_slot()
-{
-    return m_used<m_total;
-}
 
 ///////////////////////////////////
 ///////     Memory Slab     ///////
