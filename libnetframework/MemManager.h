@@ -141,7 +141,7 @@ void* MemPage::get_slot()
 
 bool MemPage::is_slot(void* slot)
 {
-    return (char*)slot>=m_ptr && (char*)slot<=m_ptr+m_total*m_slot_size);
+    return (char*)slot>=m_ptr && (char*)slot<=m_ptr+m_total*m_slot_size;
 }
 bool MemPage::have_slot()
 {
@@ -218,7 +218,7 @@ bool MemSlab<T>::Free(T* element)
 {
     int i;
     for(i=0; i<=m_current; ++i)
-        if(m_pages[i]->is_slot((void*)element);
+        if(m_pages[i]->is_slot((void*)element))
             break;
     if(i>m_current) //不属于当前slab
         return false;
