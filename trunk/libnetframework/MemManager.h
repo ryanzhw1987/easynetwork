@@ -194,8 +194,12 @@ bool MemSlab<T>::Free(T* element)
 template <class T>
 void MemSlab<T>::new_page()
 {
+    unsigned int size = sizeof(T);
+    if(size < sizeof(void*))
+        size = sizeof(void*);   //至少要4个字节
+
     if(m_current < m_total)
-        m_pages[m_current] = new MemPage(sizeof(T), m_capacity);
+        m_pages[m_current] = new MemPage(size, m_capacity);
 }
 
 template <class T>
