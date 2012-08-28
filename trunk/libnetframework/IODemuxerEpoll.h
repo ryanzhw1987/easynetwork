@@ -21,14 +21,14 @@ typedef map<int, EventInfo*> EVENT_MAP;
 class EpollDemuxer:public IODemuxer
 {
 public: //重写基类纯虚函数
-    int register_event(int fd, EVENT_TYPE type, int timeout_ms, EventHandler *handler);
+	int register_event(int fd, EVENT_TYPE type, int timeout_ms, EventHandler *handler);
 	int unregister_event(int fd);
 	int run_loop();
-    void exit();
+	void exit();
 public:
 
-    //max_events: 最多监听的事件数
-    //et_mode:是否使用ET模式. 1使用ET模式. 0使用LT模式;
+	//max_events: 最多监听的事件数
+	//et_mode:是否使用ET模式. 1使用ET模式. 0使用LT模式;
 	EpollDemuxer(unsigned int max_events=4096, unsigned int et_mode=1);
 	~EpollDemuxer();
 private:
