@@ -653,7 +653,7 @@ HANDLE_RESULT TransHandler::on_writeabble(int fd)
 		IODemuxer *io_demuxer = m_socket_mgr->get_io_demuxer();assert(io_demuxer!=NULL);
 		io_demuxer->register_event(fd, EVENT_WRITE, -1, this);
 		//×¢²áÊ§°ÜÁËÒªÔõÃ´´¦ÀíÄØ:
-		//socket³¬Ê±µ÷ÓÃtime_outÀ´´¦Àíå?»òÕßµÈ´ıÏÂ´Î·¢ËÍĞ­ÒéÊ±ÖØĞÂ×¢²á?
+		//socket³¬Ê±µ÷ÓÃtime_outÀ´´¦Àí?»òÕßµÈ´ıÏÂ´Î·¢ËÍĞ­ÒéÊ±ÖØĞÂ×¢²á?
 	}
 
 	return HANDLE_OK;
