@@ -67,7 +67,7 @@ public:
 class ProtocolFamily
 {
 public:
-    virtual Protocol* create_protocol()=0;
+	virtual Protocol* create_protocol()=0;
 };
 
 //sample
