@@ -6,7 +6,7 @@
 #include "slog.h"
 
 /**********************************************  DefaultHeader  **********************************************/
-//°üÍ·±àÂë.³É¹¦·µ»Ø0. ·ñÔò·µ»Ø-1;
+//åŒ…å¤´ç¼–ç .æˆåŠŸè¿”å›ž0. å¦åˆ™è¿”å›ž-1;
 int DefaultHeader::encode(char *buf, int buf_size)
 {
 	int header_size = get_header_size();
@@ -16,7 +16,7 @@ int DefaultHeader::encode(char *buf, int buf_size)
 	//1. magic number
 	*(int*)buf = htonl(m_magic_num);
 	buf += sizeof(m_magic_num);
-	//2. °æ±¾ºÅ
+	//2. ç‰ˆæœ¬å·
 	*(int*)buf = htonl(m_version);
 	buf += sizeof(m_version);
 
@@ -31,7 +31,7 @@ int DefaultHeader::encode(char *buf, int buf_size)
 	return 0;
 }
 
-//°üÍ·½âÂë.³É¹¦·µ»Ø0,·µ»Ø°üÌå³¤¶ÈºÍ°üÌåÀàÐÍ. Ê§°Ü·µ»Ø¸ºÊý
+//åŒ…å¤´è§£ç .æˆåŠŸè¿”å›ž0,è¿”å›žåŒ…ä½“é•¿åº¦å’ŒåŒ…ä½“ç±»åž‹. å¤±è´¥è¿”å›žè´Ÿæ•°
 int DefaultHeader::decode(const char *buf, int buf_size)
 {
 	int header_size = get_header_size();
@@ -48,7 +48,7 @@ int DefaultHeader::decode(const char *buf, int buf_size)
 	}
 	buf += sizeof(m_magic_num);
 	
-	//2. °æ±¾ºÅ
+	//2. ç‰ˆæœ¬å·
 	ret = *(const int*)buf;
 	ret = ntohl(ret);
 	if(ret != m_version)
@@ -78,30 +78,30 @@ int DefaultHeader::decode(const char *buf, int buf_size)
 
 
 /**********************************************  DefaultProtocol  **********************************************/
-//Ð­Òé±àÂë,³É¹¦·µ»Ø0; ·ñÔò·µ»Ø-1;
+//åè®®ç¼–ç ,æˆåŠŸè¿”å›ž0; å¦åˆ™è¿”å›ž-1;
 int DefaultProtocol::encode(IOBuffer *io_buffer)
 {
 	if(io_buffer == NULL)
 		return -1;
 	
-	//1. ·ÖÅäÒ»¸öheader_size´óÐ¡µÄ¿Õ¼ä,ÔÝÊ±²»Ð´ÈëÊý¾Ý
+	//1. åˆ†é…ä¸€ä¸ªheader_sizeå¤§å°çš„ç©ºé—´,æš‚æ—¶ä¸å†™å…¥æ•°æ®
 	int header_size = get_header_size();
 	char *header_buffer = io_buffer->write_begin(header_size);
 	bool result = io_buffer->write_end(header_size);
 	assert(result == true);
 	
-	//2. ±àÂëÐ­ÒéÌå
+	//2. ç¼–ç åè®®ä½“
 	int body_size = m_body->encode(io_buffer); //body size
-	if(body_size == -1)  //Ê§°Ü, »Ø¹ö·ÖÅäµÄheader¿Õ¼ä
+	if(body_size == -1)  //å¤±è´¥, å›žæ»šåˆ†é…çš„headerç©ºé—´
 	{
 		result = io_buffer->write_rollback(header_size);
 		assert(result == true);
 		return -1;
 	}
 
-	//3. ±àÂëÐ­ÒéÍ·
+	//3. ç¼–ç åè®®å¤´
 	m_header->set_body_size(body_size);
-	if(m_header->encode(header_buffer, header_size) != 0)	//Í·²¿±àÂëÊ§°Ü,»Ø¹öÐ­ÒéÌåºÍÐ­ÒéÌåÕ¼ÓÃµÄ¿Õ¼ä
+	if(m_header->encode(header_buffer, header_size) != 0)	//å¤´éƒ¨ç¼–ç å¤±è´¥,å›žæ»šåè®®ä½“å’Œåè®®ä½“å ç”¨çš„ç©ºé—´
 	{
 		result = io_buffer->write_rollback(header_size+body_size);
 		assert(result == true);

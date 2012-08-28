@@ -5,7 +5,7 @@
 
 int main()
 {
-	//1. ±àÂë
+	//1. ç¼–ç 
 	char str[] = "test simple cmd";
 	unsigned int size = sizeof(str);
 	
@@ -20,7 +20,7 @@ int main()
 	io_buffer.read_begin(&size);
 	printf("encode buf: data size=%d\n", size);
 	
-	//2. ½âÂë
+	//2. è§£ç 
 	char *buf = io_buffer.read_begin(&size);
 	DefaultProtocolFamily default_family;
 	DefaultProtocol* protocol = (DefaultProtocol*)default_family.create_protocol();

@@ -39,8 +39,8 @@ public:
 	int m_timeout_ms;
 	EventHandler *m_handler;
 
-	EVENT_TYPE m_occur_type; //·¢ÉúµÄÊÂ¼ş
-	unsigned long long m_occur_timestamp;  //Ìí¼Ó/¸üĞÂµÄÊ±¼ä.ºÁÃë
+	EVENT_TYPE m_occur_type; //å‘ç”Ÿçš„äº‹ä»¶
+	unsigned long long m_occur_timestamp;  //æ·»åŠ /æ›´æ–°çš„æ—¶é—´.æ¯«ç§’
 };
 
 //epoll io server.
@@ -121,12 +121,12 @@ int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventH
 		return -1;
 	}
 
-	if(fd <= 0) //Ê±ÖÓ³¬Ê±ÊÂ¼ş
+	if(fd <= 0) //æ—¶é’Ÿè¶…æ—¶äº‹ä»¶
 	{
-		if(timeout_ms <= 0) //timeout_ms±ØĞë´óÓÚ0
+		if(timeout_ms <= 0) //timeout_mså¿…é¡»å¤§äº0
 			return -1;
 			
-		//Ê±ÖÓÊÂ¼ş		
+		//æ—¶é’Ÿäº‹ä»¶		
 		EventInfo *event_info = NULL;
 		if(m_free_timer.empty())
 		{
@@ -142,12 +142,12 @@ int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventH
 	}
 	else
 	{
-		if(m_free_event_info.empty()) //Ã»ÓĞ¿ÕÏĞ
+		if(m_free_event_info.empty()) //æ²¡æœ‰ç©ºé—²
 		{
 			return -1;
 		}
 
-		if((type&(EVENT_READ|EVENT_WRITE)) == 0) //·ÇÊ±ÖÓÊÂ¼ş,È´Ã»ÓĞ×¢²á¶ÁĞ´ÊÂ¼ş
+		if((type&(EVENT_READ|EVENT_WRITE)) == 0) //éæ—¶é’Ÿäº‹ä»¶,å´æ²¡æœ‰æ³¨å†Œè¯»å†™äº‹ä»¶
 		{
 			return -1;
 		}
@@ -156,7 +156,7 @@ int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventH
 		int flags = 0;
 		EventInfo *event_info = NULL;
 		EVENT_MAP::iterator it = m_using_event_info.find(fd);
-		if(it == m_using_event_info.end()) //Ã»ÓĞ×¢²á¹ı
+		if(it == m_using_event_info.end()) //æ²¡æœ‰æ³¨å†Œè¿‡
 		{
 			event_info = m_free_event_info.back();
 			event_info->set(fd, type, timeout_ms, handler);
@@ -166,24 +166,24 @@ int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventH
 			m_free_event_info.pop_back();
 
 			it = ret_pair.first;
-			epoll_op = EPOLL_CTL_ADD;	//Ìí¼Ó
+			epoll_op = EPOLL_CTL_ADD;	//æ·»åŠ 
 		}
 		else
 		{
 			event_info = it->second;
 			int old_type = event_info->m_type;
-			if((type&EVENT_READ) == 0) //Ã»ÓĞ¶ÁÊÂ¼ş,ÔòÏÈ¹ıÂËµôEVENT_PERSIST±ê¼Ç
+			if((type&EVENT_READ) == 0) //æ²¡æœ‰è¯»äº‹ä»¶,åˆ™å…ˆè¿‡æ»¤æ‰EVENT_PERSISTæ ‡è®°
 				type &= ~EVENT_PERSIST;
-			event_info->m_type |= type; //ÓĞ¿ÉÄÜÖ»ÊÇ¶ÁÊÂ¼şÔö¼ÓÁËEVENT_PERSIST,ËùÒÔÖØĞÂÉèÖÃÒ»´Î.
+			event_info->m_type |= type; //æœ‰å¯èƒ½åªæ˜¯è¯»äº‹ä»¶å¢åŠ äº†EVENT_PERSIST,æ‰€ä»¥é‡æ–°è®¾ç½®ä¸€æ¬¡.
 
-			if((old_type&type) != 0) //ÒÑ¾­×¢²á¹ı
+			if((old_type&type) != 0) //å·²ç»æ³¨å†Œè¿‡
 				return 0;
-			epoll_op = EPOLL_CTL_MOD;	//ĞŞ¸Ä
+			epoll_op = EPOLL_CTL_MOD;	//ä¿®æ”¹
 		}
 	
-		if(event_info->m_type&EVENT_READ)  //Ìí¼Ó¶Á
+		if(event_info->m_type&EVENT_READ)  //æ·»åŠ è¯»
 			flags |= EPOLLIN;
-		if(event_info->m_type&EVENT_WRITE) //Ìí¼ÓĞ´
+		if(event_info->m_type&EVENT_WRITE) //æ·»åŠ å†™
 			flags |= EPOLLOUT;
 		if(m_et_mode != 0)
 			flags |= EPOLLET;
@@ -226,8 +226,8 @@ int EpollDemuxer::unregister_event(int fd)
 }
 
 const int WAIT_TIME_MS = 10; //10ms
-const EVENT_TYPE EVENT_ERROR   = 0x100;  //·¢ËÍ´íÎó(ÄÚ²¿Ê¹ÓÃ)
-const EVENT_TYPE EVENT_TIMEOUT = 0x1000; //³¬Ê±
+const EVENT_TYPE EVENT_ERROR   = 0x100;  //å‘é€é”™è¯¯(å†…éƒ¨ä½¿ç”¨)
+const EVENT_TYPE EVENT_TIMEOUT = 0x1000; //è¶…æ—¶
 typedef vector<EventInfo*> OccurEventList;
 
 int EpollDemuxer::run_loop()
@@ -252,7 +252,7 @@ int EpollDemuxer::run_loop()
 		occur_events.clear();
 		start_time_ms = get_current_time_ms();
 		
-		//1. ¼ì²é·¢ÉúµÄ¶ÁĞ´ÊÂ¼ş
+		//1. æ£€æŸ¥å‘ç”Ÿçš„è¯»å†™äº‹ä»¶
 		for (i=0; i<count; i++)
 		{
 			int is_error = 0;
@@ -282,7 +282,7 @@ int EpollDemuxer::run_loop()
 				continue;
 			}
 
-			//´íÎó»òÕß·¢ÉúËùÓĞ×¢²áµÄÊÂ¼ş.É¾³ı×¢²áµÄÊÂ¼ş
+			//é”™è¯¯æˆ–è€…å‘ç”Ÿæ‰€æœ‰æ³¨å†Œçš„äº‹ä»¶.åˆ é™¤æ³¨å†Œçš„äº‹ä»¶
 			if((event_info->m_occur_type&EVENT_ERROR) || (event_info->m_type&(EVENT_WRITE|EVENT_READ))==EVENT_INVALID)
 			{
 				SLOG_TRACE("remove fd=%d from epoll because of error or unpersist.", event_info->m_fd);
@@ -295,10 +295,10 @@ int EpollDemuxer::run_loop()
 			occur_events.push_back(event_info);
 		}
 
-		//¼ì²é³¬Ê±
+		//æ£€æŸ¥è¶…æ—¶
 		if(start_time_ms-last_check_time_ms > 300)
 		{
-			//2. ¼ì²ésocket¶ÁĞ´³¬Ê±
+			//2. æ£€æŸ¥socketè¯»å†™è¶…æ—¶
 			EventInfo *event_info;
 			EVENT_MAP::iterator it;
 			for(it=m_using_event_info.begin(); it!=m_using_event_info.end(); )
@@ -310,7 +310,7 @@ int EpollDemuxer::run_loop()
 					occur_events.push_back(event_info);					
 					//event_info->m_time_ms = start_time_ms;
 
-					//¶ÁĞ´³¬Ê±. É¾³ı×¢²áµÄÊÂ¼ş
+					//è¯»å†™è¶…æ—¶. åˆ é™¤æ³¨å†Œçš„äº‹ä»¶
 					SLOG_TRACE("remove fd=%d from epoll because of timeout.", event_info->m_fd);
 					epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, event_info->m_fd, NULL);
 					m_using_event_info.erase(it++);
@@ -320,7 +320,7 @@ int EpollDemuxer::run_loop()
 					++it;
 			}
 
-			//3. ¼ì²éÊ±ÖÓÊÇ·ñ³¬Ê±
+			//3. æ£€æŸ¥æ—¶é’Ÿæ˜¯å¦è¶…æ—¶
 			list<EventInfo*>::iterator timer_it;
 			for(timer_it=m_timer_list.begin(); timer_it!=m_timer_list.end(); )
 			{
@@ -330,7 +330,7 @@ int EpollDemuxer::run_loop()
 					event_info->m_occur_type = EVENT_TIMEOUT;
 					occur_events.push_back(event_info);
 
-					//ÒÆ³ıÊ±ÖÓ
+					//ç§»é™¤æ—¶é’Ÿ
 					if((event_info->m_type&EVENT_PERSIST) == 0)
 					{
 						m_free_timer.push_back(event_info);
@@ -346,7 +346,7 @@ int EpollDemuxer::run_loop()
 			last_check_time_ms = start_time_ms;
 		}
 
-		//´¦Àí·¢ÉúµÄÊÂ¼ş
+		//å¤„ç†å‘ç”Ÿçš„äº‹ä»¶
 		if(!occur_events.empty())
 		{
 			EventInfo *event_info;
@@ -399,7 +399,7 @@ int EpollDemuxer::run_loop()
 			}
 		}
 
-		//´¦Àí¹ı³ÌËù»¨·ÑÔÚÊ±¼ä
+		//å¤„ç†è¿‡ç¨‹æ‰€èŠ±è´¹åœ¨æ—¶é—´
 		int elapsed = get_current_time_ms() - start_time_ms;
 		if(elapsed > 100)
 		{

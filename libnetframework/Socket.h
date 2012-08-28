@@ -18,13 +18,13 @@ typedef enum
 class Socket
 {
 public:
-    //socket_handle:socketÃèÊö·û
-    //port:¼àÌı/Á¬½ÓµÄ¶Ë¿ÚºÅ
-    //ip:Á¬½ÓµÄµØÖ·
-    //block_mode:×èÈûÄ£Ê½. BLOCK(×èÈû)/NOBLOCK(·Ç×èÈû)
+    //socket_handle:socketæè¿°ç¬¦
+    //port:ç›‘å¬/è¿æ¥çš„ç«¯å£å·
+    //ip:è¿æ¥çš„åœ°å€
+    //block_mode:é˜»å¡æ¨¡å¼. BLOCK(é˜»å¡)/NOBLOCK(éé˜»å¡)
     Socket(SocketHandle socket_handle=SOCKET_INVALID, int port=-1, const char *ip=NULL, BlockMode block_mode=NOBLOCK);
     virtual ~Socket();
-    //¶Ôsocket½øĞĞ¸³Öµ.³É¹¦·µ»Ø0, ·ñÔò·µ»Ø-1(socketÒÑ¾­º¬ÓĞÒ»¸öÓĞĞ§µÄsocket_handle)
+    //å¯¹socketè¿›è¡Œèµ‹å€¼.æˆåŠŸè¿”å›0, å¦åˆ™è¿”å›-1(socketå·²ç»å«æœ‰ä¸€ä¸ªæœ‰æ•ˆçš„socket_handle)
 	int assign(SocketHandle socket_handle, int port, const char *ip, BlockMode block_mode);
 
 	SocketHandle get_handle(){return m_socket_handle;}
@@ -45,25 +45,25 @@ protected:
 class ListenSocket: public Socket
 {
 public:
-    //port:¼àÌı¶Ë¿Ú
-    //block:ÊÇ·ñ×èÈû.true(×èÈû)/false(·Ç×èÈû);Ä¬ÈÏ·Ç×èÈûÄ£Ê½
+    //port:ç›‘å¬ç«¯å£
+    //block:æ˜¯å¦é˜»å¡.true(é˜»å¡)/false(éé˜»å¡);é»˜è®¤éé˜»å¡æ¨¡å¼
 	ListenSocket(int port=-1, BlockMode block_mode=NOBLOCK):Socket(SOCKET_INVALID, port, NULL, block_mode){}
 	virtual ~ListenSocket(){}
 
-	//¿ªÊ¼¼àÌı, ³É¹¦·µ»Ø0, Ê§°Ü·µ»Ø-1;
+	//å¼€å§‹ç›‘å¬, æˆåŠŸè¿”å›0, å¤±è´¥è¿”å›-1;
 	virtual int open();
 	virtual SocketHandle accept_connect();
 };
 
 typedef enum
 {
-	TRANS_OK=0,		//Õı³£
-	TRANS_CLOSE=-1,	//Á´½Ó¹Ø±Õ
-	TRANS_ERROR=-2,	//´íÎó
-	TRANS_NOMEM=-3,	//Ã»ÓĞÄÚ´æ
-	TRANS_PENDING=-4,	//Êı¾İ·¢ËÍ²»³öÈ¥
-	TRANS_BLOCK=-5,   //×èÈûÄ£Ê½
-	TRANS_NODATA=-6,  //ÔİÎŞÊı¾İ
+	TRANS_OK=0,		//æ­£å¸¸
+	TRANS_CLOSE=-1,	//é“¾æ¥å…³é—­
+	TRANS_ERROR=-2,	//é”™è¯¯
+	TRANS_NOMEM=-3,	//æ²¡æœ‰å†…å­˜
+	TRANS_PENDING=-4,	//æ•°æ®å‘é€ä¸å‡ºå»
+	TRANS_BLOCK=-5,   //é˜»å¡æ¨¡å¼
+	TRANS_NODATA=-6,  //æš‚æ— æ•°æ®
 }TransStatus;
 
 ///////////////////////////////////////////////////////////////////////////
@@ -76,47 +76,47 @@ public:
 	TransSocket(const char *ip, int port, BlockMode block_mode=NOBLOCK):Socket(SOCKET_INVALID, port, ip, block_mode){}
 	virtual ~TransSocket(){}
 
-	//ÓÃÓÚÖ÷¶¯Á¬½Ó.³¬Ê±timeout_msºÁÃë(Ä¬ÈÏ2s)Î´Á¬ÉÏµ±×÷Á¬½ÓÊ§°Ü.
-	//³É¹¦·µ»Ø0, Ê§°Ü·µ»Ø-1
+	//ç”¨äºä¸»åŠ¨è¿æ¥.è¶…æ—¶timeout_msæ¯«ç§’(é»˜è®¤2s)æœªè¿ä¸Šå½“ä½œè¿æ¥å¤±è´¥.
+	//æˆåŠŸè¿”å›0, å¤±è´¥è¿”å›-1
     virtual int connect_server(int timeout_ms=2000);
 
-	//³¢ÊÔ½ÓÊÕÖ¸¶¨³¤¶ÈµÄÊı¾İ.
-	//·µ»ØÖµ:
-	//´óÓÚ0:³É¹¦·µ»Ø¶ÁÈ¡µÄ×Ö½ÚÊı(¿ÉÄÜÊÇ²¿·ÖÊı¾İ).
-	//TRANS_CLOSE: Á¬½ÓÕı³£¹Ø±Õ
-	//TRANS_NODATA: Ã»ÓĞÊı¾İ
-	//TRANS_ERROR: Ê§°Ü
+	//å°è¯•æ¥æ”¶æŒ‡å®šé•¿åº¦çš„æ•°æ®.
+	//è¿”å›å€¼:
+	//å¤§äº0:æˆåŠŸè¿”å›è¯»å–çš„å­—èŠ‚æ•°(å¯èƒ½æ˜¯éƒ¨åˆ†æ•°æ®).
+	//TRANS_CLOSE: è¿æ¥æ­£å¸¸å…³é—­
+	//TRANS_NODATA: æ²¡æœ‰æ•°æ®
+	//TRANS_ERROR: å¤±è´¥
 	virtual int recv_data(char *buffer, int len);
 
-	//·¢ËÍÖ¸¶¨³¤¶ÈµÄÊı¾İ(È«²¿·¢ËÍ)
-	//·µ»ØÖµ:
-	//´óÓÚ0: ·¢ËÍµÄ×Ö½ÚÊı
-	//TRANS_ERROR: Ê§°Ü
+	//å‘é€æŒ‡å®šé•¿åº¦çš„æ•°æ®(å…¨éƒ¨å‘é€)
+	//è¿”å›å€¼:
+	//å¤§äº0: å‘é€çš„å­—èŠ‚æ•°
+	//TRANS_ERROR: å¤±è´¥
 	virtual int send_data(char *buffer, int len);
 
-	//»ñÈ¡ÊäÈë»º³åÇø
+	//è·å–è¾“å…¥ç¼“å†²åŒº
 	IOBuffer* get_recv_buffer(){return &m_recv_buffer;}
-	//»ñÈ¡Êä³ö»º³åÇø
+	//è·å–è¾“å‡ºç¼“å†²åŒº
 	IOBuffer* get_send_buffer(){return &m_send_buffer;}
 	
-	//½ÓÊÕËùÓĞÊı¾İµ½ÊäÈë»º³åÇø.!!!***½öÓÃÓÚ·Ç×èÈûÄ£Ê½***!!!
-	//·µ»ØÖµ:
-	//TRANS_OK:³É¹¦
-	//TRANS_NOMEM: Ã»ÓĞÄÚ´æ
-	//TRANS_ERROR: ´íÎó
-	//TRANS_CLOSE: ¶Ô¶Ë¹Ø±ÕÁ´½Ó
-	//TRANS_BLOCK: µ±Ç°ÊÇ×èÈûÄ£Ê½
+	//æ¥æ”¶æ‰€æœ‰æ•°æ®åˆ°è¾“å…¥ç¼“å†²åŒº.!!!***ä»…ç”¨äºéé˜»å¡æ¨¡å¼***!!!
+	//è¿”å›å€¼:
+	//TRANS_OK:æˆåŠŸ
+	//TRANS_NOMEM: æ²¡æœ‰å†…å­˜
+	//TRANS_ERROR: é”™è¯¯
+	//TRANS_CLOSE: å¯¹ç«¯å…³é—­é“¾æ¥
+	//TRANS_BLOCK: å½“å‰æ˜¯é˜»å¡æ¨¡å¼
 	TransStatus recv_buffer();
 
-	//³¢ÊÔ·¢ËÍÊä³ö»º³åÇøÖĞµÄËùÓĞÊı¾İ,Ö±µ½·¢ËÍÍê³É»òÕß·¢ËÍ²»³öÈ¥.
-	//·µ»ØÖµ:
-	//TRANS_OK:³É¹¦
-	//TRANS_PENDING: Ö»·¢ËÍ²¿·ÖÊı¾İ,»º³åÇø»¹ÓĞÊı¾İ´ı·¢ËÍ
-	//TRANS_ERROR: ´íÎó
+	//å°è¯•å‘é€è¾“å‡ºç¼“å†²åŒºä¸­çš„æ‰€æœ‰æ•°æ®,ç›´åˆ°å‘é€å®Œæˆæˆ–è€…å‘é€ä¸å‡ºå».
+	//è¿”å›å€¼:
+	//TRANS_OK:æˆåŠŸ
+	//TRANS_PENDING: åªå‘é€éƒ¨åˆ†æ•°æ®,ç¼“å†²åŒºè¿˜æœ‰æ•°æ®å¾…å‘é€
+	//TRANS_ERROR: é”™è¯¯
 	TransStatus send_buffer();
 
 protected:
-    virtual int init_active_socket(); //³õÊ¼»¯Ö÷¶¯Á¬½Ó, ³É¹¦·µ»Ø0, Ê§°Ü·µ»Ø-1
+    virtual int init_active_socket(); //åˆå§‹åŒ–ä¸»åŠ¨è¿æ¥, æˆåŠŸè¿”å›0, å¤±è´¥è¿”å›-1
 private:
 	IOBuffer m_recv_buffer;
 	IOBuffer m_send_buffer;

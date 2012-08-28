@@ -16,12 +16,12 @@ typedef map<SocketHandle, queue<Protocol*> > SendTaskMap;
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////                                            ////////
-////////               SocketMnagerÀà               ////////
+////////               SocketMnagerç±»               ////////
 ////////                                            ////////
-////////          1.´´½¨Ö÷¶¯Á¬½Ó                    ////////
-////////          2.¼àÌı·şÎñÆ÷¶Ë¿Ú                  //////// 
-////////          3.Ìá¹©Ó¦ÓÃ²ãĞ­ÒéÊı¾İ·¢ËÍ½ÓÊÕ      ////////
-////////          4.Í¨ÖªÓ¦ÓÃ²ãÁ´½Ó³¬Ê±/³ö´í×´Ì¬     //////// 
+////////          1.åˆ›å»ºä¸»åŠ¨è¿æ¥                    ////////
+////////          2.ç›‘å¬æœåŠ¡å™¨ç«¯å£                  //////// 
+////////          3.æä¾›åº”ç”¨å±‚åè®®æ•°æ®å‘é€æ¥æ”¶      ////////
+////////          4.é€šçŸ¥åº”ç”¨å±‚é“¾æ¥è¶…æ—¶/å‡ºé”™çŠ¶æ€     //////// 
 ////////                                            ////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
@@ -31,87 +31,87 @@ public:
     SocketManager(BlockMode block_mode=NOBLOCK);
     virtual ~SocketManager();
 private:
-    BlockMode m_block_mode;             //Á¬½ÓµÄ×èÈûÄ£Ê½
+    BlockMode m_block_mode;             //è¿æ¥çš„é˜»å¡æ¨¡å¼
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
-//////////       Á´½Ó´´½¨´¦Àí         //////////
+//////////       é“¾æ¥åˆ›å»ºå¤„ç†         //////////
 //////////                            //////////
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 public:
-    //¼àÌıÄ³¸ö¶Ë¿Ú, ³É¹¦·µ»Ø0, Ê§°Ü·µ»Ø-1;
+    //ç›‘å¬æŸä¸ªç«¯å£, æˆåŠŸè¿”å›0, å¤±è´¥è¿”å›-1;
     int listen(int port);
-    //´´½¨Ö÷¶¯´«ÊäÁ¬½Ó
+    //åˆ›å»ºä¸»åŠ¨ä¼ è¾“è¿æ¥
     virtual SocketHandle create_active_trans_socket(const char *ip, int port);
 
-    //Ìí¼Ó±»¶¯´«ÊäÁ¬½Ó(Ö÷ÒªÓÉ¿ò¼Üµ÷ÓÃ)
+    //æ·»åŠ è¢«åŠ¨ä¼ è¾“è¿æ¥(ä¸»è¦ç”±æ¡†æ¶è°ƒç”¨)
     virtual int add_passive_trans_socket(const char *peer_ip, SocketHandle socket_handle);
-    //É¾³ı(Ö÷/±»¶¯)´«ÊäÁ¬½Ó,È¡Ïûµô¶ÂÈûÔÚÆä¶ÓÁĞÉÏµÄĞ­Òé,Í¬Ê±Í¨ÖªÓ¦ÓÃ²ã(Ö÷ÒªÓÉ¿ò¼Üµ÷ÓÃ)
+    //åˆ é™¤(ä¸»/è¢«åŠ¨)ä¼ è¾“è¿æ¥,å–æ¶ˆæ‰å µå¡åœ¨å…¶é˜Ÿåˆ—ä¸Šçš„åè®®,åŒæ—¶é€šçŸ¥åº”ç”¨å±‚(ä¸»è¦ç”±æ¡†æ¶è°ƒç”¨)
     virtual int delete_trans_socket(SocketHandle socket_handle);
-    //²éÕÒ¼àÌıÁ¬½Ó(Ö÷ÒªÓÉ¿ò¼Üµ÷ÓÃ)
+    //æŸ¥æ‰¾ç›‘å¬è¿æ¥(ä¸»è¦ç”±æ¡†æ¶è°ƒç”¨)
     virtual Socket* find_listen_socket(SocketHandle socket_handle);
-    //²éÕÒ(Ö÷/±»¶¯)´«ÊäÁ¬½Ó.(Ö÷ÒªÓÉ¿ò¼Üµ÷ÓÃ)
+    //æŸ¥æ‰¾(ä¸»/è¢«åŠ¨)ä¼ è¾“è¿æ¥.(ä¸»è¦ç”±æ¡†æ¶è°ƒç”¨)
     virtual Socket* find_trans_socket(SocketHandle socket_handle);
 protected:
-    virtual Socket* new_listen_socket();         //´´½¨¾ßÌåµÄlisten socket
-    virtual EventHandler* new_listen_handler();  //´´½¨¾ßÌåµÄlisten handler
-    virtual Socket* new_trans_socket();          //´´½¨¾ßÌåµÄtrans socket
-    virtual EventHandler* new_trans_handler();   //´´½¨¾ßÌåµÄtrans handler
-	virtual int init_passive_trans_socket(SocketHandle socket_handle, BlockMode block_mode); //¶ÔÌí¼ÓµÄtrans socket½øĞĞ±ØÒªµÄ³õÊ¼»¯
+    virtual Socket* new_listen_socket();         //åˆ›å»ºå…·ä½“çš„listen socket
+    virtual EventHandler* new_listen_handler();  //åˆ›å»ºå…·ä½“çš„listen handler
+    virtual Socket* new_trans_socket();          //åˆ›å»ºå…·ä½“çš„trans socket
+    virtual EventHandler* new_trans_handler();   //åˆ›å»ºå…·ä½“çš„trans handler
+	virtual int init_passive_trans_socket(SocketHandle socket_handle, BlockMode block_mode); //å¯¹æ·»åŠ çš„trans socketè¿›è¡Œå¿…è¦çš„åˆå§‹åŒ–
 private:
-    ListenSocket *m_listen_socket;   //¼àÌısocket
-	EventHandler *m_listen_handler;  //¼àÌıhandler
-	SocketMap m_trans_sockets_map;   //´«Êäsocket
-	EventHandler *m_trans_handler;   //´«Êähandler
+    ListenSocket *m_listen_socket;   //ç›‘å¬socket
+	EventHandler *m_listen_handler;  //ç›‘å¬handler
+	SocketMap m_trans_sockets_map;   //ä¼ è¾“socket
+	EventHandler *m_trans_handler;   //ä¼ è¾“handler
 
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
-//////////       Ğ­Òé·¢ËÍ´¦Àí         //////////
+//////////       åè®®å‘é€å¤„ç†         //////////
 //////////                            //////////
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 public:
-	//Ìí¼ÓĞ­Òéµ½·¢ËÍ¶ÓÁĞ.³É¹¦·µ»Ø0.Ê§°Ü·µ»Ø-1,ĞèÒª×ÔĞĞ´¦Àíprotocol.
+	//æ·»åŠ åè®®åˆ°å‘é€é˜Ÿåˆ—.æˆåŠŸè¿”å›0.å¤±è´¥è¿”å›-1,éœ€è¦è‡ªè¡Œå¤„ç†protocol.
     virtual int send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp);
-	//»ñÈ¡µÈ´ı¶ÓÁĞÖĞ´ı·¢ËÍµÄĞ­Òé
+	//è·å–ç­‰å¾…é˜Ÿåˆ—ä¸­å¾…å‘é€çš„åè®®
     virtual Protocol* get_wait_to_send_protocol(SocketHandle socket_handle);
-    //»ñÈ¡µÈ´ı¶ÓÁĞÖĞ´ı·¢ËÍµÄĞ­Òé¸öÊı
+    //è·å–ç­‰å¾…é˜Ÿåˆ—ä¸­å¾…å‘é€çš„åè®®ä¸ªæ•°
     virtual int get_wait_to_send_protocol_number(SocketHandle socket_handle);
-    //È¡ÏûËùÓĞ´ı·¢ËÍĞ­Òé,Í¬Ê±µ÷ÓÃon_protocol_send_errorÍ¨ÖªÓ¦ÓÃ²ã
+    //å–æ¶ˆæ‰€æœ‰å¾…å‘é€åè®®,åŒæ—¶è°ƒç”¨on_protocol_send_erroré€šçŸ¥åº”ç”¨å±‚
     virtual int cancal_wait_to_send_protocol(SocketHandle socket_handle);
 private:
-    //´ı·¢ËÍµÄĞ­Òé¶ÓÁĞ
+    //å¾…å‘é€çš„åè®®é˜Ÿåˆ—
     SendTaskMap m_send_tasks_map;
 
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
-//////////   Ó¦ÓÃ²ãÖØĞ´ÊÂ¼şÏìÓ¦º¯Êı   //////////
+//////////   åº”ç”¨å±‚é‡å†™äº‹ä»¶å“åº”å‡½æ•°   //////////
 //////////                            //////////
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 public:
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ ½ÓÊÕĞ­Òéº¯Êı//////////////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ æ¥æ”¶åè®®å‡½æ•°//////////////////
     virtual int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)=0;
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Ğ­Òé·¢ËÍ´íÎó´¦Àíº¯Êı//////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ åè®®å‘é€é”™è¯¯å¤„ç†å‡½æ•°//////////
 	virtual int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)=0;
-	//////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Ğ­Òé·¢ËÍ³É¹¦´¦Àíº¯Êı//////////
+	//////////////////ç”±åº”ç”¨å±‚é‡å†™ åè®®å‘é€æˆåŠŸå¤„ç†å‡½æ•°//////////
 	virtual int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)=0;
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Á¬½Ó´íÎó´¦Àíº¯Êı//////////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ è¿æ¥é”™è¯¯å¤„ç†å‡½æ•°//////////////
     virtual int on_socket_handle_error(SocketHandle socket_handle)=0;
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Á¬½Ó³¬Ê±´¦Àíº¯Êı//////////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ è¿æ¥è¶…æ—¶å¤„ç†å‡½æ•°//////////////
     virtual int on_socket_handle_timeout(SocketHandle socket_handle)=0;
-	//////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ ÊÕµ½Ò»¸öĞÂµÄÁ¬½ÓÇëÇó////////
+	//////////////////ç”±åº”ç”¨å±‚é‡å†™ æ”¶åˆ°ä¸€ä¸ªæ–°çš„è¿æ¥è¯·æ±‚////////
 	virtual int on_socket_handler_accpet(SocketHandle socket_handle){return 0;}
 
-	//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄio¸´ÓÃ
+	//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„ioå¤ç”¨
 	virtual IODemuxer* get_io_demuxer()=0;
-	//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄĞ­Òé×å
+	//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„åè®®æ—
 	virtual ProtocolFamily* get_protocol_family()=0;
 };
 

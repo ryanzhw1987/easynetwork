@@ -1,9 +1,9 @@
 #ifndef _LIB_PROTOCOL_TYPE_H_20120728_LIUYONGJIN
 #define _LIB_PROTOCOL_TYPE_H_20120728_LIUYONGJIN
 
-//协议类型
+//鍗忚绫诲瀷
 typedef int ProtocolType;
 const ProtocolType PROTOCOL_INVALID = -1;
-const ProtocolType PROTOCOL_SIMPLE = 0;   //简单的协议
+const ProtocolType PROTOCOL_SIMPLE = 0;   //绠�鍗曠殑鍗忚
 
 #endif

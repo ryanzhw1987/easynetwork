@@ -21,8 +21,8 @@ private:
 	IODemuxer *m_demuxer;
 };
 
-//应用程序框架
-//重写父类成员函数recv_protocol,实现业务层逻辑
+//搴旂敤绋嬪簭妗嗘灦
+//閲嶅啓鐖剁被鎴愬憳鍑芥暟recv_protocol,瀹炵幇涓氬姟灞傞�昏緫
 class AppFramework: public SocketManager
 {
 public:
@@ -34,7 +34,7 @@ public:
 		return 0;
 	}
 
-    //重写父类函数,实现业务层逻辑
+    //閲嶅啓鐖剁被鍑芥暟,瀹炵幇涓氬姟灞傞�昏緫
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
 	{
 		DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
@@ -89,14 +89,14 @@ public:
     	return 0;
     }
 
-	//应用层所使用的io复用
+	//搴旂敤灞傛墍浣跨敤鐨刬o澶嶇敤
 	IODemuxer* get_io_demuxer()
 	{
 		static EpollDemuxer epoll_demuxer;
 		return &epoll_demuxer;
 	}
 
-	//应用层所使用的协议族
+	//搴旂敤灞傛墍浣跨敤鐨勫崗璁棌
 	ProtocolFamily* get_protocol_family()
 	{
 		static DefaultProtocolFamily default_protocol_family;

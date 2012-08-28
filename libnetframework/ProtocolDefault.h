@@ -6,22 +6,22 @@
 
 #include "MemManager.h"
 
-/**************************** ¿ò¼ÜÌá¹©µÄĞ­ÒéµÄÊµÏÖ **************************/
+/**************************** æ¡†æ¶æä¾›çš„åè®®çš„å®ç° **************************/
 
 ///////////////////////////////////  DefaultHeader  ///////////////////////////////////
-//Ğ­ÒéÍ·µÄmaigc number
+//åè®®å¤´çš„maigc number
 #define MAGIC_NUM	0X1F0696D9 //int:520525529
 #define VERSION		1
 
 class DefaultHeader:public ProtocolHeader
 {
-public: //ÊµÏÖ¸¸Ààº¯Êı 
+public: //å®ç°çˆ¶ç±»å‡½æ•° 
     virtual int get_header_size(){return sizeof(m_magic_num)+sizeof(m_version)+sizeof(m_body_size)+sizeof(m_type);	}
     virtual int get_body_size(){	return m_body_size;	}
 
-   //°üÍ·±àÂë.³É¹¦·µ»Ø0. ·ñÔò·µ»Ø-1.
+   //åŒ…å¤´ç¼–ç .æˆåŠŸè¿”å›0. å¦åˆ™è¿”å›-1.
     virtual int encode(char *buf, int buf_size);
-    //°üÍ·½âÂë.³É¹¦·µ»Ø0,Ê§°Ü·µ»Ø-1.
+    //åŒ…å¤´è§£ç .æˆåŠŸè¿”å›0,å¤±è´¥è¿”å›-1.
     virtual int decode(const char *buf, int buf_size);
 
 public:
@@ -53,12 +53,12 @@ public:
 
 	ProtocolType get_type(){return m_type;}
 
-	//³É¹¦·µ»Ø0, Ê§°Ü·µ»Ø-1;
+	//æˆåŠŸè¿”å›0, å¤±è´¥è¿”å›-1;
 	virtual int decode(const char* buf, int buf_size)=0;
 
-	//±àÂëĞ­ÒéÌåÊı¾İµ½io_buffer:
-	//³É¹¦·µ»Ø±àÂëºóµÄ³¤¶È(´óÓÚ0)
-	//Ê§°Ü·µ»Ø-1, io_bufferÃ»ÓĞ±ä»¯.(Ğ­ÒéÌå±àÂëºó³¤¶ÈÎª0Ê±,µ±×÷Ê§°Ü´¦Àí,Ò²·µ»Ø-1);
+	//ç¼–ç åè®®ä½“æ•°æ®åˆ°io_buffer:
+	//æˆåŠŸè¿”å›ç¼–ç åçš„é•¿åº¦(å¤§äº0)
+	//å¤±è´¥è¿”å›-1, io_bufferæ²¡æœ‰å˜åŒ–.(åè®®ä½“ç¼–ç åé•¿åº¦ä¸º0æ—¶,å½“ä½œå¤±è´¥å¤„ç†,ä¹Ÿè¿”å›-1);
 	virtual int encode(IOBuffer *io_buffer)=0;
 private:
 	int m_type;	
@@ -67,23 +67,23 @@ private:
 class DefaultProtocol: public Protocol
 {
 ///////////////////////////////////////////////
-///////      »ùÀà´¿Ğéº¯Êı             /////////
+///////      åŸºç±»çº¯è™šå‡½æ•°             /////////
 ///////////////////////////////////////////////
 public:
-	//Ğ­Òé±àÂë,³É¹¦·µ»Ø0; ·ñÔò·µ»Ø-1;
+	//åè®®ç¼–ç ,æˆåŠŸè¿”å›0; å¦åˆ™è¿”å›-1;
 	virtual int encode(IOBuffer *io_buffer);
-    //»ñÈ¡Ğ­ÒéÍ·´óĞ¡
+    //è·å–åè®®å¤´å¤§å°
     virtual int get_header_size(){return m_header->get_header_size();}
-	//½âÂëĞ­ÒéÍ·.³É¹¦·µ»Øbody_sizeµÄ´óĞ¡.·ñÔò·µ»Ø-1
+	//è§£ç åè®®å¤´.æˆåŠŸè¿”å›body_sizeçš„å¤§å°.å¦åˆ™è¿”å›-1
     virtual int decode_header(const char* buf, int buf_size){return m_header->decode(buf, buf_size);}
 
-	//»ñÈ¡Ğ­ÒéÌå³¤¶È.
+	//è·å–åè®®ä½“é•¿åº¦.
     virtual int get_body_size(){return m_header->get_body_size();}
-    //½âÂë°üÌå.³É¹¦·µ»Ø0,·ñÔò·µ»Ø-1;
+    //è§£ç åŒ…ä½“.æˆåŠŸè¿”å›0,å¦åˆ™è¿”å›-1;
     virtual int decode_body(const char* buf, int buf_size);
 
 ///////////////////////////////////////////////
-///////      ±¾Ğ­Òé³ÉÔ±º¯Êı           /////////
+///////      æœ¬åè®®æˆå‘˜å‡½æ•°           /////////
 ///////////////////////////////////////////////
 public:
 	DefaultProtocol()
@@ -101,7 +101,7 @@ public:
 		m_body = NULL;
 	}
 
-	//»ñÈ¡Ğ­ÒéÀàĞÍ
+	//è·å–åè®®ç±»å‹
 	ProtocolType get_type(){return m_header->get_type();}
 	Command* get_cmd(){return m_body;}
 	Command* attach_cmd(Command *cmd)
@@ -124,7 +124,7 @@ protected:
 	virtual void destory_header(DefaultHeader* header){g_DefaultHeader_MemCache.Free(header);}
 private:
 	DefaultHeader *m_header;
-	Command *m_body; //¾ßÌåµÄĞ­ÒéÌå;
+	Command *m_body; //å…·ä½“çš„åè®®ä½“;
 };
 
 class DefaultProtocolFamily:public ProtocolFamily
@@ -154,8 +154,8 @@ public:
 
 
 //////////////////////////////////////////////////////
-//¾ßÌåCommandÊµÏÖ                                   //
-//±ØĞëÊµÏÖdecodeºÍencode!!!                         //
+//å…·ä½“Commandå®ç°                                   //
+//å¿…é¡»å®ç°decodeå’Œencode!!!                         //
 //1. SimpleCmd                                      //
 //2.                                                //
 //3.                                                //
@@ -163,16 +163,16 @@ public:
 //5.                                                //
 //////////////////////////////////////////////////////
 
-//¼òµ¥µÄĞ­Òé.Ö±½Ó´«ËÍbufÊı¾İ
+//ç®€å•çš„åè®®.ç›´æ¥ä¼ é€bufæ•°æ®
 class SimpleCmd:public Command
 {
-public://ÊµÏÖ¸¸Ààº¯Êı
-   //³É¹¦·µ»Ø0, Ê§°Ü·µ»Ø-1;
+public://å®ç°çˆ¶ç±»å‡½æ•°
+   //æˆåŠŸè¿”å›0, å¤±è´¥è¿”å›-1;
 	int decode(const char* buf, int buf_size);
 
-	//±àÂëĞ­ÒéÌå: ´Óencode_bufÆ«ÒÆoffset¿ªÊ¼·ÅÖÃĞ­ÒéÌåÊı¾İ.
-    //³É¹¦·µ»Ø0:  ±àÂëºóencode_bufµÄ´óĞ¡ÎªĞ­ÒéÌå³¤¶ÈÓëoffsetÖ®ºÍ.
-    //Ê§°Ü·µ»Ø-1: encode_bufÎŞĞ§
+	//ç¼–ç åè®®ä½“: ä»encode_bufåç§»offsetå¼€å§‹æ”¾ç½®åè®®ä½“æ•°æ®.
+    //æˆåŠŸè¿”å›0:  ç¼–ç åencode_bufçš„å¤§å°ä¸ºåè®®ä½“é•¿åº¦ä¸offsetä¹‹å’Œ.
+    //å¤±è´¥è¿”å›-1: encode_bufæ— æ•ˆ
 	int encode(IOBuffer *io_buffer);
 
 public:

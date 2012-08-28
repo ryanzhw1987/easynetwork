@@ -8,7 +8,7 @@
 
 #include "slog.h"
 
-//Ê¹ÓÃsocketÀ´·¢ËÍÊı¾İ
+//ä½¿ç”¨socketæ¥å‘é€æ•°æ®
 void test_socket()
 {
     SLOG_DEBUG("1. test socket.....");
@@ -21,7 +21,7 @@ void test_socket()
     sprintf(buf, "hello, my socket.");
 	len = strlen(buf)+1;
 
-	//1.·¢ËÍ
+	//1.å‘é€
 	SimpleCmd simple_cmd;
 	simple_cmd.set_data(buf, len);
 	DefaultProtocol protocol;
@@ -32,7 +32,7 @@ void test_socket()
     client_socket.send_data(encode_buf.get_buffer(), encode_buf.get_size());
 	protocol.detach_cmd();
 	
-	//2. ½ÓÊÕ
+	//2. æ¥æ”¶
 	int header_size = protocol.get_header_size();
 	int ret = client_socket.recv_data(buf, header_size);
 	if(ret == header_size)
@@ -60,9 +60,9 @@ void test_socket()
 }
 
 
-//Ê¹ÓÃ¿ò¼ÜÀ´·¢ËÍÊı¾İ
-//Ó¦ÓÃ³ÌĞò¿ò¼Ü
-//ÖØĞ´¸¸Àà³ÉÔ±º¯Êırecv_protocol,ÊµÏÖÒµÎñ²ãÂß¼­
+//ä½¿ç”¨æ¡†æ¶æ¥å‘é€æ•°æ®
+//åº”ç”¨ç¨‹åºæ¡†æ¶
+//é‡å†™çˆ¶ç±»æˆå‘˜å‡½æ•°recv_protocol,å®ç°ä¸šåŠ¡å±‚é€»è¾‘
 class AppFramework: public SocketManager
 {
 public:
@@ -74,7 +74,7 @@ public:
 		return 0;
 	}
 
-    //ÖØĞ´¸¸Ààº¯Êı,ÊµÏÖÒµÎñ²ãÂß¼­
+    //é‡å†™çˆ¶ç±»å‡½æ•°,å®ç°ä¸šåŠ¡å±‚é€»è¾‘
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
 	{
 		DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
@@ -122,14 +122,14 @@ public:
     	return 0;
     }
 
-	//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄio¸´ÓÃ
+	//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„ioå¤ç”¨
 	IODemuxer* get_io_demuxer()
 	{
 		static EpollDemuxer epoll_demuxer;
 		return &epoll_demuxer;
 	}
 
-	//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄĞ­Òé×å
+	//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„åè®®æ—
 	ProtocolFamily* get_protocol_family()
 	{
 		static DefaultProtocolFamily default_protocol_family;
@@ -141,8 +141,8 @@ void test_socket_manager()
 {
     SLOG_DEBUG("2. test framework......");
 
-	AppFramework app_framework;  //Òì²½
-    SocketHandle socket_handle = app_framework.create_active_trans_socket("127.0.0.1", 3010);  //´´½¨Ö÷¶¯Á¬½Ó
+	AppFramework app_framework;  //å¼‚æ­¥
+    SocketHandle socket_handle = app_framework.create_active_trans_socket("127.0.0.1", 3010);  //åˆ›å»ºä¸»åŠ¨è¿æ¥
     if(socket_handle == HANDLE_INVALID)
         return;
 
@@ -165,8 +165,8 @@ int main()
 {
 	SLOG_INIT(SLOG_LEVEL_DEBUG, NULL, 0);
 	
-	test_socket(); //Ê¹ÓÃsocketºÍprotocolÀ´·¢ËÍÊı¾İ
-	test_socket_manager();  //Ê¹ÓÃ¿ò¼ÜÀ´·¢ËÍÊı¾İ
+	test_socket(); //ä½¿ç”¨socketå’Œprotocolæ¥å‘é€æ•°æ®
+	test_socket_manager();  //ä½¿ç”¨æ¡†æ¶æ¥å‘é€æ•°æ®
 	
 	SLOG_UNINIT();
 	return 0;
