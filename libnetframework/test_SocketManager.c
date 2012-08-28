@@ -28,13 +28,13 @@ class AppFramework: public SocketManager
 public:
 	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
 	{
-	    DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily*)get_protocol_family();
+		DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily*)get_protocol_family();
 		DefaultProtocol *protocol = (DefaultProtocol*)protocol_family->create_protocol(cmd);
 		send_protocol(socket_handle, protocol, has_resp);
 		return 0;
 	}
 
-    //重写父类函数,实现业务层逻辑
+	//重写父类函数,实现业务层逻辑
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
 	{
 		DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
@@ -64,30 +64,30 @@ public:
 	}
 
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
-    {
-    	SLOG_ERROR("app send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
-    	delete protocol;
-    	return 0;
-    }
+	{
+		SLOG_ERROR("app send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
+		delete protocol;
+		return 0;
+	}
 
-    int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
-    {
-    	SLOG_DEBUG("app send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
-    	delete protocol;
-    	return 0;
-    }
+	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
+	{
+		SLOG_DEBUG("app send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
+		delete protocol;
+		return 0;
+	}
 
-    int on_socket_handle_error(SocketHandle socket_handle)
-    {
-    	SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
-    	return 0;
-    }
+	int on_socket_handle_error(SocketHandle socket_handle)
+	{
+		SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
+		return 0;
+	}
 
-    int on_socket_handle_timeout(SocketHandle socket_handle)
-    {
-    	SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
-    	return 0;
-    }
+	int on_socket_handle_timeout(SocketHandle socket_handle)
+	{
+		SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
+		return 0;
+	}
 
 	//应用层所使用的io复用
 	IODemuxer* get_io_demuxer()
@@ -114,7 +114,7 @@ int main()
 	
 	if(socket_manager->listen(3010) == -1)
 	{
-	    return -1;
+		return -1;
 	}
 
 	IODemuxer *io_demuxer = app_framework.get_io_demuxer();
