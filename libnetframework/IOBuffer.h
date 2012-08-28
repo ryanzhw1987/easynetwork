@@ -6,15 +6,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define BUFFER_SIZE 1024  //»º³åÇø³õÊ¼»¯´óĞ¡Îª1k
-#define MAX_BUFFER_SIZE 10*1024*1024   //»º³åÇø×î´ó10M
+#define BUFFER_SIZE 1024  //ç¼“å†²åŒºåˆå§‹åŒ–å¤§å°ä¸º1k
+#define MAX_BUFFER_SIZE 10*1024*1024   //ç¼“å†²åŒºæœ€å¤§10M
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 ///////                                                             ///////
-///////                 IOBufferÓÃÓÚ¶ÁĞ´µÄ»º³åÇø                    ///////
-///////       µ±¿Õ¼ä²»¹»Ê±,»á°´2±¶´óĞ¡À©Õ¹,Ö±µ½ÓĞ×ã¹»´óµÄ¿Õ¼ä       ///////
-///////       »òÕß´ïµ½×î´óÖµ.                                       ///////
+///////                 IOBufferç”¨äºè¯»å†™çš„ç¼“å†²åŒº                    ///////
+///////       å½“ç©ºé—´ä¸å¤Ÿæ—¶,ä¼šæŒ‰2å€å¤§å°æ‰©å±•,ç›´åˆ°æœ‰è¶³å¤Ÿå¤§çš„ç©ºé—´       ///////
+///////       æˆ–è€…è¾¾åˆ°æœ€å¤§å€¼.                                       ///////
 ///////                                                             ///////
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -41,28 +41,28 @@ public:
         m_buffer_size = m_data_size = 0;
     }
 
-    //¿ªÊ¼Ğ´, »ñÈ¡Ò»¸ö´óĞ¡ÎªsizeµÄ»º³åÓÃÓÚĞ´, ³É¹¦·µ»Ø¿ÉĞ´µÄ»º³åÇø, Ê§°Ü·µ»ØNULL,±íÊ¾Ã»ÓĞ×ã¹»ÄÚ´æ
+    //å¼€å§‹å†™, è·å–ä¸€ä¸ªå¤§å°ä¸ºsizeçš„ç¼“å†²ç”¨äºå†™, æˆåŠŸè¿”å›å¯å†™çš„ç¼“å†²åŒº, å¤±è´¥è¿”å›NULL,è¡¨ç¤ºæ²¡æœ‰è¶³å¤Ÿå†…å­˜
     char* write_begin(unsigned int size)
     {
-        unsigned int empty  = m_buffer_size-m_data_size; //»º³åÇø×ÜµÄÊ£Óà¿Õ¼ä
-        unsigned int offset = m_data-m_buffer;           //»º³åÇøÇ°¶ËÊ£Óà¿Õ¼ä
-        unsigned int last   = empty-offset;              //»º³åÇøºó¶ËÊ£Óà¿Õ¼ä
-        if(last >= size) //»º³åÇøºó¶ËµÄ¿Õ¼ä×ã¹»
+        unsigned int empty  = m_buffer_size-m_data_size; //ç¼“å†²åŒºæ€»çš„å‰©ä½™ç©ºé—´
+        unsigned int offset = m_data-m_buffer;           //ç¼“å†²åŒºå‰ç«¯å‰©ä½™ç©ºé—´
+        unsigned int last   = empty-offset;              //ç¼“å†²åŒºåç«¯å‰©ä½™ç©ºé—´
+        if(last >= size) //ç¼“å†²åŒºåç«¯çš„ç©ºé—´è¶³å¤Ÿ
             return m_data+m_data_size;
 
-        //ÒÆ¶¯Êı¾İµ½»º³åÈ¥¿ªÊ¼´¦
+        //ç§»åŠ¨æ•°æ®åˆ°ç¼“å†²å»å¼€å§‹å¤„
         memcpy(m_buffer, m_data, m_data_size);
         m_data = m_buffer;
 
-        //×ÜµÄÊ£Óà¿Õ¼ä×ã¹»
+        //æ€»çš„å‰©ä½™ç©ºé—´è¶³å¤Ÿ
         if(empty >= size)  
             return m_data+m_data_size;
 
-        //²»¹»¿Õ¼ä
+        //ä¸å¤Ÿç©ºé—´
         last = m_buffer_size;
         if(last < BUFFER_SIZE)
             last = BUFFER_SIZE;
-        while(last-m_data_size<size && last<MAX_BUFFER_SIZE)  //°´Ô­¿Õ¼ä2±¶À©Õ¹
+        while(last-m_data_size<size && last<MAX_BUFFER_SIZE)  //æŒ‰åŸç©ºé—´2å€æ‰©å±•
             last <<= 1;
         if(last >= MAX_BUFFER_SIZE)
             return NULL;
@@ -78,19 +78,19 @@ public:
         return NULL;
     }
 
-    //Ğ´½áÊø, ÉèÖÃ±¾´ÎĞ´Èë¶àÉÙÊı¾İ, ³É¹¦·µ»Øtrue, Ê§°Ü·µ»Øfalse
+    //å†™ç»“æŸ, è®¾ç½®æœ¬æ¬¡å†™å…¥å¤šå°‘æ•°æ®, æˆåŠŸè¿”å›true, å¤±è´¥è¿”å›false
     bool write_end(unsigned int size)
     {
-        if(m_buffer_size-m_data_size < size)  //±¾´ÎĞ´ÈëµÄ³¤¶È±ÈÊ£Óà¿Õ¼ä»¹¶à, ´íÎó
+        if(m_buffer_size-m_data_size < size)  //æœ¬æ¬¡å†™å…¥çš„é•¿åº¦æ¯”å‰©ä½™ç©ºé—´è¿˜å¤š, é”™è¯¯
             return false;
         m_data_size += size;
         return true;
     }
 
-	//½«Ğ´ÈëµÄÊı¾İ»Ø¹ösize¸ö×Ö½Ú.
-	//·µ»ØÖµ:
-	//true: »Ø¹ö³É¹¦
-	//false: »Ø¹öÊ§°Ü, Êı¾İÃ»ÓĞ±ä»¯
+	//å°†å†™å…¥çš„æ•°æ®å›æ»šsizeä¸ªå­—èŠ‚.
+	//è¿”å›å€¼:
+	//true: å›æ»šæˆåŠŸ
+	//false: å›æ»šå¤±è´¥, æ•°æ®æ²¡æœ‰å˜åŒ–
 	bool write_rollback(unsigned int size)
 	{
 		if(size > m_data_size)
@@ -99,7 +99,7 @@ public:
 		return true;
 	}
 
-    //¿ªÊ¼¶Á, »ñÈ¡ÓÃÓÚ¶ÁµÄ»º³åÇø, size·µ»Ø¿É¶ÁÈ¡»º³åÇøµÄ´óĞ¡.Èç¹ûÃ»ÓĞÊı¾İ¿É¶Á, ·µ»ØNULL.
+    //å¼€å§‹è¯», è·å–ç”¨äºè¯»çš„ç¼“å†²åŒº, sizeè¿”å›å¯è¯»å–ç¼“å†²åŒºçš„å¤§å°.å¦‚æœæ²¡æœ‰æ•°æ®å¯è¯», è¿”å›NULL.
     char* read_begin(unsigned int *size)
     {
         if(m_data_size>0)
@@ -111,10 +111,10 @@ public:
         return NULL;
     }
 
-    //¶Á½áÊø, ÉèÖÃ±¾´Î¶ÁÈ¡¶àÉÙÊı¾İ, ³É¹¦·µ»Øtrue, Ê§°Ü·µ»Øfalse
+    //è¯»ç»“æŸ, è®¾ç½®æœ¬æ¬¡è¯»å–å¤šå°‘æ•°æ®, æˆåŠŸè¿”å›true, å¤±è´¥è¿”å›false
     bool read_end(unsigned int size)
     {
-        if(size > m_data_size) //¶ÁµÄ³¤¶È±ÈÊı¾İ³¤¶È»¹´ó
+        if(size > m_data_size) //è¯»çš„é•¿åº¦æ¯”æ•°æ®é•¿åº¦è¿˜å¤§
             return false;
         m_data+=size;
         m_data_size-=size;
@@ -122,8 +122,8 @@ public:
     }
 
 private:
-    char *m_buffer; //»º³åÇø
-    unsigned int m_buffer_size;  //»º³åÇø´óĞ¡
+    char *m_buffer; //ç¼“å†²åŒº
+    unsigned int m_buffer_size;  //ç¼“å†²åŒºå¤§å°
 
     char *m_data;
     unsigned int m_data_size;
