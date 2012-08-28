@@ -8,16 +8,16 @@
 class ProtocolHeader
 {
 public:    
-    virtual ~ProtocolHeader(){}
+	virtual ~ProtocolHeader(){}
 
-    //返回协议头大小.
-    virtual int get_header_size()=0;
+	//返回协议头大小.
+	virtual int get_header_size()=0;
 	//返回包体长度.
 	virtual int get_body_size()=0;
-    //包头编码.成功返回0. 否则返回-1.
-    virtual int encode(char *buf, int buf_size)=0;
-    //包头解码.成功返回0,失败返回-1.
-    virtual int decode(const char *buf, int buf_size)=0;
+	//包头编码.成功返回0. 否则返回-1.
+	virtual int encode(char *buf, int buf_size)=0;
+	//包头解码.成功返回0,失败返回-1.
+	virtual int decode(const char *buf, int buf_size)=0;
 };
 //sample
 /*
@@ -50,17 +50,17 @@ class Protocol
 public:
 	virtual ~Protocol(){}
 	///////////////////////////////////////// 编码 //////////////////////////
-    //协议编码,成功返回0; 否则返回-1;
+	//协议编码,成功返回0; 否则返回-1;
 	virtual int encode(IOBuffer *io_buffer) = 0;
 	///////////////////////////////////////// 解码 //////////////////////////
-    //获取协议头大小
-    virtual int get_header_size()=0;
-    //解码协议头.否则返回-1
-    virtual int decode_header(const char* buf, int buf_size)=0;
+	//获取协议头大小
+	virtual int get_header_size()=0;
+	//解码协议头.否则返回-1
+	virtual int decode_header(const char* buf, int buf_size)=0;
 	//获取协议体长度.
-    virtual int get_body_size()=0;
-    //解码包体.成功返回0,否则返回-1;
-    virtual int decode_body(const char* buf, int buf_size)=0;
+	virtual int get_body_size()=0;
+	//解码包体.成功返回0,否则返回-1;
+	virtual int decode_body(const char* buf, int buf_size)=0;
 };
 
 //用于创建具体protocol的工厂类
