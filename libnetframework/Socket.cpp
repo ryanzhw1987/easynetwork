@@ -189,7 +189,7 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = inet_addr(m_ip);
 	addr.sin_port = htons(m_port);
-	if(connect(m_socket_handle, (struct sockaddr*)&addr, sizeof(addr)) == -1)                                              
+	if(connect(m_socket_handle, (struct sockaddr*)&addr, sizeof(addr)) == -1)
 	{
 		if(m_block_mode==NOBLOCK && (errno==EINPROGRESS||errno==EINTR))	//非阻塞并且等待建立连接
 		{
