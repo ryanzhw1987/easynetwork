@@ -15,7 +15,7 @@ int ServerAppFramework::send_cmd(SocketHandle socket_handle, Command* cmd, bool 
 	return 0;
 }
 	
-//////////////////由应用层重写 接收协议函数//////////////////
+//////////////////鐢卞簲鐢ㄥ眰閲嶅啓 鎺ユ敹鍗忚鍑芥暟//////////////////
 int ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
 {
 	DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
@@ -70,14 +70,14 @@ int ServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	return 0;
 }
 
-//应用层所使用的io复用
+//搴旂敤灞傛墍浣跨敤鐨刬o澶嶇敤
 IODemuxer* ServerAppFramework::get_io_demuxer()
 {
 	static EpollDemuxer epoll_demuxer;
 	return &epoll_demuxer;
 }
 
-//应用层所使用的协议族
+//搴旂敤灞傛墍浣跨敤鐨勫崗璁棌
 ProtocolFamily* ServerAppFramework::get_protocol_family()
 {
 	static DefaultProtocolFamily default_protocol_family;

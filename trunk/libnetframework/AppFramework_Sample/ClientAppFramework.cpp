@@ -15,7 +15,7 @@ int ClientAppFramework::send_cmd(SocketHandle socket_handle, Command* cmd, bool 
 	return 0;
 }
 
-//////////////////ÓÉÓ¦ÓÃ²ãÖØÐ´ ½ÓÊÕÐ­Òéº¯Êý//////////////////
+//////////////////ç”±åº”ç”¨å±‚é‡å†™ æŽ¥æ”¶åè®®å‡½æ•°//////////////////
 int ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
 {
 	DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
@@ -64,21 +64,21 @@ int ClientAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	return 0;
 }
 
-//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄio¸´ÓÃ
+//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„ioå¤ç”¨
 IODemuxer* ClientAppFramework::get_io_demuxer()
 {
 	static EpollDemuxer epoll_demuxer;
 	return &epoll_demuxer;
 }
 
-//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄÐ­Òé×å
+//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„åè®®æ—
 ProtocolFamily* ClientAppFramework::get_protocol_family()
 {
 	static DefaultProtocolFamily default_protocol_family;
 	return &default_protocol_family;
 }
 
-//////////////////////////////////////////  ·¢ËÍping°ü  /////////////////////////////////
+//////////////////////////////////////////  å‘é€pingåŒ…  /////////////////////////////////
 void PingHandler::register_handler()
 {
 	IODemuxer *io_demuxer = m_app_framework->get_io_demuxer();

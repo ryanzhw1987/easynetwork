@@ -59,12 +59,12 @@ int ListenSocket::open()
 	if(m_socket_handle!=SOCKET_INVALID || m_port<=0)
 		return -1;
 
-	//1. ´´½¨socket
+	//1. åˆ›å»ºsocket
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	if(fd < 0)
 		return -1;
 
-	//2. ÉèÖÃÊôĞÔ
+	//2. è®¾ç½®å±æ€§
 	int flags = fcntl(fd, F_GETFL, 0);
 	if(flags == -1 )
 	{
@@ -94,7 +94,7 @@ int ListenSocket::open()
 		return -1;
 	}
 
-	//3. °ó¶¨µ½¶Ë¿Ú
+	//3. ç»‘å®šåˆ°ç«¯å£
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -106,7 +106,7 @@ int ListenSocket::open()
 		return -1;
 	}
 
-	//4. ¼àÌı¶Ë¿Ú.¼àÌı¶ÓÁĞÖĞµÈ´ıacceptµÄ×î´óÁ¬½ÓÊıÉèÖÃÎªÄ¬ÈÏÖµ
+	//4. ç›‘å¬ç«¯å£.ç›‘å¬é˜Ÿåˆ—ä¸­ç­‰å¾…acceptçš„æœ€å¤§è¿æ¥æ•°è®¾ç½®ä¸ºé»˜è®¤å€¼
 	if(listen(fd, 128) == -1)
 	{
 		SLOG_ERROR("listen failed, errno=%d",errno);
@@ -126,7 +126,7 @@ SocketHandle ListenSocket::accept_connect()
 		fd = accept(m_socket_handle, NULL, 0);
 		if(fd == -1)
 		{
-			if(errno==EAGAIN || errno==EINPROGRESS || errno==EINTR)  //±»ÖĞ¶Ï
+			if(errno==EAGAIN || errno==EINPROGRESS || errno==EINTR)  //è¢«ä¸­æ–­
 				continue;
 			SLOG_ERROR("accept client socket failed. errno=%d", errno);	
 			return SOCKET_INVALID;
@@ -139,7 +139,7 @@ SocketHandle ListenSocket::accept_connect()
 //////////////////////////////////////////////////////////////////////////////
 int TransSocket::init_active_socket()
 {
-	//ÉèÖÃsocketÊôĞÔ
+	//è®¾ç½®socketå±æ€§
 	int flags = fcntl(m_socket_handle, F_GETFL, 0);
 	if(flags == -1 )
 	{
@@ -166,7 +166,7 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 	if(m_socket_handle!=SOCKET_INVALID || strlen(m_ip)<=0 || m_port <=0)
 		return -1;
 
-	//1. ´´½¨socket
+	//1. åˆ›å»ºsocket
 	m_socket_handle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(m_socket_handle < 0)
 	{
@@ -175,7 +175,7 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 		return -1;
 	}
 
-	//2. ³õÊ¼»¯
+	//2. åˆå§‹åŒ–
 	if(init_active_socket() == -1)
 	{
 		SLOG_ERROR("init active socket error. close fd=%d", m_socket_handle);
@@ -184,14 +184,14 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 		return -1;
 	}
 
-	//3. Á¬½Ó
+	//3. è¿æ¥
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = inet_addr(m_ip);
 	addr.sin_port = htons(m_port);
 	if(connect(m_socket_handle, (struct sockaddr*)&addr, sizeof(addr)) == -1)                                              
 	{
-		if(m_block_mode==NOBLOCK && (errno==EINPROGRESS||errno==EINTR))	//·Ç×èÈû²¢ÇÒµÈ´ı½¨Á¢Á¬½Ó
+		if(m_block_mode==NOBLOCK && (errno==EINPROGRESS||errno==EINTR))	//éé˜»å¡å¹¶ä¸”ç­‰å¾…å»ºç«‹è¿æ¥
 		{
 			struct timeval tval;
 			fd_set rset, wset;
@@ -236,19 +236,19 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 	return 0;
 }
 
-//·µ»ØÖµ:
-//´óÓÚ0:³É¹¦·µ»Ø¶ÁÈ¡µÄ×Ö½ÚÊı(¿ÉÄÜÊÇ²¿·ÖÊı¾İ).
-//TRANS_CLOSE: Á¬½ÓÕı³£¹Ø±Õ
-//TRANS_NODATA: Ã»ÓĞÊı¾İ
-//TRANS_ERROR: Ê§°Ü
+//è¿”å›å€¼:
+//å¤§äº0:æˆåŠŸè¿”å›è¯»å–çš„å­—èŠ‚æ•°(å¯èƒ½æ˜¯éƒ¨åˆ†æ•°æ®).
+//TRANS_CLOSE: è¿æ¥æ­£å¸¸å…³é—­
+//TRANS_NODATA: æ²¡æœ‰æ•°æ®
+//TRANS_ERROR: å¤±è´¥
 int TransSocket::recv_data(char *buffer, int len)
 {
 	assert(len>0);
 	assert(buffer!=NULL);
 
 	int ret = 0;
-	int read_size = 0; //ÒÑ¶ÁÊı¾İ´óĞ¡
-	int need_size = 0; //Ê£ÏÂÎ´¶ÁÊı¾İ´óĞ¡
+	int read_size = 0; //å·²è¯»æ•°æ®å¤§å°
+	int need_size = 0; //å‰©ä¸‹æœªè¯»æ•°æ®å¤§å°
 
 	while(read_size<len)
 	{
@@ -256,14 +256,14 @@ int TransSocket::recv_data(char *buffer, int len)
 		ret = recv(m_socket_handle, buffer+read_size, need_size, 0);
 		if(ret > 0)
 			read_size += ret;
-		else if(ret == 0) //¶Ô¶Ë¶Ï¿ªÁ¬½Ó
+		else if(ret == 0) //å¯¹ç«¯æ–­å¼€è¿æ¥
 			return TRANS_CLOSE;
 		else
 		{
 			SLOG_TRACE("receive data return -1. errno=%d",errno);
 			if(errno==EINTR || errno==EWOULDBLOCK || errno==EAGAIN)
 				break;
-			return TRANS_ERROR; 	//Ê§°Ü
+			return TRANS_ERROR; 	//å¤±è´¥
 		}
 	}
 
@@ -294,7 +294,7 @@ int TransSocket::send_data(char *buffer, int len)
 		else
 		{
 			SLOG_TRACE("send_data return -1. errno=%d", errno);
-			if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)  //ÖĞ¶Ï,ÖØÊÔ
+			if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)  //ä¸­æ–­,é‡è¯•
 				continue;
 			return TRANS_ERROR;
 		}
@@ -305,13 +305,13 @@ int TransSocket::send_data(char *buffer, int len)
 }
 
 
-//½ÓÊÕËùÓĞÊı¾İµ½ÊäÈë»º³åÇø. !!!***½öÓÃÓÚ·Ç×èÈûÄ£Ê½***!!!
-//·µ»ØÖµ:
-//TRANS_OK:³É¹¦
-//TRANS_NOMEM: Ã»ÓĞÄÚ´æ
-//TRANS_ERROR: ´íÎó
-//TRANS_CLOSE: ¶Ô¶Ë¹Ø±ÕÁ´½Ó
-//TRANS_BLOCK: µ±Ç°ÊÇ×èÈûÄ£Ê½
+//æ¥æ”¶æ‰€æœ‰æ•°æ®åˆ°è¾“å…¥ç¼“å†²åŒº. !!!***ä»…ç”¨äºéé˜»å¡æ¨¡å¼***!!!
+//è¿”å›å€¼:
+//TRANS_OK:æˆåŠŸ
+//TRANS_NOMEM: æ²¡æœ‰å†…å­˜
+//TRANS_ERROR: é”™è¯¯
+//TRANS_CLOSE: å¯¹ç«¯å…³é—­é“¾æ¥
+//TRANS_BLOCK: å½“å‰æ˜¯é˜»å¡æ¨¡å¼
 TransStatus TransSocket::recv_buffer()
 {
 	if(m_block_mode == BLOCK)
@@ -332,41 +332,41 @@ TransStatus TransSocket::recv_buffer()
 		read_size = recv(m_socket_handle, buffer, read_size, 0);
 		if(read_size < 0)
 		{
-			if(errno == EINTR)  //±»ÖĞ¶Ï,¼ÌĞø¶Á
+			if(errno == EINTR)  //è¢«ä¸­æ–­,ç»§ç»­è¯»
 			{
 				SLOG_TRACE("recv data interupt,continue to read");
 				continue;
 			}
-			else if(errno==EWOULDBLOCK || errno==EAGAIN)  //ÔİÎŞÊı¾İ
+			else if(errno==EWOULDBLOCK || errno==EAGAIN)  //æš‚æ— æ•°æ®
 			{
 				SLOG_TRACE("recv data. no data now");
 				break;
 			}
-			else  //´íÎó
+			else  //é”™è¯¯
 			{
 				SLOG_ERROR("recv data error. errno=%d",errno);
 				return TRANS_ERROR;
 			}
 		}
-		else if(read_size == 0) //¶Ô¶Ë¶Ï¿ªÁ¬½Ó
+		else if(read_size == 0) //å¯¹ç«¯æ–­å¼€è¿æ¥
 		{
 			SLOG_ERROR("client closed the connect gracefully.fd=%d", m_socket_handle);
 			return TRANS_CLOSE;
 		}
 
 		m_recv_buffer.write_end(read_size);
-		if(read_size < 1024) //ÒÑ¾­¶ÁÍêÊı¾İ
+		if(read_size < 1024) //å·²ç»è¯»å®Œæ•°æ®
 			break;
 	}
 
 	return TRANS_OK;
 }
 
-//³¢ÊÔ·¢ËÍÊä³ö»º³åÇøÖĞµÄËùÓĞÊı¾İ,Ö±µ½·¢ËÍÍê³É»òÕß·¢ËÍ²»³öÈ¥.
-//·µ»ØÖµ:
-//TRANS_OK:³É¹¦
-//TRANS_PENDING: Ö»·¢ËÍ²¿·ÖÊı¾İ,»º³åÇø»¹ÓĞÊı¾İ´ı·¢ËÍ
-//TRANS_ERROR: ´íÎó
+//å°è¯•å‘é€è¾“å‡ºç¼“å†²åŒºä¸­çš„æ‰€æœ‰æ•°æ®,ç›´åˆ°å‘é€å®Œæˆæˆ–è€…å‘é€ä¸å‡ºå».
+//è¿”å›å€¼:
+//TRANS_OK:æˆåŠŸ
+//TRANS_PENDING: åªå‘é€éƒ¨åˆ†æ•°æ®,ç¼“å†²åŒºè¿˜æœ‰æ•°æ®å¾…å‘é€
+//TRANS_ERROR: é”™è¯¯
 TransStatus TransSocket::send_buffer()
 {
 	unsigned int size;
@@ -380,16 +380,16 @@ TransStatus TransSocket::send_buffer()
 		{
 			m_send_buffer.read_end(ret);
 			if(ret < size)
-				return TRANS_PENDING;  //Ö»·¢ËÍÁËÒ»²¿·ÖÊı¾İ
+				return TRANS_PENDING;  //åªå‘é€äº†ä¸€éƒ¨åˆ†æ•°æ®
 			else
-				return TRANS_OK;		//È«²¿·¢ËÍ
+				return TRANS_OK;		//å…¨éƒ¨å‘é€
 		}
-		else if(errno == EINTR) //ÖĞ¶ÏÖØÊÔ || errno == EWOULDBLOCK || errno == EAGAIN)  //ÖĞ¶Ï,ÖØÊÔ
+		else if(errno == EINTR) //ä¸­æ–­é‡è¯• || errno == EWOULDBLOCK || errno == EAGAIN)  //ä¸­æ–­,é‡è¯•
 		{
 			SLOG_TRACE("send buffer data interrupted,retry to send.");
 			continue;
 		}
-		else if(errno == EWOULDBLOCK || errno == EAGAIN) //ÔİÊ±·¢ËÍ²»³öÈ¥
+		else if(errno == EWOULDBLOCK || errno == EAGAIN) //æš‚æ—¶å‘é€ä¸å‡ºå»
 		{
 			SLOG_DEBUG("send buffer data pending,return");
 			return TRANS_PENDING;

@@ -14,21 +14,21 @@ using std::list;
 using std::pair;
 using std::make_pair;
 
-//epoll io¶àÂ·¸´ÓÃ
+//epoll ioå¤šè·¯å¤ç”¨
 class EventInfo;
 typedef map<int, EventInfo*> EVENT_MAP;
 
 class EpollDemuxer:public IODemuxer
 {
-public: //ÖØĞ´»ùÀà´¿Ğéº¯Êı
+public: //é‡å†™åŸºç±»çº¯è™šå‡½æ•°
     int register_event(int fd, EVENT_TYPE type, int timeout_ms, EventHandler *handler);
 	int unregister_event(int fd);
 	int run_loop();
     void exit();
 public:
 
-    //max_events: ×î¶à¼àÌıµÄÊÂ¼şÊı
-    //et_mode:ÊÇ·ñÊ¹ÓÃETÄ£Ê½. 1Ê¹ÓÃETÄ£Ê½. 0Ê¹ÓÃLTÄ£Ê½;
+    //max_events: æœ€å¤šç›‘å¬çš„äº‹ä»¶æ•°
+    //et_mode:æ˜¯å¦ä½¿ç”¨ETæ¨¡å¼. 1ä½¿ç”¨ETæ¨¡å¼. 0ä½¿ç”¨LTæ¨¡å¼;
 	EpollDemuxer(unsigned int max_events=4096, unsigned int et_mode=1);
 	~EpollDemuxer();
 private:
@@ -40,7 +40,7 @@ private:
 	vector<EventInfo *> m_free_event_info;
 	EVENT_MAP m_using_event_info;
 
-	list<EventInfo *> m_timer_list;//Ê±ÖÓÊÂ¼ş
+	list<EventInfo *> m_timer_list;//æ—¶é’Ÿäº‹ä»¶
 	vector<EventInfo *> m_free_timer;
 
 	bool m_exit;

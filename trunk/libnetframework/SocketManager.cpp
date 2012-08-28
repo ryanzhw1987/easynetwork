@@ -231,7 +231,7 @@ int SocketManager::add_passive_trans_socket(const char *peer_ip, SocketHandle so
 	{
 		passive_socket = (TransSocket*)new_trans_socket();
 		assert(passive_socket!=NULL && passive_socket->get_handle()==SOCKET_INVALID);
-		//ÏÈ±£´æ/×¢²áÔÙ¸³Öµ, ·ÀÖ¹socket±»¹Ø±Õµô
+		//å…ˆä¿å­˜/æ³¨å†Œå†èµ‹å€¼, é˜²æ­¢socketè¢«å…³é—­æ‰
 		pair<SocketMap::iterator, bool> pair_ret = m_trans_sockets_map.insert(make_pair(socket_handle, passive_socket));
 		if(pair_ret.second == false)
 		{
@@ -248,7 +248,7 @@ int SocketManager::add_passive_trans_socket(const char *peer_ip, SocketHandle so
 			delete passive_socket;
 			return -1;
 		}
-		//´ËÊ±ÔÙ¸³Öµ, ·ÀÖ¹socket±»¹Ø±Õµô
+		//æ­¤æ—¶å†èµ‹å€¼, é˜²æ­¢socketè¢«å…³é—­æ‰
 		passive_socket->assign(socket_handle, -1, peer_ip, m_block_mode);
 		on_socket_handler_accpet(socket_handle);
 	}
@@ -262,7 +262,7 @@ int SocketManager::delete_trans_socket(SocketHandle socket_handle)
 {	
 	SLOG_DEBUG("remove trans socket from socket manager. fd=%d", socket_handle);
 
-	//È¡ÏûËùÓĞfdÉÏÃæµÄ´ø·¢ËÍĞ­Òé
+	//å–æ¶ˆæ‰€æœ‰fdä¸Šé¢çš„å¸¦å‘é€åè®®
 	cancal_wait_to_send_protocol(socket_handle);
 
 	SocketMap::iterator it = m_trans_sockets_map.find(socket_handle);
@@ -304,14 +304,14 @@ Socket* SocketManager::find_trans_socket(SocketHandle socket_handle)
 }
 
 
-////////////////////////////////////////////////  Ğ­Òé·¢ËÍ  ////////////////////////////////////////////
-//·¢ËÍĞ­Òé.³É¹¦·µ»Ø0,protocol·ÅÈëµÈ´ı·¢ËÍ¶ÓÁĞ; Ê§°Ü·µ»Ø-1,ĞèÒª×ÔĞĞ´¦Àíprotocol.
+////////////////////////////////////////////////  åè®®å‘é€  ////////////////////////////////////////////
+//å‘é€åè®®.æˆåŠŸè¿”å›0,protocolæ”¾å…¥ç­‰å¾…å‘é€é˜Ÿåˆ—; å¤±è´¥è¿”å›-1,éœ€è¦è‡ªè¡Œå¤„ç†protocol.
 int SocketManager::send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp)
 {
 	if(socket_handle==SOCKET_INVALID || protocol==NULL)
 		return -1;
 
-	//¼ì²é¶ÔÓ¦µÄsocketÊÇ·ñ´æÔÚ
+	//æ£€æŸ¥å¯¹åº”çš„socketæ˜¯å¦å­˜åœ¨
 	Socket* trans_socket = find_trans_socket(socket_handle);
 	if(trans_socket == NULL)
 	{
@@ -319,7 +319,7 @@ int SocketManager::send_protocol(SocketHandle socket_handle, Protocol *protocol,
 		return -1;
 	}
 
-	//Ìí¼Óµ½fd¶ÔÓ¦ÈÎÎñ¶ÓÁĞ
+	//æ·»åŠ åˆ°fdå¯¹åº”ä»»åŠ¡é˜Ÿåˆ—
 	SendTaskMap::iterator it = m_send_tasks_map.find(socket_handle);
 	if(it == m_send_tasks_map.end())
 	{
@@ -332,13 +332,13 @@ int SocketManager::send_protocol(SocketHandle socket_handle, Protocol *protocol,
 		}
 		it = ret_pair.first;
 	}
-	//Ìí¼Óµ½¶ÓÁĞ
+	//æ·»åŠ åˆ°é˜Ÿåˆ—
 	queue<Protocol*> *pro_queue = &it->second;
 	pro_queue->push(protocol);
 
-	//×¢²áµÈ´ı¿ÉĞ´ÊÂ¼ş
+	//æ³¨å†Œç­‰å¾…å¯å†™äº‹ä»¶
 	int events = EVENT_WRITE;
-	//if(has_resp)  //Èç¹ûÓĞ»Ø¸´,×¢²á(Ò»´Î)¿É¶ÁÊÂ¼ş
+	//if(has_resp)  //å¦‚æœæœ‰å›å¤,æ³¨å†Œ(ä¸€æ¬¡)å¯è¯»äº‹ä»¶
 	//	events |= EVENT_READ;
 
 	IODemuxer *io_demuxer = get_io_demuxer();assert(io_demuxer!=NULL);
@@ -402,7 +402,7 @@ int SocketManager::cancal_wait_to_send_protocol(SocketHandle socket_handle)
 }
 
 
-//////////////////////////  Ó¦ÓÃ²ãÌá¹©µÄÏìÓ¦º¯Êı  ////////////////////////////
+//////////////////////////  åº”ç”¨å±‚æä¾›çš„å“åº”å‡½æ•°  ////////////////////////////
 /*
 int SocketManager::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
 {
@@ -454,7 +454,7 @@ HANDLE_RESULT ListenHandler::on_readable(int fd)
 		return HANDLE_ERROR;
 	}
 
-	//½ÓÊÕÁ¬½Ó
+	//æ¥æ”¶è¿æ¥
 	SocketHandle socket_handle = listen_socket->accept_connect();
 	if(socket_handle == SOCKET_INVALID)
 	{
@@ -462,7 +462,7 @@ HANDLE_RESULT ListenHandler::on_readable(int fd)
 		return HANDLE_OK;
 	}
 
-	//»ñÈ¡¶Ô¶ËµØÖ·
+	//è·å–å¯¹ç«¯åœ°å€
 	const char *ip = "Unknow ip!!!";
 	struct sockaddr_in peer_addr;
 	int socket_len = sizeof(peer_addr);
@@ -470,7 +470,7 @@ HANDLE_RESULT ListenHandler::on_readable(int fd)
 		ip = inet_ntoa(peer_addr.sin_addr);
 	SLOG_DEBUG("accept connect from ip:%s. fd=%d", ip, socket_handle);
 
-	//Ìí¼Óµ½socket¹ÜÀíÆ÷
+	//æ·»åŠ åˆ°socketç®¡ç†å™¨
 	if(m_socket_mgr->add_passive_trans_socket(ip, socket_handle) == -1)
 	{
 		SLOG_ERROR("add passive trans socket to socket manager failed. close it. fd=%d", socket_handle);
@@ -499,14 +499,14 @@ HANDLE_RESULT TransHandler::on_readable(int fd)
 		return HANDLE_ERROR;
 	}
 
-	//¶ÁÈ¡ËùÓĞÊı¾İ
+	//è¯»å–æ‰€æœ‰æ•°æ®
 	TransStatus trans_status = trans_socket->recv_buffer();
 	if(trans_status != TRANS_OK)
 	{
 		SLOG_ERROR("socket recv all error. fd=%d", fd);
 		return HANDLE_ERROR;
 	}
-	IOBuffer *recv_buffer = trans_socket->get_recv_buffer(); //»ñÈ¡socketµÄrecv buffer
+	IOBuffer *recv_buffer = trans_socket->get_recv_buffer(); //è·å–socketçš„recv buffer
 
 	int body_size = 0;
 	int header_size = 0;
@@ -516,23 +516,23 @@ HANDLE_RESULT TransHandler::on_readable(int fd)
 	{
 		unsigned int size = 0;
 		char *buffer = recv_buffer->read_begin(&size);
-		if(buffer == NULL)  //ÎŞÊı¾İ¿É¶Á
+		if(buffer == NULL)  //æ— æ•°æ®å¯è¯»
 			break;
 		
-		if(header_size == 0) //´´½¨protocol,»ñÈ¡Í·²¿´óĞ¡(Í·²¿´óĞ¡¹Ì¶¨,Ö»»ñÈ¡Ò»´Î;Ö»ÌáÇ°Éú³ÉÒ»´Îprotocol)
+		if(header_size == 0) //åˆ›å»ºprotocol,è·å–å¤´éƒ¨å¤§å°(å¤´éƒ¨å¤§å°å›ºå®š,åªè·å–ä¸€æ¬¡;åªæå‰ç”Ÿæˆä¸€æ¬¡protocol)
 		{
 			protocol = protocol_family->create_protocol();
 			header_size = protocol->get_header_size();
 		}
 
-		if(header_size > size) //Í·²¿Êı¾İ²»¹»
+		if(header_size > size) //å¤´éƒ¨æ•°æ®ä¸å¤Ÿ
 		{
-			if(protocol != NULL)  //µÚÒ»´ÎÉú³ÉµÄprotocol
+			if(protocol != NULL)  //ç¬¬ä¸€æ¬¡ç”Ÿæˆçš„protocol
 				delete protocol;
 			break;
 		}
 
- 		//µÚÒ»´Î»ñÈ¡Í·²¿´óĞ¡Ê±ÌáÇ°Éú³ÉÁËprotocol,Ö®ºóµ±ÓĞ×ã¹»µÄÍ·²¿Êı¾İÊ±²Å»áÉú³É
+ 		//ç¬¬ä¸€æ¬¡è·å–å¤´éƒ¨å¤§å°æ—¶æå‰ç”Ÿæˆäº†protocol,ä¹‹åå½“æœ‰è¶³å¤Ÿçš„å¤´éƒ¨æ•°æ®æ—¶æ‰ä¼šç”Ÿæˆ
 		if(protocol == NULL)
 			protocol = protocol_family->create_protocol();
 
@@ -546,7 +546,7 @@ HANDLE_RESULT TransHandler::on_readable(int fd)
 
 		//2. decode body
 		body_size = protocol->get_body_size();
-		if(header_size + body_size > size) //Êı¾İ²»¹»
+		if(header_size + body_size > size) //æ•°æ®ä¸å¤Ÿ
 		{
 			SLOG_DEBUG("no enougth data now, return and wait for more data.");
 			delete protocol;
@@ -558,12 +558,12 @@ HANDLE_RESULT TransHandler::on_readable(int fd)
 			delete protocol;
 			return HANDLE_ERROR;
 		}
-		recv_buffer->read_end(header_size+body_size);  //Çå¿ÕÒÑ¾­¶ÁÈ¡µÄÊı¾İ
+		recv_buffer->read_end(header_size+body_size);  //æ¸…ç©ºå·²ç»è¯»å–çš„æ•°æ®
 
-		//3. µ÷ÓÃ»Øµ÷º¯ÊıÏòÓ¦ÓÃ²ã·¢Ğ­Òé
+		//3. è°ƒç”¨å›è°ƒå‡½æ•°å‘åº”ç”¨å±‚å‘åè®®
 		int has_delete = 0;
 		int ret = m_socket_mgr->on_recv_protocol(fd, protocol, &has_delete);
-		if(ret!=0 || has_delete == 0) //Ó¦ÓÃ²ã´¦ÀíÊ§°Ü»òÕßÎ´ÊÇ·ñprotocol
+		if(ret!=0 || has_delete == 0) //åº”ç”¨å±‚å¤„ç†å¤±è´¥æˆ–è€…æœªæ˜¯å¦protocol
 			delete protocol;
 		protocol = NULL;
 	}
@@ -579,18 +579,18 @@ HANDLE_RESULT TransHandler::on_writeabble(int fd)
 	if(trans_socket == NULL)
 		return HANDLE_ERROR;
 
-	//ÒÆ³öÒ»¸ö´ı·¢ËÍµÄĞ­Òé
+	//ç§»å‡ºä¸€ä¸ªå¾…å‘é€çš„åè®®
 	Protocol* protocol = m_socket_mgr->get_wait_to_send_protocol(fd);
 	if(protocol != NULL)
 	{
 		if(protocol->encode(trans_socket->get_send_buffer()) != 0)
 		{
 			SLOG_ERROR("encode protocol error.");
-			m_socket_mgr->on_protocol_send_error(fd, protocol); //Í¨ÖªÓ¦ÓÃ²ã·¢ËÍĞ­ÒéÊ§°Ü, ÓÉÓ¦ÓÃ²ã´¦Àíprotocol. ²»ÓÃ·µ»ØHandle_ERROR, ÒòÎªÊÇÊı¾İµÄÎÊÌâ¶ø²»ÊÇÁ¬½ÓÎÊÌâ
+			m_socket_mgr->on_protocol_send_error(fd, protocol); //é€šçŸ¥åº”ç”¨å±‚å‘é€åè®®å¤±è´¥, ç”±åº”ç”¨å±‚å¤„ç†protocol. ä¸ç”¨è¿”å›Handle_ERROR, å› ä¸ºæ˜¯æ•°æ®çš„é—®é¢˜è€Œä¸æ˜¯è¿æ¥é—®é¢˜
 		}
 	}
 
-	//·¢ËÍ»º³åÇøÊı¾İ
+	//å‘é€ç¼“å†²åŒºæ•°æ®
 	TransStatus trans_status = trans_socket->send_buffer();
 	if(protocol != NULL)
 	{
@@ -611,7 +611,7 @@ HANDLE_RESULT TransHandler::on_writeabble(int fd)
 	if(trans_status == TRANS_ERROR)
 		return HANDLE_ERROR;
 
-	//·¢ËÍÊ£ÏÂµÄĞ­Òé(Èç¹ûÓĞµÄ»°,×¢²á¿ÉĞ´ÊÂ¼ş)
+	//å‘é€å‰©ä¸‹çš„åè®®(å¦‚æœæœ‰çš„è¯,æ³¨å†Œå¯å†™äº‹ä»¶)
 	if(trans_status==TRANS_PENDING || m_socket_mgr->get_wait_to_send_protocol_number(fd)>0)
 	{
 		IODemuxer *io_demuxer = m_socket_mgr->get_io_demuxer();assert(io_demuxer!=NULL);
@@ -624,36 +624,36 @@ HANDLE_RESULT TransHandler::on_writeabble(int fd)
 
 	return HANDLE_OK;
 /*	
-	//ÒÆ³öÒ»¸ö´ı·¢ËÍµÄĞ­Òé
+	//ç§»å‡ºä¸€ä¸ªå¾…å‘é€çš„åè®®
 	Protocol* protocol = m_socket_mgr->get_wait_to_send_protocol(fd);
 	if(protocol != NULL)
 	{
-		//1. ±àÂë
+		//1. ç¼–ç 
 		EncodeBuffer encode_buf;
 		if(protocol->encode(&encode_buf) != 0)
 		{
 			SLOG_ERROR("encode protocol error.");
-			m_socket_mgr->on_protocol_send_error(fd, protocol); //Í¨ÖªÓ¦ÓÃ²ã·¢ËÍĞ­ÒéÊ§°Ü, ÓÉÓ¦ÓÃ²ã´¦Àíprotocol. ²»ÓÃ·µ»ØHandle_ERROR, ÒòÎªÊÇÊı¾İµÄÎÊÌâ¶ø²»ÊÇÁ¬½ÓÎÊÌâ
+			m_socket_mgr->on_protocol_send_error(fd, protocol); //é€šçŸ¥åº”ç”¨å±‚å‘é€åè®®å¤±è´¥, ç”±åº”ç”¨å±‚å¤„ç†protocol. ä¸ç”¨è¿”å›Handle_ERROR, å› ä¸ºæ˜¯æ•°æ®çš„é—®é¢˜è€Œä¸æ˜¯è¿æ¥é—®é¢˜
 		}
-		else  //2. ·¢ËÍÊı¾İ
+		else  //2. å‘é€æ•°æ®
 		{
 			int ret = trans_socket->send_data(encode_buf.get_buffer(), encode_buf.get_size());
 			if(ret != encode_buf.get_size())
 			{
 				m_socket_mgr->on_protocol_send_error(fd, protocol);
-				return HANDLE_ERROR; //Á¬½ÓÎÊÌâ, ËùÒÔ·µ»ØHANDLE_ERROR
+				return HANDLE_ERROR; //è¿æ¥é—®é¢˜, æ‰€ä»¥è¿”å›HANDLE_ERROR
 			}
-			m_socket_mgr->on_protocol_send_succ(fd, protocol);  //Í¨ÖªÓ¦ÓÃ²ã·¢ËÍ³É¹¦, ÓÉÓ¦ÓÃ²ã´¦Àíprotocol
+			m_socket_mgr->on_protocol_send_succ(fd, protocol);  //é€šçŸ¥åº”ç”¨å±‚å‘é€æˆåŠŸ, ç”±åº”ç”¨å±‚å¤„ç†protocol
 		}
 	}
 
-	//·¢ËÍÊ£ÏÂµÄĞ­Òé(Èç¹ûÓĞµÄ»°,×¢²á¿ÉĞ´ÊÂ¼ş)
+	//å‘é€å‰©ä¸‹çš„åè®®(å¦‚æœæœ‰çš„è¯,æ³¨å†Œå¯å†™äº‹ä»¶)
 	if(m_socket_mgr->get_wait_to_send_protocol_number(fd) > 0)
 	{
 		IODemuxer *io_demuxer = m_socket_mgr->get_io_demuxer();assert(io_demuxer!=NULL);
 		io_demuxer->register_event(fd, EVENT_WRITE, -1, this);
-		//×¢²áÊ§°ÜÁËÒªÔõÃ´´¦ÀíÄØ:
-		//socket³¬Ê±µ÷ÓÃtime_outÀ´´¦Àí?»òÕßµÈ´ıÏÂ´Î·¢ËÍĞ­ÒéÊ±ÖØĞÂ×¢²á?
+		//æ³¨å†Œå¤±è´¥äº†è¦æ€ä¹ˆå¤„ç†å‘¢:
+		//socketè¶…æ—¶è°ƒç”¨time_outæ¥å¤„ç†?æˆ–è€…ç­‰å¾…ä¸‹æ¬¡å‘é€åè®®æ—¶é‡æ–°æ³¨å†Œ?
 	}
 
 	return HANDLE_OK;
@@ -663,8 +663,8 @@ HANDLE_RESULT TransHandler::on_writeabble(int fd)
 HANDLE_RESULT TransHandler::on_timeout(int fd)
 {
 	SLOG_DEBUG("socket on_timeout. fd=%d", fd);
-	m_socket_mgr->on_socket_handle_timeout(fd);  //Í¨ÖªÓ¦ÓÃ²ãsocket³¬Ê±
-	m_socket_mgr->delete_trans_socket(fd);       //´Ósocket managerÖĞÉ¾³ıµô
+	m_socket_mgr->on_socket_handle_timeout(fd);  //é€šçŸ¥åº”ç”¨å±‚socketè¶…æ—¶
+	m_socket_mgr->delete_trans_socket(fd);       //ä»socket managerä¸­åˆ é™¤æ‰
 
 	return HANDLE_OK;
 }
@@ -672,8 +672,8 @@ HANDLE_RESULT TransHandler::on_timeout(int fd)
 HANDLE_RESULT TransHandler::on_error(int fd)
 {
 	SLOG_DEBUG("socket on_error. fd=%d error", fd);	
-	m_socket_mgr->on_socket_handle_error(fd);  //Í¨ÖªÓ¦ÓÃ²ãsocket´íÎó
-	m_socket_mgr->delete_trans_socket(fd);     //´Ósocket managerÖĞÉ¾³ıµô
+	m_socket_mgr->on_socket_handle_error(fd);  //é€šçŸ¥åº”ç”¨å±‚socketé”™è¯¯
+	m_socket_mgr->delete_trans_socket(fd);     //ä»socket managerä¸­åˆ é™¤æ‰
 
 	return HANDLE_OK;
 }

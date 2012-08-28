@@ -93,13 +93,13 @@ bool MemCache<T>::Free(T *&element)
 class MemPage
 {
 public:
-    MemPage(unsigned int slot_size, unsigned int slot_total=32);  //´´½¨´óĞ¡Îªslot_total¸öTµÄÄÚ´æÒ³
+    MemPage(unsigned int slot_size, unsigned int slot_total=32);  //åˆ›å»ºå¤§å°ä¸ºslot_totalä¸ªTçš„å†…å­˜é¡µ
     ~MemPage();
-    //»ñÈ¡Ò»¸öslot, NULL±íÊ¾Ã»ÓĞ¿Õ¼ä
+    //è·å–ä¸€ä¸ªslot, NULLè¡¨ç¤ºæ²¡æœ‰ç©ºé—´
     void* get_slot();
-    //ÅĞ¶ÏÒ»¸öslotÊÇ·ñÊôÓÚµ±Ç°page. trueÊôÓÚ,false²»ÊôÓÚ
+    //åˆ¤æ–­ä¸€ä¸ªslotæ˜¯å¦å±äºå½“å‰page. trueå±äº,falseä¸å±äº
     bool is_slot(void* slot){return (char*)slot>=m_ptr && (char*)slot<=m_ptr+m_total*m_slot_size;}
-    //ÊÇ·ñ»¹ÓĞ¿ÕÏĞslot.trueÓĞ, falseÃ»ÓĞ
+    //æ˜¯å¦è¿˜æœ‰ç©ºé—²slot.trueæœ‰, falseæ²¡æœ‰
     bool have_slot(){return m_used<m_total;}
 private:
     unsigned int m_slot_size;
@@ -124,7 +124,7 @@ private:
     MemPage** m_pages;
     unsigned int m_total;
     unsigned int m_current;
-    unsigned int m_capacity;    //Ã¿¸ömem pageµÄÔªËØ¸öÊı, °´2±¶À©Õ¹
+    unsigned int m_capacity;    //æ¯ä¸ªmem pageçš„å…ƒç´ ä¸ªæ•°, æŒ‰2å€æ‰©å±•
 
 private:
     void* get_free_slot();
@@ -140,11 +140,11 @@ MemSlab<T>::MemSlab(unsigned int init_capacity/*=128*/)
 {
     m_free_list = NULL;
 
-    m_total = 4; //³õÊ¼»¯¿ÉÈİÄÉ5¸ömem pageµÄÊı×é
+    m_total = 4; //åˆå§‹åŒ–å¯å®¹çº³5ä¸ªmem pageçš„æ•°ç»„
     m_current = 0;
     m_capacity = init_capacity;
     m_pages = calloc(m_total, sizeof(MemPage*));
-    new_page(); //·ÖÅäÒ»¸öĞÂÒ³    
+    new_page(); //åˆ†é…ä¸€ä¸ªæ–°é¡µ    
 }
 
 template <class T>
@@ -180,7 +180,7 @@ bool MemSlab<T>::Free(T* element)
     for(i=0; i<=m_current; ++i)
         if(m_pages[i]->is_slot((void*)element))
             break;
-    if(i>m_current) //²»ÊôÓÚµ±Ç°slab
+    if(i>m_current) //ä¸å±äºå½“å‰slab
         return false;
 
     element->~T();
@@ -196,7 +196,7 @@ void MemSlab<T>::new_page()
 {
     unsigned int size = sizeof(T);
     if(size < sizeof(void*))
-        size = sizeof(void*);   //ÖÁÉÙÒª4¸ö×Ö½Ú
+        size = sizeof(void*);   //è‡³å°‘è¦4ä¸ªå­—èŠ‚
 
     if(m_current < m_total)
         m_pages[m_current] = new MemPage(size, m_capacity);
@@ -208,7 +208,7 @@ void MemSlab<T>::expend_page()
     if(m_pages[m_current]->have_slot())
         return;
 
-    //ÖØĞÂ·ÖÅäÒ»¸öpage
+    //é‡æ–°åˆ†é…ä¸€ä¸ªpage
     ++m_current;
     m_capacity<<=1;
 

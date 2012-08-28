@@ -4,24 +4,24 @@
 #include <stdio.h>
 #include "IOBuffer.h"
 
-//Ð­ÒéÍ·½Ó¿Ú
+//åè®®å¤´æŽ¥å£
 class ProtocolHeader
 {
 public:    
     virtual ~ProtocolHeader(){}
 
-    //·µ»ØÐ­ÒéÍ·´óÐ¡.
+    //è¿”å›žåè®®å¤´å¤§å°.
     virtual int get_header_size()=0;
-	//·µ»Ø°üÌå³¤¶È.
+	//è¿”å›žåŒ…ä½“é•¿åº¦.
 	virtual int get_body_size()=0;
-    //°üÍ·±àÂë.³É¹¦·µ»Ø0. ·ñÔò·µ»Ø-1.
+    //åŒ…å¤´ç¼–ç .æˆåŠŸè¿”å›ž0. å¦åˆ™è¿”å›ž-1.
     virtual int encode(char *buf, int buf_size)=0;
-    //°üÍ·½âÂë.³É¹¦·µ»Ø0,Ê§°Ü·µ»Ø-1.
+    //åŒ…å¤´è§£ç .æˆåŠŸè¿”å›ž0,å¤±è´¥è¿”å›ž-1.
     virtual int decode(const char *buf, int buf_size)=0;
 };
 //sample
 /*
-	//1. ½âÂë
+	//1. è§£ç 
 	ProtocolHeader *header = create_header();
 	int header_size = header->get_header_size();
 	read(fd, buf,header_size);
@@ -36,7 +36,7 @@ public:
 	}
 	delete header;
 
-	//2. ±àÂë
+	//2. ç¼–ç 
 	ProtocolHeader *header = create_header();
 	int header_size = header->get_header_size();
 	header->encode(buf, header_size);
@@ -49,21 +49,21 @@ class Protocol
 {
 public:
 	virtual ~Protocol(){}
-	///////////////////////////////////////// ±àÂë //////////////////////////
-    //Ð­Òé±àÂë,³É¹¦·µ»Ø0; ·ñÔò·µ»Ø-1;
+	///////////////////////////////////////// ç¼–ç  //////////////////////////
+    //åè®®ç¼–ç ,æˆåŠŸè¿”å›ž0; å¦åˆ™è¿”å›ž-1;
 	virtual int encode(IOBuffer *io_buffer) = 0;
-	///////////////////////////////////////// ½âÂë //////////////////////////
-    //»ñÈ¡Ð­ÒéÍ·´óÐ¡
+	///////////////////////////////////////// è§£ç  //////////////////////////
+    //èŽ·å–åè®®å¤´å¤§å°
     virtual int get_header_size()=0;
-    //½âÂëÐ­ÒéÍ·.·ñÔò·µ»Ø-1
+    //è§£ç åè®®å¤´.å¦åˆ™è¿”å›ž-1
     virtual int decode_header(const char* buf, int buf_size)=0;
-	//»ñÈ¡Ð­ÒéÌå³¤¶È.
+	//èŽ·å–åè®®ä½“é•¿åº¦.
     virtual int get_body_size()=0;
-    //½âÂë°üÌå.³É¹¦·µ»Ø0,·ñÔò·µ»Ø-1;
+    //è§£ç åŒ…ä½“.æˆåŠŸè¿”å›ž0,å¦åˆ™è¿”å›ž-1;
     virtual int decode_body(const char* buf, int buf_size)=0;
 };
 
-//ÓÃÓÚ´´½¨¾ßÌåprotocolµÄ¹¤³§Àà
+//ç”¨äºŽåˆ›å»ºå…·ä½“protocolçš„å·¥åŽ‚ç±»
 class ProtocolFamily
 {
 public:
@@ -72,7 +72,7 @@ public:
 
 //sample
 /*
-	//1. ½âÂë
+	//1. è§£ç 
 	Protocol *protocol = protocol_family->create_protocol();
 
 	//decode header
@@ -94,7 +94,7 @@ public:
 	//...
 
 
-	//2. ±àÂë
+	//2. ç¼–ç 
 	Protocol *protocol = protocol_family->create_protocol();
 	//Protocol *protocol = create_protocol();
 	

@@ -6,20 +6,20 @@
 class ServerAppFramework: public SocketManager
 {
 public:
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ ½ÓÊÕĞ­Òéº¯Êı//////////////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ æ¥æ”¶åè®®å‡½æ•°//////////////////
     int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete);
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Ğ­Òé·¢ËÍ´íÎó´¦Àíº¯Êı//////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ åè®®å‘é€é”™è¯¯å¤„ç†å‡½æ•°//////////
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
-	//////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Ğ­Òé·¢ËÍ³É¹¦´¦Àíº¯Êı//////////
+	//////////////////ç”±åº”ç”¨å±‚é‡å†™ åè®®å‘é€æˆåŠŸå¤„ç†å‡½æ•°//////////
 	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol);
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Á¬½Ó´íÎó´¦Àíº¯Êı//////////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ è¿æ¥é”™è¯¯å¤„ç†å‡½æ•°//////////////
     int on_socket_handle_error(SocketHandle socket_handle);
-    //////////////////ÓÉÓ¦ÓÃ²ãÖØĞ´ Á¬½Ó³¬Ê±´¦Àíº¯Êı//////////////
+    //////////////////ç”±åº”ç”¨å±‚é‡å†™ è¿æ¥è¶…æ—¶å¤„ç†å‡½æ•°//////////////
     int on_socket_handle_timeout(SocketHandle socket_handle);
 
-	//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄio¸´ÓÃ
+	//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„ioå¤ç”¨
 	IODemuxer* get_io_demuxer();
-	//Ó¦ÓÃ²ãËùÊ¹ÓÃµÄĞ­Òé×å
+	//åº”ç”¨å±‚æ‰€ä½¿ç”¨çš„åè®®æ—
 	ProtocolFamily* get_protocol_family();
 public:    
     int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp);
