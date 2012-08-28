@@ -26,10 +26,10 @@ public: //实现父类函数
 
 public:
 	DefaultHeader(ProtocolType type=PROTOCOL_INVALID, int version=VERSION, int magic_num=0X1F0696D9)
-									:m_magic_num(magic_num)
-									,m_version(version)
-									,m_body_size(0)
-									,m_type(type){}
+							:m_magic_num(magic_num)
+							,m_version(version)
+							,m_body_size(0)
+							,m_type(type){}
 	virtual ~DefaultHeader(){}
 	int get_magic_num(){return m_magic_num;}
 	int get_version(){return m_version;}
