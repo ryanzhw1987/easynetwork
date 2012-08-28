@@ -16,33 +16,32 @@
 class DefaultHeader:public ProtocolHeader
 {
 public: //实现父类函数 
-    virtual int get_header_size(){return sizeof(m_magic_num)+sizeof(m_version)+sizeof(m_body_size)+sizeof(m_type);	}
-    virtual int get_body_size(){	return m_body_size;	}
+	virtual int get_header_size(){return sizeof(m_magic_num)+sizeof(m_version)+sizeof(m_body_size)+sizeof(m_type);	}
+	virtual int get_body_size(){	return m_body_size;	}
 
    //包头编码.成功返回0. 否则返回-1.
-    virtual int encode(char *buf, int buf_size);
-    //包头解码.成功返回0,失败返回-1.
-    virtual int decode(const char *buf, int buf_size);
+	virtual int encode(char *buf, int buf_size);
+	//包头解码.成功返回0,失败返回-1.
+	virtual int decode(const char *buf, int buf_size);
 
 public:
-    DefaultHeader(ProtocolType type=PROTOCOL_INVALID, int version=VERSION, int magic_num=0X1F0696D9)
+	DefaultHeader(ProtocolType type=PROTOCOL_INVALID, int version=VERSION, int magic_num=0X1F0696D9)
 									:m_magic_num(magic_num)
 									,m_version(version)
 									,m_body_size(0)
 									,m_type(type){}
 	virtual ~DefaultHeader(){}
-    int get_magic_num(){return m_magic_num;}
-    int get_version(){return m_version;}
+	int get_magic_num(){return m_magic_num;}
+	int get_version(){return m_version;}
 
-    ProtocolType get_type(){return m_type;}
+	ProtocolType get_type(){return m_type;}
 	void set_type(ProtocolType type){m_type = type;}
 	void set_body_size(int body_size){m_body_size = body_size;}
 private:
-    int m_magic_num;
-    int m_version;
+	int m_magic_num;
+	int m_version;
 	int m_body_size;
-    int m_type;    
-};
+	int m_type;
 static MemCache<DefaultHeader> g_DefaultHeader_MemCache;
 
 class Command
@@ -72,15 +71,15 @@ class DefaultProtocol: public Protocol
 public:
 	//协议编码,成功返回0; 否则返回-1;
 	virtual int encode(IOBuffer *io_buffer);
-    //获取协议头大小
-    virtual int get_header_size(){return m_header->get_header_size();}
+	//获取协议头大小
+	virtual int get_header_size(){return m_header->get_header_size();}
 	//解码协议头.成功返回body_size的大小.否则返回-1
-    virtual int decode_header(const char* buf, int buf_size){return m_header->decode(buf, buf_size);}
+	virtual int decode_header(const char* buf, int buf_size){return m_header->decode(buf, buf_size);}
 
 	//获取协议体长度.
-    virtual int get_body_size(){return m_header->get_body_size();}
-    //解码包体.成功返回0,否则返回-1;
-    virtual int decode_body(const char* buf, int buf_size);
+	virtual int get_body_size(){return m_header->get_body_size();}
+	//解码包体.成功返回0,否则返回-1;
+	virtual int decode_body(const char* buf, int buf_size);
 
 ///////////////////////////////////////////////
 ///////      本协议成员函数           /////////
@@ -91,7 +90,7 @@ public:
 		m_header = new_header();
 		m_body = NULL;		
 	}
-    virtual ~DefaultProtocol()
+	virtual ~DefaultProtocol()
 	{
 		destory_header(m_header);
 		m_header = NULL;
@@ -133,10 +132,10 @@ public:
 	Protocol* create_protocol(){ return new DefaultProtocol;}
 	Protocol* create_protocol(Command *cmd)
 	{
-	    DefaultProtocol *default_protocol = (DefaultProtocol*)create_protocol();
-	    if(cmd != NULL)
-	        default_protocol->attach_cmd(cmd);
-	    return default_protocol;
+		DefaultProtocol *default_protocol = (DefaultProtocol*)create_protocol();
+		if(cmd != NULL)
+			default_protocol->attach_cmd(cmd);
+		return default_protocol;
 	}
 };
 //smaple
@@ -171,31 +170,31 @@ public://实现父类函数
 	int decode(const char* buf, int buf_size);
 
 	//编码协议体: 从encode_buf偏移offset开始放置协议体数据.
-    //成功返回0:  编码后encode_buf的大小为协议体长度与offset之和.
-    //失败返回-1: encode_buf无效
+	//成功返回0:  编码后encode_buf的大小为协议体长度与offset之和.
+	//失败返回-1: encode_buf无效
 	int encode(IOBuffer *io_buffer);
 
 public:
-    SimpleCmd():Command(PROTOCOL_SIMPLE)
+	SimpleCmd():Command(PROTOCOL_SIMPLE)
 	{
 		m_buf = NULL;
 		m_size = 0;
-    }
+	}
 	
-    ~SimpleCmd()
-    {
-    	if(m_buf != NULL)
+	~SimpleCmd()
+	{
+		if(m_buf != NULL)
 			delete m_buf;
 		m_buf = NULL;
 		m_size = 0;
-    }
-    const char* get_data(){return m_buf;}
+	}
+	const char* get_data(){return m_buf;}
 	int get_size(){return m_size;};
 	
-    int set_data(const char *data, int size);
+	int set_data(const char *data, int size);
 private:
-    char *m_buf;
-    int m_size;
+	char *m_buf;
+	int m_size;
 };
 
 #endif
