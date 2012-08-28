@@ -9,8 +9,8 @@ typedef int SocketHandle;
 
 typedef enum
 {
-    BLOCK,
-    NOBLOCK
+	BLOCK,
+	NOBLOCK
 }BlockMode;
 
 ///////////////////////////////////////////////////////////////////////////
@@ -18,13 +18,13 @@ typedef enum
 class Socket
 {
 public:
-    //socket_handle:socket描述符
-    //port:监听/连接的端口号
-    //ip:连接的地址
-    //block_mode:阻塞模式. BLOCK(阻塞)/NOBLOCK(非阻塞)
-    Socket(SocketHandle socket_handle=SOCKET_INVALID, int port=-1, const char *ip=NULL, BlockMode block_mode=NOBLOCK);
-    virtual ~Socket();
-    //对socket进行赋值.成功返回0, 否则返回-1(socket已经含有一个有效的socket_handle)
+	//socket_handle:socket描述符
+	//port:监听/连接的端口号
+	//ip:连接的地址
+	//block_mode:阻塞模式. BLOCK(阻塞)/NOBLOCK(非阻塞)
+	Socket(SocketHandle socket_handle=SOCKET_INVALID, int port=-1, const char *ip=NULL, BlockMode block_mode=NOBLOCK);
+	virtual ~Socket();
+	//对socket进行赋值.成功返回0, 否则返回-1(socket已经含有一个有效的socket_handle)
 	int assign(SocketHandle socket_handle, int port, const char *ip, BlockMode block_mode);
 
 	SocketHandle get_handle(){return m_socket_handle;}
@@ -45,8 +45,8 @@ protected:
 class ListenSocket: public Socket
 {
 public:
-    //port:监听端口
-    //block:是否阻塞.true(阻塞)/false(非阻塞);默认非阻塞模式
+	//port:监听端口
+	//block:是否阻塞.true(阻塞)/false(非阻塞);默认非阻塞模式
 	ListenSocket(int port=-1, BlockMode block_mode=NOBLOCK):Socket(SOCKET_INVALID, port, NULL, block_mode){}
 	virtual ~ListenSocket(){}
 
@@ -72,13 +72,13 @@ typedef enum
 class TransSocket: public Socket
 {
 public:
-    TransSocket():Socket(SOCKET_INVALID, -1, NULL, NOBLOCK){}
+	TransSocket():Socket(SOCKET_INVALID, -1, NULL, NOBLOCK){}
 	TransSocket(const char *ip, int port, BlockMode block_mode=NOBLOCK):Socket(SOCKET_INVALID, port, ip, block_mode){}
 	virtual ~TransSocket(){}
 
 	//用于主动连接.超时timeout_ms毫秒(默认2s)未连上当作连接失败.
 	//成功返回0, 失败返回-1
-    virtual int connect_server(int timeout_ms=2000);
+	virtual int connect_server(int timeout_ms=2000);
 
 	//尝试接收指定长度的数据.
 	//返回值:
@@ -116,7 +116,7 @@ public:
 	TransStatus send_buffer();
 
 protected:
-    virtual int init_active_socket(); //初始化主动连接, 成功返回0, 失败返回-1
+	virtual int init_active_socket(); //初始化主动连接, 成功返回0, 失败返回-1
 private:
 	IOBuffer m_recv_buffer;
 	IOBuffer m_send_buffer;
