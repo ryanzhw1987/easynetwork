@@ -137,40 +137,40 @@ int DefaultProtocol::decode_body(const char* buf, int buf_size)
 int SimpleCmd::set_data(const char *buf, int size)
 {
 	if(buf==NULL || size<=0)
-        return -1;
-    if(m_buf != NULL)
-    {
-        if(m_size < size)
-        {
-            delete[] m_buf;
-            m_buf = new char[size];
-        }
-    }
-    else
-    {
-        m_buf = new char[size]; 
-    }
+		return -1;
+	if(m_buf != NULL)
+	{
+		if(m_size < size)
+		{
+			delete[] m_buf;
+			m_buf = new char[size];
+		}
+	}
+	else
+	{
+		m_buf = new char[size];
+	}
 
-    memcpy(m_buf, buf, size);
-    m_size = size;
+	memcpy(m_buf, buf, size);
+	m_size = size;
 	return 0;
 }
 
 int SimpleCmd::decode(const char *buf, int size)
 {
-    return set_data(buf, size);
+	return set_data(buf, size);
 }
 
 int SimpleCmd::encode(IOBuffer *io_buffer)
 {
-    if(io_buffer==NULL || m_buf==NULL || m_size<=0)
-        return -1;
+	if(io_buffer==NULL || m_buf==NULL || m_size<=0)
+		return -1;
 	char *buffer = io_buffer->write_begin(m_size);
 	if(buffer == NULL)
 		return -1;
-    memcpy(buffer, m_buf, m_size);
+	memcpy(buffer, m_buf, m_size);
 	io_buffer->write_end(m_size);
 
-    return m_size;
+	return m_size;
 }
 
