@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "slog.h"
+
 #define BUFFER_SIZE 1024  //缓冲区初始化大小为1k
 #define MAX_BUFFER_SIZE 10*1024*1024   //缓冲区最大10M
 

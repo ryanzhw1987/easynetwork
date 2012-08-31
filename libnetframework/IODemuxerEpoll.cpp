@@ -5,8 +5,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "slog.h"
-
 static 	unsigned long long get_current_time_ms()
 {
 	struct timeval now;
@@ -380,7 +378,7 @@ int EpollDemuxer::run_loop()
 						}
 					}
 				}
-				if(handle_result==HANDLE_OK && event_info->m_occur_type&EVENT_WRITE)
+				if(handle_result==HANDLE_OK && (event_info->m_occur_type&EVENT_WRITE))
 				{
 					handle_result = event_info->m_handler->on_writeabble(event_info->m_fd);
 					if(handle_result == HANDLE_ERROR)
@@ -412,6 +410,7 @@ int EpollDemuxer::run_loop()
 	}//while
 
 	SLOG_INFO("epoll demuxer exit.");
+	return 0;
 }
 
 void EpollDemuxer::exit()
