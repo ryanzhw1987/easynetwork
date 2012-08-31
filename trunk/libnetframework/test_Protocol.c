@@ -41,4 +41,6 @@ int main()
 	}
 
 	delete protocol;
+
+	return 0;
 }
