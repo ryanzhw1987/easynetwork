@@ -2,19 +2,9 @@
 #define	_LIB_SOCKET_H_20120612_LIUYONGJIN
 
 #include <stdio.h>
+#include "SocketType.h"
 #include "IOBuffer.h"
 
-typedef int SocketHandle;
-#define SOCKET_INVALID -1
-
-typedef enum
-{
-	BLOCK,
-	NOBLOCK
-}BlockMode;
-
-///////////////////////////////////////////////////////////////////////////
-//Socket
 class Socket
 {
 public:
@@ -24,14 +14,17 @@ public:
 	//block_mode:阻塞模式. BLOCK(阻塞)/NOBLOCK(非阻塞)
 	Socket(SocketHandle socket_handle=SOCKET_INVALID, int port=-1, const char *ip=NULL, BlockMode block_mode=NOBLOCK);
 	virtual ~Socket();
-	//对socket进行赋值.成功返回0, 否则返回-1(socket已经含有一个有效的socket_handle)
-	int assign(SocketHandle socket_handle, int port, const char *ip, BlockMode block_mode);
+	//对socket进行赋值.成功返回true, 否则返回false(socket已经含有一个有效的socket_handle)
+	bool assign(SocketHandle socket_handle, int port, const char *ip, BlockMode block_mode);
 
 	SocketHandle get_handle(){return m_socket_handle;}
 	int get_port(){return m_port;}
 	const char* get_ip(){return m_ip;}
 	BlockMode get_block_mode(){return m_block_mode;}
 
+	//成功返回true, 失败返回false
+	//timeout_out: 打开socket的超时时间.
+	virtual bool open(int timeout_ms=2000)=0;
 protected:
 	SocketHandle m_socket_handle;
 	int m_port;
@@ -50,11 +43,12 @@ public:
 	ListenSocket(int port=-1, BlockMode block_mode=NOBLOCK):Socket(SOCKET_INVALID, port, NULL, block_mode){}
 	virtual ~ListenSocket(){}
 
-	//开始监听, 成功返回0, 失败返回-1;
-	virtual int open();
-	virtual SocketHandle accept_connect();
+	//开始监听.成功返回true, 失败返回false
+	//timeout_out: 打开socket的超时时间.
+	virtual bool open(int timeout_ms=2000);
 };
 
+///////////////////////////////////////////////////////////////////////////
 typedef enum
 {
 	TRANS_OK=0,		//正常
@@ -66,7 +60,7 @@ typedef enum
 	TRANS_NODATA=-6,  //暂无数据
 }TransStatus;
 
-///////////////////////////////////////////////////////////////////////////
+
 //data transmission socket.
 //Just receive/send data. The data may be transmited unfully,and the caller should deal with this situation.
 class TransSocket: public Socket
@@ -76,9 +70,9 @@ public:
 	TransSocket(const char *ip, int port, BlockMode block_mode=NOBLOCK):Socket(SOCKET_INVALID, port, ip, block_mode){}
 	virtual ~TransSocket(){}
 
-	//用于主动连接.超时timeout_ms毫秒(默认2s)未连上当作连接失败.
-	//成功返回0, 失败返回-1
-	virtual int connect_server(int timeout_ms=2000);
+	//打开主动连接. 成功返回true, 失败返回false.
+	//timeout_out: 打开socket的超时时间.
+	virtual bool open(int timeout_ms=2000);
 
 	//尝试接收指定长度的数据.
 	//返回值:
@@ -98,7 +92,7 @@ public:
 	IOBuffer* get_recv_buffer(){return &m_recv_buffer;}
 	//获取输出缓冲区
 	IOBuffer* get_send_buffer(){return &m_send_buffer;}
-	
+
 	//接收所有数据到输入缓冲区.!!!***仅用于非阻塞模式***!!!
 	//返回值:
 	//TRANS_OK:成功
