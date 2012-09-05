@@ -12,7 +12,9 @@
 #include <unistd.h>
 
 #include "slog.h"
-
+///////////////////////////////////////////////////////////////
+///////////////             Socket          ///////////////
+///////////////////////////////////////////////////////////////
 void Socket::copy_ip(const char *ip)
 {
 	m_ip[0] = '\0';
@@ -41,28 +43,31 @@ Socket::~Socket()
 	}
 }
 
-int Socket::assign(SocketHandle socket_handle, int port, const char *ip, BlockMode block_mode)
+bool Socket::assign(SocketHandle socket_handle, int port, const char *ip, BlockMode block_mode)
 {
 	if(m_socket_handle != SOCKET_INVALID)
-		return -1;
+		return false;
+
 	m_socket_handle = socket_handle;
 	m_port = port;
 	copy_ip(ip);
 	m_block_mode = block_mode;
-	return 0;
+	return true;
 }
 
 
-//////////////////////////////////////////////////////////////////////////////
-int ListenSocket::open()
+///////////////////////////////////////////////////////////////
+///////////////      ListenSocket        ///////////////
+///////////////////////////////////////////////////////////////
+bool ListenSocket::open(int timeout_ms/*=2000*/)
 {
 	if(m_socket_handle!=SOCKET_INVALID || m_port<=0)
-		return -1;
+		return false;
 
 	//1. 创建socket
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	if(fd < 0)
-		return -1;
+		return false;
 
 	//2. 设置属性
 	int flags = fcntl(fd, F_GETFL, 0);
@@ -70,7 +75,7 @@ int ListenSocket::open()
 	{
 		SLOG_ERROR("fcntl<get> failed. errno=%d", errno);
 		close(fd);
-		return -1;
+		return false;
 	}
 
 	if(m_block_mode == NOBLOCK)  //non block mode
@@ -82,7 +87,7 @@ int ListenSocket::open()
 	{
 		SLOG_ERROR("<set> failed. errno=%d", errno);
 		close(fd);
-		return -1;
+		return false;
 	}
 
 	//set reuse
@@ -91,7 +96,7 @@ int ListenSocket::open()
 	{
 		SLOG_ERROR("set socket SO_REUSEADDR option failed, errno=%d",errno);
 		close(fd);
-		return -1;
+		return false;
 	}
 
 	//3. 绑定到端口
@@ -103,7 +108,7 @@ int ListenSocket::open()
 	{
 		SLOG_ERROR("bind failed, errno=%d",errno);
 		close(fd);
-		return -1;
+		return false;
 	}
 
 	//4. 监听端口.监听队列中等待accept的最大连接数设置为默认值
@@ -111,60 +116,20 @@ int ListenSocket::open()
 	{
 		SLOG_ERROR("listen failed, errno=%d",errno);
 		close(fd);
-		return -1;
+		return false;
 	}
 
 	m_socket_handle = fd;
-	return 0;
+	return true;
 }
 
-SocketHandle ListenSocket::accept_connect() 
-{
-	int fd = -1;
-	while(true)
-	{
-		fd = accept(m_socket_handle, NULL, 0);
-		if(fd == -1)
-		{
-			if(errno==EAGAIN || errno==EINPROGRESS || errno==EINTR)  //被中断
-				continue;
-			SLOG_ERROR("accept client socket failed. errno=%d", errno);	
-			return SOCKET_INVALID;
-		}
-		break;
-	}
-	return fd;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-int TransSocket::init_active_socket()
-{
-	//设置socket属性
-	int flags = fcntl(m_socket_handle, F_GETFL, 0);
-	if(flags == -1 )
-	{
-		SLOG_ERROR("fcntl<get> active socket faile. errno=%d", errno);
-		return -1;
-	}
-
-	if(m_block_mode==NOBLOCK) //non block mode
-		flags |= O_NONBLOCK;
-	else
-		flags &= ~O_NONBLOCK;
-
-	if (fcntl(m_socket_handle, F_SETFL, flags) == -1 )
-	{
-		SLOG_ERROR("fcntl<set> active socket faile. errno=%d", errno);
-		return -1;
-	}
-
-	return 0;
-}
-
-int TransSocket::connect_server(int timeout_ms/*=2000*/)
+///////////////////////////////////////////////////////////////
+///////////////       TransSocket       ///////////////
+///////////////////////////////////////////////////////////////
+bool TransSocket::open(int timeout_ms/*=2000*/)
 {
 	if(m_socket_handle!=SOCKET_INVALID || strlen(m_ip)<=0 || m_port <=0)
-		return -1;
+		return false;
 
 	//1. 创建socket
 	m_socket_handle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -172,7 +137,7 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 	{
 		SLOG_ERROR("create active socket error");
 		m_socket_handle = SOCKET_INVALID;
-		return -1;
+		return false;
 	}
 
 	//2. 初始化
@@ -181,7 +146,7 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 		SLOG_ERROR("init active socket error. close fd=%d", m_socket_handle);
 		close(m_socket_handle);
 		m_socket_handle = SOCKET_INVALID;
-		return -1;
+		return false;
 	}
 
 	//3. 连接
@@ -202,13 +167,13 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 			tval.tv_sec  = timeout_ms/1000;
 			tval.tv_usec = (timeout_ms%1000)*1000;
 
-			int tmp = select(m_socket_handle+1,(fd_set*)&rset,(fd_set*)&wset,(fd_set*)NULL, &tval);
+			int tmp = select(m_socket_handle+1, (fd_set*)&rset, (fd_set*)&wset, (fd_set*)NULL, &tval);
 			if (tmp <= 0)
 			{
 				SLOG_ERROR("select failed when connecting server:%s:%d. errno=%d", m_ip, m_port, errno);
 				close(m_socket_handle);
 				m_socket_handle = SOCKET_INVALID;
-				return -1;
+				return false;
 			}
 			if(FD_ISSET(m_socket_handle,&rset) || FD_ISSET(m_socket_handle,&wset))
 			{
@@ -220,7 +185,7 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 					SLOG_ERROR("other error when connecting server:%s:%d. errno=%d", m_ip, m_port, error);
 					close(m_socket_handle);
 					m_socket_handle = SOCKET_INVALID;
-					return -1;
+					return false;
 				}
 			}
 		}		
@@ -229,8 +194,33 @@ int TransSocket::connect_server(int timeout_ms/*=2000*/)
 			SLOG_ERROR("connect server:%s:%d. errno=%d", m_ip, m_port, errno);
 			close(m_socket_handle);
 			m_socket_handle = SOCKET_INVALID;
-			return -1;
+			return false;
 		}
+	}
+
+	return true;
+}
+
+//初始化主动连接
+int TransSocket::init_active_socket()
+{
+	//设置socket属性
+	int flags = fcntl(m_socket_handle, F_GETFL, 0);
+	if(flags == -1 )
+	{
+		SLOG_ERROR("fcntl<get> active socket faile. errno=%d", errno);
+		return -1;
+	}
+
+	if(m_block_mode==NOBLOCK) //non block mode
+		flags |= O_NONBLOCK;
+	else
+		flags &= ~O_NONBLOCK;
+
+	if (fcntl(m_socket_handle, F_SETFL, flags) == -1 )
+	{
+		SLOG_ERROR("fcntl<set> active socket faile. errno=%d", errno);
+		return -1;
 	}
 
 	return 0;
@@ -267,7 +257,7 @@ int TransSocket::recv_data(char *buffer, int len)
 		}
 	}
 
-	if(read_size>0)
+	if(read_size > 0)
 	{
 		SLOG_TRACE("receive data succ. len=%d", read_size);
 		return read_size;
@@ -276,6 +266,10 @@ int TransSocket::recv_data(char *buffer, int len)
 		return TRANS_NODATA;
 }
 
+//发送指定长度的数据(全部发送)
+//返回值:
+//大于0: 发送的字节数
+//TRANS_ERROR: 失败
 int TransSocket::send_data(char *buffer, int len)
 {
 	assert(len>0);
@@ -384,7 +378,7 @@ TransStatus TransSocket::send_buffer()
 			else
 				return TRANS_OK;		//全部发送
 		}
-		else if(errno == EINTR) //中断重试 || errno == EWOULDBLOCK || errno == EAGAIN)  //中断,重试
+		else if(errno == EINTR) //中断重试
 		{
 			SLOG_TRACE("send buffer data interrupted,retry to send.");
 			continue;
