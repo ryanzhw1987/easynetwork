@@ -442,7 +442,7 @@ HANDLE_RESULT SocketManager::on_readable(int fd)
 		int has_delete = 0;
 		int ret = on_recv_protocol(fd, protocol, &has_delete);
 		if(ret!=0 || has_delete == 0) //应用层处理失败或者未是否protocol
-			delete protocol;
+			m_protocol_family->destroy_protocol(protocol);
 		protocol = NULL;
 	}
 

@@ -120,19 +120,31 @@ public:
 		return cmd;
 	}
 protected:
-	//virtual DefaultHeader* new_header(){return new DefaultHeader;}
-	//virtual void destory_header(DefaultHeader* header){delete header;}
-	virtual DefaultHeader* new_header(){return g_DefaultHeader_MemCache.Alloc();}
-	virtual void destory_header(DefaultHeader* header){g_DefaultHeader_MemCache.Free(header);}
+	virtual DefaultHeader* new_header()
+	{
+		//return new DefaultHeader;
+		return g_DefaultHeader_MemCache.Alloc();
+	}
+	virtual void destory_header(DefaultHeader* header)
+	{
+		//delete header;
+		g_DefaultHeader_MemCache.Free(header);
+	}
 private:
 	DefaultHeader *m_header;
 	Command *m_body; //具体的协议体;
 };
+//memcache for class DefaultProtocol;
+static MemCache<DefaultProtocol> g_DefaultProtocol_MemCache;
 
 class DefaultProtocolFamily:public ProtocolFamily
 {
 public:
-	Protocol* create_protocol(){ return new DefaultProtocol;}
+	Protocol* create_protocol()
+	{
+		//return new DefaultProtocol;
+		return g_DefaultProtocol_MemCache.Alloc();
+	}
 	Protocol* create_protocol(Command *cmd)
 	{
 		DefaultProtocol *default_protocol = (DefaultProtocol*)create_protocol();
@@ -140,7 +152,17 @@ public:
 			default_protocol->attach_cmd(cmd);
 		return default_protocol;
 	}
+
+	bool destroy_protocol(Protocol* protocol)
+	{
+		//delete protocol;
+		//return true;
+
+		DefaultProtocol *temp = (DefaultProtocol *)protocol;
+		return g_DefaultProtocol_MemCache.Free(temp);
+	}
 };
+
 //smaple
 /*
 	DefalutProtocol *protocol = new DefalutProtocol;
