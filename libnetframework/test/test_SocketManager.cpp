@@ -27,7 +27,7 @@ private:
 class AppFramework: public SocketManager
 {
 public:
-	AppFramework(IODemuxer *io_demuxer, ProtocoyFamily *protocol_family):SocketManager(io_demuxer, protocol_family){}
+	AppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family):SocketManager(io_demuxer, protocol_family){}
 
 	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
 	{
@@ -128,10 +128,10 @@ int main()
 
 	//timer event
 	TimerHandler timer(&io_demuxer);
-	io_demuxer->register_event(-1, EVENT_INVALID, 3000, &timer);
+	io_demuxer.register_event(-1, EVENT_INVALID, 3000, &timer);
 
 	//run server
-	io_demuxer->run_loop();
+	io_demuxer.run_loop();
 
 	SLOG_UNINIT();
 	return 0;
