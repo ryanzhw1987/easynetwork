@@ -42,7 +42,10 @@ private:
 	int m_version;
 	int m_body_size;
 	int m_type;
+};
+//memcache for class DefaultHeader;
 static MemCache<DefaultHeader> g_DefaultHeader_MemCache;
+
 
 class Command
 {
@@ -189,7 +192,7 @@ public:
 		m_size = 0;
 	}
 	const char* get_data(){return m_buf;}
-	int get_size(){return m_size;};
+	int get_size(){return m_size;}
 	
 	int set_data(const char *data, int size);
 private:
