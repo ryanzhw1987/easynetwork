@@ -43,9 +43,6 @@ private:
 	int m_body_size;
 	int m_type;
 };
-//memcache for class DefaultHeader;
-static MemCache<DefaultHeader> g_DefaultHeader_MemCache;
-
 
 class Command
 {
@@ -123,19 +120,20 @@ protected:
 	virtual DefaultHeader* new_header()
 	{
 		//return new DefaultHeader;
-		return g_DefaultHeader_MemCache.Alloc();
+		return m_defautlheader_memcache.Alloc();
 	}
 	virtual void destory_header(DefaultHeader* header)
 	{
 		//delete header;
-		g_DefaultHeader_MemCache.Free(header);
+		m_defautlheader_memcache.Free(header);
 	}
 private:
 	DefaultHeader *m_header;
 	Command *m_body; //具体的协议体;
+
+	//memcache for class DefaultHeader;
+	static MemCache<DefaultHeader> m_defautlheader_memcache;
 };
-//memcache for class DefaultProtocol;
-static MemCache<DefaultProtocol> g_DefaultProtocol_MemCache;
 
 class DefaultProtocolFamily:public ProtocolFamily
 {
@@ -143,7 +141,7 @@ public:
 	Protocol* create_protocol()
 	{
 		//return new DefaultProtocol;
-		return g_DefaultProtocol_MemCache.Alloc();
+		return m_protocol_memcache.Alloc();
 	}
 	Protocol* create_protocol(Command *cmd)
 	{
@@ -159,8 +157,11 @@ public:
 		//return true;
 
 		DefaultProtocol *temp = (DefaultProtocol *)protocol;
-		return g_DefaultProtocol_MemCache.Free(temp);
+		return m_protocol_memcache.Free(temp);
 	}
+private:
+	//memcache for class DefaultProtocol;
+	MemCache<DefaultProtocol> m_protocol_memcache;
 };
 
 //smaple

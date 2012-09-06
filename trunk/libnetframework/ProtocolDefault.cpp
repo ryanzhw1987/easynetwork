@@ -78,6 +78,7 @@ int DefaultHeader::decode(const char *buf, int buf_size)
 
 
 /**********************************************  DefaultProtocol  **********************************************/
+MemCache<DefaultHeader> DefaultProtocol::m_defautlheader_memcache;
 //协议编码,成功返回0; 否则返回-1;
 int DefaultProtocol::encode(IOBuffer *io_buffer)
 {

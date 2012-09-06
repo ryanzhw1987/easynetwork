@@ -46,8 +46,8 @@ SocketManager::~SocketManager()
 		SocketMap::iterator it;
 		for(it=m_trans_sockets_map.begin();it!=m_trans_sockets_map.end(); ++it)
 		{
-			Socket* trans_socket = it->second;
-			delete trans_socket;
+			TransSocket* trans_socket = (TransSocket*)it->second;
+			m_trans_socket_memcache.Free(trans_socket);
 		}
 		m_trans_sockets_map.clear();
 	}
@@ -177,6 +177,16 @@ int SocketManager::init_passive_trans_socket(SocketHandle socket_handle, BlockMo
 	return 0;
 }
 
+Socket* SocketManager::new_listen_socket()
+{
+	return (Socket*)new ListenSocket();
+}
+
+Socket* SocketManager::new_trans_socket()
+{
+	//return (Socket*)new TransSocket();
+	return (Socket*)m_trans_socket_memcache.Alloc();
+}
 
 int SocketManager::delete_trans_socket(SocketHandle socket_handle)
 {	
@@ -188,22 +198,17 @@ int SocketManager::delete_trans_socket(SocketHandle socket_handle)
 	SocketMap::iterator it = m_trans_sockets_map.find(socket_handle);
 	if(it != m_trans_sockets_map.end())
 	{
-		TransSocket *trans_socket = (TransSocket*)it->second;
+		TransSocket *trans_socket = (TransSocket *)it->second;
 		m_trans_sockets_map.erase(it);
-		delete trans_socket;
+		m_trans_socket_memcache.Free(trans_socket);
 	}
 
 	return 0;
 }
-
-Socket* SocketManager::new_listen_socket()
+int SocketManager::delete_trans_socket(TransSocket *trans_socket)
 {
-	return (Socket*)new ListenSocket();
-}
-
-Socket* SocketManager::new_trans_socket()
-{
-	return (Socket*)new TransSocket();
+	m_trans_socket_memcache.Free(trans_socket);
+	return 0;
 }
 
 Socket* SocketManager::find_listen_socket(SocketHandle socket_handle)
@@ -545,7 +550,7 @@ bool SocketManager::accept(SocketHandle trans_fd)
 		if(pair_ret.second == false)
 		{
 			SLOG_ERROR("passive socket insert into map failed");
-			delete passive_socket;
+			delete_trans_socket(passive_socket);
 			return false;
 		}
 
@@ -553,7 +558,7 @@ bool SocketManager::accept(SocketHandle trans_fd)
 		{
 			SLOG_ERROR("register trans socket failed. fd=%d", trans_fd);
 			m_trans_sockets_map.erase(pair_ret.first);
-			delete passive_socket;
+			delete_trans_socket(passive_socket);
 			return false;
 		}
 		//此时再赋值, 防止socket被关闭掉
