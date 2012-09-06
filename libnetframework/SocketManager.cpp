@@ -19,29 +19,13 @@ using std::make_pair;
 ///////////////////////////////////////////
 SocketManager::SocketManager(IODemuxer *io_demuxer, ProtocolFamily* protocol_family, BlockMode block_mode/*=NOBLOCK*/)
 {	
-	m_listen_socket = NULL;
-	m_listen_handler = new_listen_handler();
-
 	m_io_demuxer = io_demuxer;
 	m_protocol_family = protocol_family;
 	m_block_mode = block_mode;
 }
 
-EventHandler* SocketManager::new_listen_handler()
-{
-	return (EventHandler*)new ListenHandler(this);
-}
-
 SocketManager::~SocketManager()
 {
-	if(m_listen_handler != NULL)
-		delete m_listen_handler;
-	m_listen_handler = NULL;
-
-	if(m_listen_socket != NULL)
-		delete m_listen_socket;
-	m_listen_socket = NULL;
-
 	{//delete sockets
 		SocketMap::iterator it;
 		for(it=m_trans_sockets_map.begin();it!=m_trans_sockets_map.end(); ++it)
@@ -67,46 +51,6 @@ SocketManager::~SocketManager()
 			}
 		}
 		m_send_tasks_map.clear();
-	}
-}
-
-bool SocketManager::listen(int port)
-{
-	if(m_listen_socket == NULL)
-	{
-		m_listen_socket = (ListenSocket*)new_listen_socket();
-		assert(m_listen_socket!=NULL && m_listen_socket->get_handle()==SOCKET_INVALID);
-		m_listen_socket->assign(SOCKET_INVALID, port, NULL, m_block_mode);
-		if(!m_listen_socket->open())
-		{
-			SLOG_ERROR("open listen socket failed. port=%d", port);
-			delete m_listen_socket;
-			m_listen_socket = NULL;
-			return false;
-		}
-
-		SocketHandle socket_handle = m_listen_socket->get_handle();assert(socket_handle!=SOCKET_INVALID);
-		IODemuxer *io_demuxer = get_io_demuxer();assert(io_demuxer!=NULL);		
-		if(io_demuxer->register_event(socket_handle, EVENT_READ|EVENT_PERSIST, -1, m_listen_handler) == -1)
-		{
-			SLOG_ERROR("register listen socket failed. delete it");
-			delete m_listen_socket;
-			m_listen_socket = NULL;
-			return false;
-		}
-
-		SLOG_TRACE("listen on port=%d succ. fd=%d", port, socket_handle);
-		return true;
-	}
-	else if(m_listen_socket->get_port() == port)
-	{
-		SLOG_WARN("already listen on port=%d", port);
-		return true;
-	}
-	else
-	{
-		SLOG_ERROR("try to listen on port=%d, but already listen on port=%d", port, m_listen_socket->get_port());
-		return false;
 	}
 }
 
@@ -177,11 +121,6 @@ int SocketManager::init_passive_trans_socket(SocketHandle socket_handle, BlockMo
 	return 0;
 }
 
-Socket* SocketManager::new_listen_socket()
-{
-	return (Socket*)new ListenSocket();
-}
-
 Socket* SocketManager::new_trans_socket()
 {
 	//return (Socket*)new TransSocket();
@@ -205,6 +144,7 @@ int SocketManager::delete_trans_socket(SocketHandle socket_handle)
 
 	return 0;
 }
+
 int SocketManager::delete_trans_socket(TransSocket *trans_socket)
 {
 	m_trans_socket_memcache.Free(trans_socket);
