@@ -7,6 +7,7 @@
 class ClientAppFramework: public SocketManager
 {
 public:
+	ClientAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family):SocketManager(io_demuxer, protocol_family){}
     //////////////////由应用层重写 接收协议函数//////////////////
     int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete);
     //////////////////由应用层重写 协议发送错误处理函数//////////
@@ -18,10 +19,6 @@ public:
     //////////////////由应用层重写 连接超时处理函数//////////////
     int on_socket_handle_timeout(SocketHandle socket_handle);
 
-	//应用层所使用的io复用
-	IODemuxer* get_io_demuxer();
-	//应用层所使用的协议族
-	ProtocolFamily* get_protocol_family();
 public:    
     int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp);
 };

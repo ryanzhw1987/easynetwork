@@ -64,20 +64,6 @@ int ClientAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	return 0;
 }
 
-//应用层所使用的io复用
-IODemuxer* ClientAppFramework::get_io_demuxer()
-{
-	static EpollDemuxer epoll_demuxer;
-	return &epoll_demuxer;
-}
-
-//应用层所使用的协议族
-ProtocolFamily* ClientAppFramework::get_protocol_family()
-{
-	static DefaultProtocolFamily default_protocol_family;
-	return &default_protocol_family;
-}
-
 //////////////////////////////////////////  发送ping包  /////////////////////////////////
 void PingHandler::register_handler()
 {
