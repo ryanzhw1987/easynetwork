@@ -554,7 +554,7 @@ bool SocketManager::accept(SocketHandle trans_fd)
 			SLOG_ERROR("register trans socket failed. fd=%d", trans_fd);
 			m_trans_sockets_map.erase(pair_ret.first);
 			delete passive_socket;
-			return -1;
+			return false;
 		}
 		//此时再赋值, 防止socket被关闭掉
 		passive_socket->assign(trans_fd, -1, peer_ip, m_block_mode);
@@ -563,6 +563,6 @@ bool SocketManager::accept(SocketHandle trans_fd)
 	else
 		SLOG_WARN("passive trans socket already exist in socket manager. fd=%d", trans_fd);
 
-	return 0;
+	return true;
 }
 

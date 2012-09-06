@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 #include <string.h>
-
-#include "IODemuxerEpoll.h"
 #include "slog.h"
 
 
@@ -68,18 +66,4 @@ int ServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 {
 	SLOG_DEBUG("server app on socket handle timeout. fd=%d", socket_handle);
 	return 0;
-}
-
-//应用层所使用的io复用
-IODemuxer* ServerAppFramework::get_io_demuxer()
-{
-	static EpollDemuxer epoll_demuxer;
-	return &epoll_demuxer;
-}
-
-//应用层所使用的协议族
-ProtocolFamily* ServerAppFramework::get_protocol_family()
-{
-	static DefaultProtocolFamily default_protocol_family;
-	return &default_protocol_family;
 }
