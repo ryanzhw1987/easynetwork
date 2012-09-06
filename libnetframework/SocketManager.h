@@ -8,6 +8,8 @@
 #include "EventHandler.h"
 #include "ListenHandler.h"
 
+#include "MemManager.h"
+
 #include <map>
 #include <queue>
 using std::queue;
@@ -53,6 +55,7 @@ private:
 	ProtocolFamily *m_protocol_family;
 	BlockMode m_block_mode;             //连接的阻塞模式
 
+	MemCache<TransSocket> m_trans_socket_memcache;
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
@@ -82,7 +85,7 @@ private:
 	EventHandler *m_listen_handler;  //监听handler
 	SocketMap m_trans_sockets_map;    //传输socket
 
-
+	virtual int delete_trans_socket(TransSocket *socket_handle);
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
