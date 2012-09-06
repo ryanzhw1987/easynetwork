@@ -34,7 +34,7 @@ test_protocol:test_Protocol.c ProtocolDefault.cpp ProtocolDefault.h ProtocolType
 test_demuxer:test_IODemuxer.c IODemuxerEpoll.cpp IODemuxerEpoll.h IODemuxer.h
 	g++ $^  ${LIB} ${DEBUG} -o $@
 
-test_socketmanager:test_SocketManager.c SocketManager.cpp SocketManager.h IODemuxerEpoll.cpp IODemuxerEpoll.h IODemuxer.h ProtocolDefault.cpp Socket.cpp EventHandler.h MemManager.h
+test_socketmanager:test_SocketManager.cpp SocketManager.cpp SocketManager.h IODemuxerEpoll.cpp IODemuxerEpoll.h IODemuxer.h ProtocolDefault.cpp Socket.cpp EventHandler.h MemManager.h
 	g++ $^  ${LIB} ${DEBUG} -o $@
 
 test_socketmanager_client:test_SocketManager_client.c SocketManager.cpp SocketManager.h IODemuxerEpoll.cpp IODemuxerEpoll.h IODemuxer.h ProtocolDefault.cpp Socket.cpp EventHandler.h MemManager.h
