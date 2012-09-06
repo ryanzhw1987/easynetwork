@@ -151,14 +151,6 @@ int SocketManager::delete_trans_socket(TransSocket *trans_socket)
 	return 0;
 }
 
-Socket* SocketManager::find_listen_socket(SocketHandle socket_handle)
-{
-	if(m_listen_socket==NULL || m_listen_socket->get_handle()!=socket_handle)
-		return NULL;
-	else
-		return m_listen_socket;
-}
-
 Socket* SocketManager::find_trans_socket(SocketHandle socket_handle)
 {
 	SocketMap::iterator it = m_trans_sockets_map.find(socket_handle);
