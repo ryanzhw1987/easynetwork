@@ -64,25 +64,17 @@ private:
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 public:
-	//监听某个端口, 成功返回true, 失败返回false;
-	bool listen(int port);
 	//创建主动传输连接
 	virtual SocketHandle create_active_trans_socket(const char *ip, int port);
 
 	//删除(主/被动)传输连接,取消掉堵塞在其队列上的协议,同时通知应用层(主要由框架调用)
 	virtual int delete_trans_socket(SocketHandle socket_handle);
-	//查找监听连接(主要由框架调用)
-	virtual Socket* find_listen_socket(SocketHandle socket_handle);
 	//查找(主/被动)传输连接.(主要由框架调用)
 	virtual Socket* find_trans_socket(SocketHandle socket_handle);
 protected:
-	virtual Socket* new_listen_socket();	//创建具体的listen socket
-	virtual EventHandler* new_listen_handler();  //创建具体的listen handler
 	virtual Socket* new_trans_socket();	//创建具体的trans socket
 	virtual int init_passive_trans_socket(SocketHandle socket_handle, BlockMode block_mode); //对添加的trans socket进行必要的初始化
 private:
-	ListenSocket *m_listen_socket;   //监听socket
-	EventHandler *m_listen_handler;  //监听handler
 	SocketMap m_trans_sockets_map;    //传输socket
 
 	virtual int delete_trans_socket(TransSocket *socket_handle);
