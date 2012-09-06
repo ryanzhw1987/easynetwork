@@ -4,7 +4,9 @@
 #include "Socket.h"
 #include "Protocol.h"
 #include "IODemuxer.h"
+
 #include "EventHandler.h"
+#include "ListenHandler.h"
 
 #include <map>
 #include <queue>
@@ -25,12 +27,30 @@ typedef map<SocketHandle, queue<Protocol*> > SendTaskMap;
 ////////                                            ////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
-class SocketManager
+class SocketManager:public EventHandler, public ConnectAccepter
 {
+//重写EventHandler:实现trans socket的读写
 public:
-	SocketManager(BlockMode block_mode=NOBLOCK);
+	HANDLE_RESULT on_readable(int fd);
+	HANDLE_RESULT on_writeabble(int fd);
+	HANDLE_RESULT on_timeout(int fd);  //to do deal with timeout
+	HANDLE_RESULT on_error(int fd); //to do deal with error
+
+//实现ConnectAccepter:接收一个新的连接请求
+public:
+	bool accept(SocketHandle trans_fd);
+
+//本类
+public:
+	SocketManager(IODemuxer *io_demuxer, ProtocolFamily* protocol_family, BlockMode block_mode=NOBLOCK);
 	virtual ~SocketManager();
+	//应用层所使用的io复用
+	IODemuxer* get_io_demuxer(){return m_io_demuxer;}
+	//应用层所使用的协议族
+	ProtocolFamily* get_protocol_family(){return m_protocol_family;}
 private:
+	IODemuxer *m_io_demuxer;
+	ProtocolFamily *m_protocol_family;
 	BlockMode m_block_mode;             //连接的阻塞模式
 
 ////////////////////////////////////////////////
@@ -41,13 +61,11 @@ private:
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 public:
-	//监听某个端口, 成功返回0, 失败返回-1;
-	int listen(int port);
+	//监听某个端口, 成功返回true, 失败返回false;
+	bool listen(int port);
 	//创建主动传输连接
 	virtual SocketHandle create_active_trans_socket(const char *ip, int port);
 
-	//添加被动传输连接(主要由框架调用)
-	virtual int add_passive_trans_socket(const char *peer_ip, SocketHandle socket_handle);
 	//删除(主/被动)传输连接,取消掉堵塞在其队列上的协议,同时通知应用层(主要由框架调用)
 	virtual int delete_trans_socket(SocketHandle socket_handle);
 	//查找监听连接(主要由框架调用)
@@ -63,7 +81,7 @@ protected:
 private:
 	ListenSocket *m_listen_socket;   //监听socket
 	EventHandler *m_listen_handler;  //监听handler
-	SocketMap m_trans_sockets_map;   //传输socket
+	SocketMap m_trans_sockets_map;    //传输socket
 	EventHandler *m_trans_handler;   //传输handler
 
 
@@ -109,10 +127,6 @@ public:
 	//////////////////由应用层重写 收到一个新的连接请求////////
 	virtual int on_socket_handler_accpet(SocketHandle socket_handle){return 0;}
 
-	//应用层所使用的io复用
-	virtual IODemuxer* get_io_demuxer()=0;
-	//应用层所使用的协议族
-	virtual ProtocolFamily* get_protocol_family()=0;
 };
 
 
