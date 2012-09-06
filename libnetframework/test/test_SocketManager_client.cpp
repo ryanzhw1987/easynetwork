@@ -13,7 +13,7 @@ void test_socket()
 {
     SLOG_DEBUG("1. test socket.....");
     TransSocket client_socket("127.0.0.1", 3010, BLOCK);
-    client_socket.connect_server();
+    client_socket.open();
 
 	char buf[100];
     int len = 100;
@@ -87,9 +87,10 @@ void test_socket()
 //使用框架来发送数据
 //应用程序框架
 //重写父类成员函数recv_protocol,实现业务层逻辑
-class AppFramework: public SocketManager
+class ClientAppFramework: public SocketManager
 {
 public:
+	ClientAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family):SocketManager(io_demuxer, protocol_family){}
 	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
 	{
 	    DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily*)get_protocol_family();
@@ -145,28 +146,15 @@ public:
 		get_io_demuxer()->exit();
     	return 0;
     }
-
-	//应用层所使用的io复用
-	IODemuxer* get_io_demuxer()
-	{
-		static EpollDemuxer epoll_demuxer;
-		return &epoll_demuxer;
-	}
-
-	//应用层所使用的协议族
-	ProtocolFamily* get_protocol_family()
-	{
-		static DefaultProtocolFamily default_protocol_family;
-		return &default_protocol_family;
-	}
 };
 
 void test_socket_manager()
 {
     SLOG_DEBUG("2. test framework......");
-
-	AppFramework app_framework;  //异步
-    SocketHandle socket_handle = app_framework.create_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
+	EpollDemuxer io_demuxer;
+	DefaultProtocolFamily protocol_family;
+	ClientAppFramework cient_app_framework(&io_demuxer, &protocol_family);  //异步
+    SocketHandle socket_handle = cient_app_framework.create_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
     if(socket_handle == SOCKET_INVALID)
         return;
 
@@ -180,9 +168,9 @@ void test_socket_manager()
 	    len = strlen(buf)+1;
         SimpleCmd *simple_cmd = new SimpleCmd;
         simple_cmd->set_data(buf, len);
-        app_framework.send_cmd(socket_handle, (Command*)simple_cmd, true);
+        cient_app_framework.send_cmd(socket_handle, (Command*)simple_cmd, true);
     }
-	app_framework.get_io_demuxer()->run_loop();
+   	io_demuxer.run_loop();
 }
 
 int main()
@@ -191,7 +179,7 @@ int main()
 	
 	test_socket(); //使用socket和protocol来发送数据
 	test_socket_manager();  //使用框架来发送数据
-	
+
 	SLOG_UNINIT();
 	return 0;
 }

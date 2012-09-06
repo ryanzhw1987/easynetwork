@@ -2,6 +2,8 @@ LIB=-lslog
 DEBUG=-g #-D__SLOG_FULL__
 INC_DIR=-I../
 
+all:test_SocketManager test_SocketManager_client
+
 test_SocketManager:test_SocketManager.cpp ../*.cpp ../*.h
 	g++ $^ ${INC_DIR} ${LIB} ${DEBUG} -o $@
 	
@@ -10,3 +12,4 @@ test_SocketManager_client:test_SocketManager_client.cpp ../*.cpp ../*.h
 
 clean:
 	rm test_SocketManager
+	rm test_SocketManager_client
