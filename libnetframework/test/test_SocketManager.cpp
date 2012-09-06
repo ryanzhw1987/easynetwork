@@ -33,7 +33,7 @@ public:
 	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
 	{
 		DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily*)get_protocol_family();
-		DefaultProtocol *protocol = (DefaultProtocol*)protocol_family->create_protocol(cmd);
+		Protocol *protocol = protocol_family->create_protocol(cmd);
 		send_protocol(socket_handle, protocol, has_resp);
 		return 0;
 	}
@@ -70,14 +70,14 @@ public:
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 	{
 		SLOG_ERROR("app send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
-		delete protocol;
+		get_protocol_family()->destroy_protocol(protocol);
 		return 0;
 	}
 
 	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 	{
 		SLOG_DEBUG("app send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
-		delete protocol;
+		get_protocol_family()->destroy_protocol(protocol);
 		return 0;
 	}
 

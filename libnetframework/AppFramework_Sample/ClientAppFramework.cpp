@@ -40,14 +40,14 @@ int ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *p
 int ClientAppFramework::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 {
 	SLOG_ERROR("client app on send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
-	delete protocol;
+	get_protocol_family()->destroy_protocol(protocol);
 	return 0;
 }
 
 int ClientAppFramework::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 {
 	SLOG_DEBUG("client app on send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
-	delete protocol;
+	get_protocol_family()->destroy_protocol(protocol);
 	return 0;
 }
 
