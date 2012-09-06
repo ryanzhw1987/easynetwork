@@ -5,8 +5,8 @@
  *      Author: LiuYongjin
  */
 
-#ifndef _LIB_SOCKET_HANDLER_H_
-#define _LIB_SOCKET_HANDLER_H_
+#ifndef _LIB_LISTEN_HANDLER_H_
+#define _LIB_LISTEN_HANDLER_H_
 
 #include "SocketType.h"
 #include "EventHandler.h"
@@ -14,6 +14,7 @@
 class ConnectAccepter
 {
 public:
+	virtual ~ConnectAccepter(){}
 	virtual bool accept(SocketHandle trans_fd) = 0;
 };
 
@@ -31,4 +32,4 @@ private:
 	ConnectAccepter *m_connect_accepter;
 };
 
-#endif //_LIB_SOCKET_HANDLER_H_
+#endif //_LIB_LISTEN_HANDLER_H_

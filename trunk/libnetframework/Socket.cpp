@@ -394,5 +394,7 @@ TransStatus TransSocket::send_buffer()
 			return TRANS_ERROR;
 		}
 	}
+
+	return TRANS_OK;
 }
 
