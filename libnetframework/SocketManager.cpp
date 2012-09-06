@@ -20,17 +20,11 @@ using std::make_pair;
 SocketManager::SocketManager(IODemuxer *io_demuxer, ProtocolFamily* protocol_family, BlockMode block_mode/*=NOBLOCK*/)
 {	
 	m_listen_socket = NULL;
-	m_trans_handler = new_trans_handler();
 	m_listen_handler = new_listen_handler();
 
 	m_io_demuxer = io_demuxer;
 	m_protocol_family = protocol_family;
 	m_block_mode = block_mode;
-}
-
-EventHandler* SocketManager::new_trans_handler()
-{
-	return (EventHandler*)new TransHandler(this);
 }
 
 EventHandler* SocketManager::new_listen_handler()
@@ -39,11 +33,7 @@ EventHandler* SocketManager::new_listen_handler()
 }
 
 SocketManager::~SocketManager()
-{	
-	if(m_trans_handler != NULL)
-		delete m_trans_handler;
-	m_trans_handler = NULL;
-
+{
 	if(m_listen_handler != NULL)
 		delete m_listen_handler;
 	m_listen_handler = NULL;
@@ -153,8 +143,7 @@ SocketHandle SocketManager::create_active_trans_socket(const char *ip, int port)
 			return SOCKET_INVALID;
 		}
 
-		IODemuxer *io_demuxer = get_io_demuxer();assert(io_demuxer!=NULL);
-		if(io_demuxer->register_event(socket_handle, EVENT_READ|EVENT_PERSIST, 12000, m_trans_handler)==-1)
+		if(m_io_demuxer->register_event(socket_handle, EVENT_READ|EVENT_PERSIST, 12000, this)==-1)
 		{
 			SLOG_ERROR("register active socket error. delete it. fd=%d", socket_handle);
 			m_trans_sockets_map.erase(socket_handle);
@@ -272,8 +261,7 @@ int SocketManager::send_protocol(SocketHandle socket_handle, Protocol *protocol,
 	//if(has_resp)  //如果有回复,注册(一次)可读事件
 	//	events |= EVENT_READ;
 
-	IODemuxer *io_demuxer = get_io_demuxer();assert(io_demuxer!=NULL);
-	return io_demuxer->register_event(socket_handle, events, 12000, m_trans_handler);	
+	return m_io_demuxer->register_event(socket_handle, events, 12000, this);
 }
 
 Protocol* SocketManager::get_wait_to_send_protocol(SocketHandle socket_handle)
@@ -539,9 +527,9 @@ bool SocketManager::accept(SocketHandle trans_fd)
 	const char *peer_ip = "Unknow ip!!!";
 	struct sockaddr_in peer_addr;
 	int socket_len = sizeof(peer_addr);
-	if(getpeername(socket_handle, (struct sockaddr*)&peer_addr, (socklen_t*)&socket_len) == 0)
+	if(getpeername(trans_fd, (struct sockaddr*)&peer_addr, (socklen_t*)&socket_len) == 0)
 		peer_ip = inet_ntoa(peer_addr.sin_addr);
-	SLOG_DEBUG("accept connect from ip:%s, fd=%d", ip, trans_fd);
+	SLOG_DEBUG("accept connect from ip:%s, fd=%d", peer_ip, trans_fd);
 
 	if(init_passive_trans_socket(trans_fd, m_block_mode) == -1)
 		return false;

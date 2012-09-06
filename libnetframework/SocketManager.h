@@ -76,13 +76,11 @@ protected:
 	virtual Socket* new_listen_socket();	//创建具体的listen socket
 	virtual EventHandler* new_listen_handler();  //创建具体的listen handler
 	virtual Socket* new_trans_socket();	//创建具体的trans socket
-	virtual EventHandler* new_trans_handler();   //创建具体的trans handler
 	virtual int init_passive_trans_socket(SocketHandle socket_handle, BlockMode block_mode); //对添加的trans socket进行必要的初始化
 private:
 	ListenSocket *m_listen_socket;   //监听socket
 	EventHandler *m_listen_handler;  //监听handler
 	SocketMap m_trans_sockets_map;    //传输socket
-	EventHandler *m_trans_handler;   //传输handler
 
 
 ////////////////////////////////////////////////
