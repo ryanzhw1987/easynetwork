@@ -91,20 +91,6 @@ public:
 		SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
 		return 0;
 	}
-
-	//应用层所使用的io复用
-	IODemuxer* get_io_demuxer()
-	{
-		static EpollDemuxer epoll_demuxer;
-		return &epoll_demuxer;
-	}
-
-	//应用层所使用的协议族
-	ProtocolFamily* get_protocol_family()
-	{
-		static DefaultProtocolFamily default_protocol_family;
-		return &default_protocol_family;
-	}
 };
 
 int main()
