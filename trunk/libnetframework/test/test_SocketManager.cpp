@@ -5,6 +5,7 @@
 #include "SocketManager.h"
 #include "ProtocolDefault.h"
 #include "ListenHandler.h"
+#include "NetInterface.h"
 
 #include "slog.h"
 
@@ -25,10 +26,11 @@ private:
 
 //应用程序框架
 //重写父类成员函数recv_protocol,实现业务层逻辑
-class AppFramework: public SocketManager
+class AppFramework: public NetInterface
 {
 public:
-	AppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family):SocketManager(io_demuxer, protocol_family){}
+	AppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manger)
+		:NetInterface(io_demuxer, protocol_family, socket_manger){}
 
 	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
 	{
@@ -107,7 +109,8 @@ int main()
 
 	EpollDemuxer io_demuxer;
 	DefaultProtocolFamily protocol_family;
-	AppFramework app_server(&io_demuxer, &protocol_family);
+	SocketManager socket_manager;
+	AppFramework app_server(&io_demuxer, &protocol_family, &socket_manager);
 
 	//listen event
 	ListenHandler listen_handler(&app_server);

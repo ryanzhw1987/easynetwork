@@ -67,6 +67,7 @@ public:
 class ProtocolFamily
 {
 public:
+	virtual ~ProtocolFamily(){}
 	virtual Protocol* create_protocol()=0;
 	virtual bool destroy_protocol(Protocol* protocol)=0;
 };

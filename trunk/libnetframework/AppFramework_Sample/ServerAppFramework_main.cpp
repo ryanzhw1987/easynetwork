@@ -21,7 +21,8 @@ int main()
 
 	EpollDemuxer io_demuxer;
 	DefaultProtocolFamily protocol_family;
-	ServerAppFramework app_server(&io_demuxer, &protocol_family);
+	SocketManager socket_manager;
+	ServerAppFramework app_server(&io_demuxer, &protocol_family, &socket_manager);
 
 	//listen event
 	ListenHandler listen_handler(&app_server);

@@ -20,6 +20,7 @@ typedef enum
 class EventHandler
 {
 public:
+	virtual ~EventHandler(){}
 	virtual HANDLE_RESULT on_readable(int fd)
 	{
 		SLOG_TRACE("fd=%d reable able. do nothing.",fd);
