@@ -17,41 +17,15 @@ using std::make_pair;
 //////                               //////
 ///////////////////////////////////////////
 ///////////////////////////////////////////
-SocketManager::SocketManager(IODemuxer *io_demuxer, ProtocolFamily* protocol_family, BlockMode block_mode/*=NOBLOCK*/)
-{	
-	m_io_demuxer = io_demuxer;
-	m_protocol_family = protocol_family;
-	m_block_mode = block_mode;
-}
-
 SocketManager::~SocketManager()
 {
-	{//delete sockets
-		SocketMap::iterator it;
-		for(it=m_trans_sockets_map.begin();it!=m_trans_sockets_map.end(); ++it)
-		{
-			TransSocket* trans_socket = (TransSocket*)it->second;
-			m_trans_socket_memcache.Free(trans_socket);
-		}
-		m_trans_sockets_map.clear();
+	SocketMap::iterator it;
+	for(it=m_trans_sockets_map.begin();it!=m_trans_sockets_map.end(); ++it)
+	{
+		TransSocket* trans_socket = (TransSocket*)it->second;
+		m_trans_socket_memcache.Free(trans_socket);
 	}
-
-	{//delete protocol
-		SendTaskMap::iterator it;
-		for(it=m_send_tasks_map.begin(); it!=m_send_tasks_map.end(); ++it)
-		{
-			queue<Protocol*> &protocol_queue = it->second;
-			queue <Protocol*>::size_type size =  protocol_queue.size();
-			while(size>0)
-			{
-				Protocol *protocol = (Protocol *)protocol_queue.front();
-				delete protocol;
-				protocol_queue.pop();
-				size =  protocol_queue.size();
-			}
-		}
-		m_send_tasks_map.clear();
-	}
+	m_trans_sockets_map.clear();
 }
 
 SocketHandle SocketManager::create_active_trans_socket(const char *ip, int port)
@@ -99,6 +73,38 @@ SocketHandle SocketManager::create_active_trans_socket(const char *ip, int port)
 	return socket_handle;
 }
 
+ SocketManager::add_passive_trans_socket(SocketHandle trans_fd)
+{
+	const char *peer_ip = "Unknow ip!!!";
+	struct sockaddr_in peer_addr;
+	int socket_len = sizeof(peer_addr);
+	if(getpeername(trans_fd, (struct sockaddr*)&peer_addr, (socklen_t*)&socket_len) == 0)
+		peer_ip = inet_ntoa(peer_addr.sin_addr);
+	if(init_passive_trans_socket(trans_fd, m_block_mode) == -1)
+		return ;
+
+	TransSocket *passive_socket = NULL;
+	SocketMap::iterator it = m_trans_sockets_map.find(trans_fd);
+	if(it == m_trans_sockets_map.end())
+	{
+		passive_socket = (TransSocket*)new_trans_socket();
+		assert(passive_socket!=NULL && passive_socket->get_handle()==SOCKET_INVALID);
+		//先保存/注册再赋值, 防止socket被关闭掉
+		pair<SocketMap::iterator, bool> pair_ret = m_trans_sockets_map.insert(make_pair(trans_fd, passive_socket));
+		if(pair_ret.second == false)
+		{
+			SLOG_ERROR("passive socket insert into map failed");
+			delete_trans_socket(passive_socket);
+			return NULL;
+		}
+		passive_socket->assign(trans_fd, -1, peer_ip, m_block_mode);
+	}
+	else
+		SLOG_WARN("passive trans socket already exist in socket manager. fd=%d", trans_fd);
+
+	return passive_socket;
+}
+
 int SocketManager::init_passive_trans_socket(SocketHandle socket_handle, BlockMode block_mode)
 {
 	int flags = fcntl(socket_handle, F_GETFL, 0);
@@ -127,7 +133,7 @@ Socket* SocketManager::new_trans_socket()
 	return (Socket*)m_trans_socket_memcache.Alloc();
 }
 
-int SocketManager::delete_trans_socket(SocketHandle socket_handle)
+int SocketManager::delete_trans_socket(SocketHandle socket_handle, bool close_socket)
 {	
 	SLOG_DEBUG("remove trans socket from socket manager. fd=%d", socket_handle);
 
@@ -455,51 +461,5 @@ HANDLE_RESULT SocketManager::on_error(int fd)
 	delete_trans_socket(fd);     //从socket manager中删除掉
 
 	return HANDLE_OK;
-}
-
-////////////////////////////////////////////////////////////////////////
-//实现ConnectAccepter
-bool SocketManager::accept(SocketHandle trans_fd)
-{
-	const char *peer_ip = "Unknow ip!!!";
-	struct sockaddr_in peer_addr;
-	int socket_len = sizeof(peer_addr);
-	if(getpeername(trans_fd, (struct sockaddr*)&peer_addr, (socklen_t*)&socket_len) == 0)
-		peer_ip = inet_ntoa(peer_addr.sin_addr);
-	SLOG_DEBUG("accept connect from ip:%s, fd=%d", peer_ip, trans_fd);
-
-	if(init_passive_trans_socket(trans_fd, m_block_mode) == -1)
-		return false;
-
-	TransSocket *passive_socket = NULL;
-	SocketMap::iterator it = m_trans_sockets_map.find(trans_fd);
-	if(it == m_trans_sockets_map.end())
-	{
-		passive_socket = (TransSocket*)new_trans_socket();
-		assert(passive_socket!=NULL && passive_socket->get_handle()==SOCKET_INVALID);
-		//先保存/注册再赋值, 防止socket被关闭掉
-		pair<SocketMap::iterator, bool> pair_ret = m_trans_sockets_map.insert(make_pair(trans_fd, passive_socket));
-		if(pair_ret.second == false)
-		{
-			SLOG_ERROR("passive socket insert into map failed");
-			delete_trans_socket(passive_socket);
-			return false;
-		}
-
-		if(m_io_demuxer->register_event(trans_fd, EVENT_READ|EVENT_PERSIST, 0, this) == -1)
-		{
-			SLOG_ERROR("register trans socket failed. fd=%d", trans_fd);
-			m_trans_sockets_map.erase(pair_ret.first);
-			delete_trans_socket(passive_socket);
-			return false;
-		}
-		//此时再赋值, 防止socket被关闭掉
-		passive_socket->assign(trans_fd, -1, peer_ip, m_block_mode);
-		on_socket_handler_accpet(trans_fd);
-	}
-	else
-		SLOG_WARN("passive trans socket already exist in socket manager. fd=%d", trans_fd);
-
-	return true;
 }
 
