@@ -69,6 +69,7 @@ class DefaultProtocol: public Protocol
 ///////      基类纯虚函数             /////////
 ///////////////////////////////////////////////
 public:
+	virtual ProtocolHeader* get_header(){return m_header;}
 	//协议编码,成功返回0; 否则返回-1;
 	virtual int encode(IOBuffer *io_buffer);
 	//获取协议头大小
