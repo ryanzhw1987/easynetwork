@@ -49,6 +49,7 @@ class Protocol
 {
 public:
 	virtual ~Protocol(){}
+	virtual ProtocolHeader* get_header()=0;
 	///////////////////////////////////////// 编码 //////////////////////////
 	//协议编码,成功返回0; 否则返回-1;
 	virtual int encode(IOBuffer *io_buffer) = 0;
