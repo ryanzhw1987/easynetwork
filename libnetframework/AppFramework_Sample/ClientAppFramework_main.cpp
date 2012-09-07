@@ -12,9 +12,10 @@ int main()
 
 	EpollDemuxer io_demuxer;
 	DefaultProtocolFamily protocol_family;
-	ClientAppFramework app_framework(&io_demuxer, &protocol_family);  //异步
+	SocketManager socket_manager;
+	ClientAppFramework app_framework(&io_demuxer, &protocol_family, &socket_manager);  //异步
 
-	SocketHandle socket_handle = app_framework.create_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
+	SocketHandle socket_handle = app_framework.get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
     if(socket_handle == SOCKET_INVALID)
         return -1;
 

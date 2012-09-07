@@ -3,11 +3,15 @@
 
 #include "SocketManager.h"
 #include "ProtocolDefault.h"
+#include "NetInterface.h"
 
-class ServerAppFramework: public SocketManager
+class ServerAppFramework: public NetInterface
 {
 public:
-	ServerAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family):SocketManager(io_demuxer, protocol_family){}
+	ServerAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager* socket_manager)
+			:NetInterface(io_demuxer, protocol_family, socket_manager)
+	{}
+
     //////////////////由应用层重写 接收协议函数//////////////////
     int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete);
     //////////////////由应用层重写 协议发送错误处理函数//////////

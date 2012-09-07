@@ -8,10 +8,12 @@
 #ifndef _LIB_NET_INTERFACE_H_
 #define _LIB_NET_INTERFACE_H_
 
-#include "ListenHandler.h"
+
 #include "IODemuxer.h"
 #include "Protocol.h"
 #include "SocketManager.h"
+#include "EventHandler.h"
+#include "ConnectAccepter.h"
 
 #include <queue>
 #include <map>

@@ -5,7 +5,7 @@
 #include "SocketManager.h"
 #include "ProtocolDefault.h"
 #include "Socket.h"
-
+#include "NetInterface.h"
 #include "slog.h"
 
 //使用socket来发送数据
@@ -87,10 +87,13 @@ void test_socket()
 //使用框架来发送数据
 //应用程序框架
 //重写父类成员函数recv_protocol,实现业务层逻辑
-class ClientAppFramework: public SocketManager
+class ClientAppFramework: public NetInterface
 {
 public:
-	ClientAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family):SocketManager(io_demuxer, protocol_family){}
+	ClientAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager)
+			:NetInterface(io_demuxer, protocol_family, socket_manager)
+	{}
+
 	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
 	{
 	    DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily*)get_protocol_family();
@@ -153,8 +156,9 @@ void test_socket_manager()
     SLOG_DEBUG("2. test framework......");
 	EpollDemuxer io_demuxer;
 	DefaultProtocolFamily protocol_family;
-	ClientAppFramework cient_app_framework(&io_demuxer, &protocol_family);  //异步
-    SocketHandle socket_handle = cient_app_framework.create_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
+	SocketManager socket_manager;
+	ClientAppFramework cient_app_framework(&io_demuxer, &protocol_family, &socket_manager);  //异步
+    SocketHandle socket_handle = cient_app_framework.get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
     if(socket_handle == SOCKET_INVALID)
         return;
 

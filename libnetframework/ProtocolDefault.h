@@ -138,6 +138,7 @@ private:
 class DefaultProtocolFamily:public ProtocolFamily
 {
 public:
+	virtual ~DefaultProtocolFamily(){}
 	Protocol* create_protocol()
 	{
 		//return new DefaultProtocol;

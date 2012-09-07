@@ -10,18 +10,14 @@
 
 #include "SocketType.h"
 #include "EventHandler.h"
-
-class ConnectAccepter
-{
-public:
-	virtual ~ConnectAccepter(){}
-	virtual bool accept(SocketHandle trans_fd) = 0;
-};
+#include "ConnectAccepter.h"
 
 class ListenHandler:public EventHandler
 {
 public:
 	ListenHandler(ConnectAccepter *connect_accepter):m_connect_accepter(connect_accepter){}
+	virtual ~ListenHandler(){}
+
 public:  //重写EventHander的虚函数
 	HANDLE_RESULT on_readable(int fd);
 	//HANDLE_RESULT on_writeabble(int fd){return HANDLE_OK;}	//to do deal with timeout
