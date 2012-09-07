@@ -21,5 +21,3 @@ public:
 
 #endif //_LIB_CONNECT_ACCEPTER_H_
 
-
-
