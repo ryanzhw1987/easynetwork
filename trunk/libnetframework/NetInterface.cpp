@@ -8,6 +8,9 @@
 #include "NetInterface.h"
 #include "slog.h"
 
+using std::pair;
+using std::make_pair;
+
 NetInterface::~NetInterface()
 {
 	ProtocolMap::iterator it;
@@ -191,24 +194,45 @@ HANDLE_RESULT NetInterface::on_writeabble(int fd)
 HANDLE_RESULT NetInterface::on_timeout(int fd)
 {
 	SLOG_TRACE("socket on_timeout. fd=%d", fd);
-	on_socket_handle_timeout(fd);  //通知应用层socket超时
-	delete_trans_socket(fd);       //从socket manager中删除掉
+	//取消所有fd上面的带发送协议
+	cancal_wait_to_send_protocol(fd);
+	m_socket_manager->remove_trans_socket(fd);       //从socket manager中删除掉
 
+	on_socket_handle_timeout(fd);  //通知应用层socket超时
 	return HANDLE_OK;
 }
 
 HANDLE_RESULT NetInterface::on_error(int fd)
 {
 	SLOG_TRACE("socket on_error. fd=%d error", fd);
-	on_socket_handle_error(fd);  //通知应用层socket错误
-	delete_trans_socket(fd);     //从socket manager中删除掉
+	//取消所有fd上面的带发送协议
+	cancal_wait_to_send_protocol(fd);
+	m_socket_manager->remove_trans_socket(fd);     //从socket manager中删除掉
 
+	on_socket_handle_error(fd);  //通知应用层socket错误
 	return HANDLE_OK;
 }
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
+SocketHandle NetInterface::get_active_trans_socket(const char *ip, int port)
+{
+	Socket* socket = m_socket_manager->add_active_trans_socket(ip, port);
+	if(socket == NULL)
+		return SOCKET_INVALID;
+
+	SocketHandle socket_handle = socket->get_handle();
+	if(m_io_demuxer->register_event(socket_handle, EVENT_READ|EVENT_PERSIST, m_socket_idle_timeout_ms, this) != 0)
+	{
+		SLOG_ERROR("register active socket error. delete it. fd=%d", socket_handle);
+		m_socket_manager->remove_trans_socket(socket_handle);
+		socket_handle = SOCKET_INVALID;
+	}
+
+	return socket_handle;
+}
+
 //添加协议到发送队列.成功返回0.失败返回-1,需要自行处理protocol.
 int NetInterface::send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp)
 {
@@ -259,7 +283,7 @@ Protocol* NetInterface::get_wait_to_send_protocol(SocketHandle socket_handle)
 	if(protocol_queue.empty())
 	{
 		SLOG_DEBUG("protocol queue of fd:% is empty.remove from map", socket_handle);
-		m_send_tasks_map.erase(it);
+		m_protocol_map.erase(it);
 		return NULL;
 	}
 

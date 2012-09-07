@@ -13,6 +13,11 @@
 #include "Protocol.h"
 #include "SocketManager.h"
 
+#include <queue>
+#include <map>
+using std::queue;
+using std::map;
+
 typedef map<SocketHandle, queue<Protocol*> > ProtocolMap;
 class NetInterface:public ConnectAccepter, public EventHandler
 {
@@ -34,6 +39,7 @@ public:
 		m_io_demuxer=io_demuxer;
 		m_protocol_family = protocol_family;
 		m_socket_manager = socket_manager;
+		m_socket_idle_timeout_ms = 12000;
 	}
 
 	virtual ~NetInterface();
@@ -45,6 +51,7 @@ private:
 	IODemuxer *m_io_demuxer;
 	ProtocolFamily *m_protocol_family;
 	SocketManager *m_socket_manager;
+	int m_socket_idle_timeout_ms;  //socket 空闲超时时间.超过该时间链接将被断开. 默认12s
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -54,6 +61,9 @@ private:
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 public:
+	//获取主动链接
+	virtual SocketHandle get_active_trans_socket(const char *ip, int port);
+
 	//添加协议到发送队列.成功返回0.失败返回-1,需要自行处理protocol.
 	virtual int send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp);
 	//获取等待队列中待发送的协议
@@ -65,7 +75,6 @@ public:
 private:
 	//待发送的协议队列
 	ProtocolMap m_protocol_map;
-
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
