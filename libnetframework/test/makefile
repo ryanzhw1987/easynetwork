@@ -1,4 +1,4 @@
-LIB=-lslog
+LIB=-lslog -lpthread
 DEBUG=-g #-D__SLOG_FULL__
 INC_DIR=-I../
 
