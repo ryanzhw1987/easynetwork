@@ -4,38 +4,26 @@
 #include <string.h>
 #include "slog.h"
 
-
-int ServerAppFramework::send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
-{
-    DefaultProtocolFamily *default_protocol_family = (DefaultProtocolFamily*)get_protocol_family();
-	Protocol *protocol = default_protocol_family->create_protocol(cmd);
-	send_protocol(socket_handle, protocol, has_resp);
-	return 0;
-}
-	
 //////////////////由应用层重写 接收协议函数//////////////////
-int ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
+int ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {
-	DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
-	ProtocolType type = default_protocol->get_type();
-	switch(type)
+	switch(((DefaultProtocol*)protocol)->get_type())
 	{
-	case PROTOCOL_SIMPLE:
+	case PROTOCOL_STRING:
 		{
-			SimpleCmd* simple_cmd = (SimpleCmd*)default_protocol->get_cmd();
-			SLOG_DEBUG("receive simple cmd. recevie data:%s.", simple_cmd->get_data());
+			StringProtocol* string_protocol = (StringProtocol*)protocol;
+			string data = string_protocol->get_string();
+			SLOG_DEBUG("receive string protocol from fd=%d. receive data:[%s], length=%d", socket_handle, data.c_str(), data.length());
 
-			SimpleCmd* cmd = new SimpleCmd();
-			char str[1024];
-			sprintf(str,"server resp.[receive data:%s]",simple_cmd->get_data());
-			int size = strlen(str)+1;
-			cmd->set_data(str, size);
-
-			send_cmd(socket_handle, cmd, false);				
+			Protocol* resp_protocol = ((DefaultProtocolFamily*)get_protocol_family())->create_protocol(PROTOCOL_STRING);
+			string temp = "server receive data:";
+			temp += data;
+			((StringProtocol*)resp_protocol)->set_string(temp);
+			send_protocol(socket_handle, resp_protocol);
 		}
 		break;
 	default:
-		SLOG_DEBUG("reveive undefine cmd.");
+		SLOG_DEBUG("receive undefine protocol. ignore it.");
 		break;
 	}
 	

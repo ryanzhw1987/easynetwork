@@ -6,30 +6,21 @@
 #include "IODemuxerEpoll.h"
 #include "slog.h"
 
-
-int ClientAppFramework::send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
-{
-    DefaultProtocolFamily *default_protocol_family = (DefaultProtocolFamily*)get_protocol_family();
-	Protocol *protocol = default_protocol_family->create_protocol(cmd);
-	send_protocol(socket_handle, protocol, has_resp);
-	return 0;
-}
-
 //////////////////由应用层重写 接收协议函数//////////////////
-int ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
+int ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {
 	DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
 	ProtocolType type = default_protocol->get_type();
 	switch(type)
 	{
-	case PROTOCOL_SIMPLE:
+	case PROTOCOL_STRING:
 		{
-			SimpleCmd* simple_cmd = (SimpleCmd*)default_protocol->get_cmd();
-			SLOG_DEBUG("receive server resp. simple cmd. recevie data:%s.", simple_cmd->get_data());
+			string resp = ((StringProtocol*)protocol)->get_string();
+			SLOG_DEBUG("receive from server:[%s]", resp.c_str());
 		}
 		break;
 	default:
-		SLOG_DEBUG("reveive undefine cmd.");
+		SLOG_DEBUG("receive undefine protocol. ignore it.");
 		break;
 	}
 
@@ -68,19 +59,18 @@ int ClientAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 void PingHandler::register_handler()
 {
 	IODemuxer *io_demuxer = m_app_framework->get_io_demuxer();
-	io_demuxer->register_event(-1, EVENT_PERSIST, 2000, this);
+	io_demuxer->register_event(-1, EVENT_PERSIST, 1000, this);
 }
 
 HANDLE_RESULT PingHandler::on_timeout(int fd)
 {
-	SLOG_DEBUG("ping handler timeout.");
-	char buf[100];
-	sprintf(buf, "ping cmd");
-	int len = strlen(buf)+1;
+	static int count = 0;
+	SLOG_DEBUG("ping handler timeout. count=%d", ++count);
 
-	SimpleCmd *simple_cmd = new SimpleCmd;
-	simple_cmd->set_data(buf, len);
-	m_app_framework->send_cmd(m_socket_handle, (Command*)simple_cmd, false);
+	DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily *)m_app_framework->get_protocol_family();
+	Protocol* resp_protocol = protocol_family->create_protocol(PROTOCOL_STRING);
+	((StringProtocol*)resp_protocol)->set_string("This is a ping protocol");
+	m_app_framework->send_protocol(m_socket_handle, resp_protocol);
 
 	return HANDLE_OK;
 }

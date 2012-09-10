@@ -1,8 +1,9 @@
 INC=-I/usr/local/include/libnetframework
 
-FLAGS=-D__SLOG_FULL__ #-static
+FLAGS=-D__SLOG_FULL__ -g #-static
 #LIBS=-lslog -lnetframework
 LIBS=-lslog /usr/local/lib/libnetframework.a
+
 
 all:test_server test_client
 test_server:ServerAppFramework_main.cpp ServerAppFramework.cpp ServerAppFramework.h

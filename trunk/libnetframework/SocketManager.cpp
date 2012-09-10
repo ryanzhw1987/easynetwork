@@ -134,7 +134,7 @@ int SocketManager::init_passive_trans_socket(SocketHandle socket_handle, BlockMo
 
 int SocketManager::remove_trans_socket(SocketHandle socket_handle)
 {	
-	SLOG_DEBUG("remove trans socket from socket manager. fd=%d", socket_handle);
+	SLOG_DEBUG("remove trans socket from socket manager. close fd=%d", socket_handle);
 	SocketMap::iterator it = m_trans_sockets_map.find(socket_handle);
 	if(it != m_trans_sockets_map.end())
 	{
