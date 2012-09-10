@@ -67,7 +67,7 @@ public:
 	virtual SocketHandle get_active_trans_socket(const char *ip, int port);
 
 	//添加协议到发送队列.成功返回0.失败返回-1,需要自行处理protocol.
-	virtual int send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp);
+	virtual int send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp=false);
 	//获取等待队列中待发送的协议
 	virtual Protocol* get_wait_to_send_protocol(SocketHandle socket_handle);
 	//获取等待队列中待发送的协议个数
@@ -87,7 +87,7 @@ private:
 ////////////////////////////////////////////////
 public:
 	//////////////////由应用层重写 接收协议函数//////////////////
-	virtual int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)=0;
+	virtual int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)=0;
 	//////////////////由应用层重写 协议发送错误处理函数//////////
 	virtual int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)=0;
 	//////////////////由应用层重写 协议发送成功处理函数//////////

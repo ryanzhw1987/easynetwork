@@ -13,7 +13,7 @@ public:
 	{}
 
     //////////////////由应用层重写 接收协议函数//////////////////
-    int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete);
+    int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
     //////////////////由应用层重写 协议发送错误处理函数//////////
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
 	//////////////////由应用层重写 协议发送成功处理函数//////////
@@ -22,9 +22,6 @@ public:
     int on_socket_handle_error(SocketHandle socket_handle);
     //////////////////由应用层重写 连接超时处理函数//////////////
     int on_socket_handle_timeout(SocketHandle socket_handle);
-
-public:    
-    int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp);
 };
 
 

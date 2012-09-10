@@ -316,7 +316,7 @@ TransStatus TransSocket::recv_buffer()
 	while(true)
 	{
 		read_size = 1024;
-		buffer = m_recv_buffer.write_begin(read_size);
+		buffer = m_recv_buffer.get_write_buffer(read_size);
 		if(buffer == NULL)
 		{
 			SLOG_ERROR("get write buffer error.");
@@ -348,7 +348,7 @@ TransStatus TransSocket::recv_buffer()
 			return TRANS_CLOSE;
 		}
 
-		m_recv_buffer.write_end(read_size);
+		m_recv_buffer.set_write_size(read_size);
 		if(read_size < 1024) //已经读完数据
 			break;
 	}
@@ -364,7 +364,7 @@ TransStatus TransSocket::recv_buffer()
 TransStatus TransSocket::send_buffer()
 {
 	unsigned int size;
-	char *buffer = m_send_buffer.read_begin(&size);
+	char *buffer = m_send_buffer.get_read_buffer(&size);
 	if(buffer == NULL)
 		return TRANS_OK;
 	while(true)
@@ -372,7 +372,7 @@ TransStatus TransSocket::send_buffer()
 		unsigned int ret = send(m_socket_handle, buffer, size, 0);
 		if(ret > 0)
 		{
-			m_send_buffer.read_end(ret);
+			m_send_buffer.set_read_size(ret);
 			if(ret < size)
 				return TRANS_PENDING;  //只发送了一部分数据
 			else

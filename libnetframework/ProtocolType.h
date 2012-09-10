@@ -4,6 +4,6 @@
 //协议类型
 typedef int ProtocolType;
 const ProtocolType PROTOCOL_INVALID = -1;
-const ProtocolType PROTOCOL_SIMPLE = 0;   //简单的协议
+const ProtocolType PROTOCOL_STRING = 0;   //简单的字符串协议
 
 #endif

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <new>
 
+#include "slog.h"
 
 ///////////////////////////////////
 ///////     Memory Cache    ///////
@@ -33,7 +34,7 @@ template<class T>
 MemCache<T>::~MemCache()
 {
 	MemBlock *temp,*next; 
-	
+
 	for(temp=(MemBlock*)m_free_list; temp != NULL; temp=next)
 	{
 		next = (MemBlock*)temp->prt;
@@ -69,6 +70,7 @@ T* MemCache<T>::Alloc()
 	if(element == NULL)
 		return NULL;
 
+	SLOG_DEBUG("alloc from memcache:%x",element);
 	element = new(element) T;
 	return element;
 }
@@ -76,6 +78,7 @@ T* MemCache<T>::Alloc()
 template<class T>
 bool MemCache<T>::Free(T *&element)
 {
+	SLOG_DEBUG("free to memcache:%x", element);
 	MemBlock *temp = (MemBlock *)((char*)element - sizeof(unsigned int));
 	if(temp->magic_num != MEM_MAGIC_NUM)
 		return false;

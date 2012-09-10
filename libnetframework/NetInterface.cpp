@@ -74,62 +74,84 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 
 	int body_size = 0;
 	int header_size = 0;
+	ProtocolHeader* protocol_header = NULL;
 	Protocol* protocol = NULL;
 
 	while(true)
 	{
 		unsigned int size = 0;
-		char *buffer = recv_buffer->read_begin(&size);
+		char *buffer = recv_buffer->get_read_buffer(&size);
 		if(buffer == NULL)  //无数据可读
 			break;
 
-		if(header_size == 0) //创建protocol,获取头部大小(头部大小固定,只获取一次;只提前生成一次protocol)
+		if(header_size == 0) //创建protocol_header,获取头部大小(头部大小固定,只获取一次;只提前生成一次protocol_header)
 		{
-			protocol = m_protocol_family->create_protocol();
-			header_size = protocol->get_header_size();
+			protocol_header = m_protocol_family->create_header();
+			if(protocol_header == NULL)
+			{
+				SLOG_ERROR("protocol family create protocol header failed");
+				return HANDLE_ERROR;
+			}
+			header_size = protocol_header->get_header_size();
+			if(header_size <= 0)
+			{
+				SLOG_ERROR("header size error");
+				m_protocol_family->destroy_header(protocol_header);
+				return HANDLE_ERROR;
+			}
 		}
 
 		if(header_size > size) //头部数据不够
 		{
-			if(protocol != NULL)  //第一次生成的protocol
-				delete protocol;
+			if(protocol_header != NULL)  //第一次生成的protocol header
+				m_protocol_family->destroy_header(protocol_header);
 			break;
 		}
 
-		//第一次获取头部大小时提前生成了protocol,之后当有足够的头部数据时才会生成
-		if(protocol == NULL)
-			protocol = m_protocol_family->create_protocol();
+		if(protocol_header == NULL)
+		{
+			protocol_header = m_protocol_family->create_header();
+			if(protocol_header == NULL)
+			{
+				SLOG_ERROR("protocol family create protocol header failed");
+				return HANDLE_ERROR;
+			}
+		}
 
 		//1. decode header
-		if(protocol->decode_header(buffer, header_size) != 0)
+		if(protocol_header->decode(buffer, header_size) != 0)
 		{
 			SLOG_ERROR("decode header error.");
-			delete protocol;
+			m_protocol_family->destroy_header(protocol_header);
 			return HANDLE_ERROR;
 		}
 
 		//2. decode body
-		body_size = protocol->get_body_size();
+		body_size = protocol_header->get_body_size();
 		if(header_size + body_size > size) //数据不够
 		{
 			SLOG_DEBUG("no enougth data now, return and wait for more data.");
-			delete protocol;
+			m_protocol_family->destroy_header(protocol_header);
 			return HANDLE_OK;
+		}
+		if((protocol=m_protocol_family->create_protocol(protocol_header)) == NULL)
+		{
+			SLOG_ERROR("protocol family create protocol failed");
+			m_protocol_family->destroy_header(protocol_header);
+			return HANDLE_ERROR;
 		}
 		if(protocol->decode_body(buffer+header_size, body_size) != 0)
 		{
 			SLOG_ERROR("decode body error.");
-			delete protocol;
+			m_protocol_family->destroy_protocol(protocol);
 			return HANDLE_ERROR;
 		}
-		recv_buffer->read_end(header_size+body_size);  //清空已经读取的数据
+		recv_buffer->set_read_size(header_size+body_size);  //清空已经读取的数据
 
 		//3. 调用回调函数向应用层发协议
-		int has_delete = 0;
-		int ret = on_recv_protocol(fd, protocol, &has_delete);
-		if(ret!=0 || has_delete == 0) //应用层处理失败或者未是否protocol
-			m_protocol_family->destroy_protocol(protocol);
-		protocol = NULL;
+		on_recv_protocol(fd, protocol);
+		m_protocol_family->destroy_protocol(protocol);
+		protocol_header = NULL;
 	}
 
 	return HANDLE_OK;
@@ -234,7 +256,7 @@ SocketHandle NetInterface::get_active_trans_socket(const char *ip, int port)
 }
 
 //添加协议到发送队列.成功返回0.失败返回-1,需要自行处理protocol.
-int NetInterface::send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp)
+int NetInterface::send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp/*=false*/)
 {
 	if(socket_handle==SOCKET_INVALID || protocol==NULL)
 		return -1;

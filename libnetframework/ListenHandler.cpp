@@ -17,15 +17,9 @@
 ////////////////////////////////////////////////////////////
 HANDLE_RESULT ListenHandler::on_readable(int fd)
 {
-	int new_fd = accept(fd, NULL, 0);
+	int new_fd = receive_connect(fd);
 	if(new_fd == -1)
-	{
-		if(errno==EAGAIN || errno==EINPROGRESS || errno==EINTR)  //被中断
-			return HANDLE_OK;
-
-		SLOG_ERROR("accept client socket failed. errno=%d", errno);
-		return HANDLE_ERROR;
-	}
+		return HANDLE_OK;
 
 	assert(m_connect_accepter != NULL);
 	if(m_connect_accepter->accept(new_fd) == false)
@@ -35,4 +29,17 @@ HANDLE_RESULT ListenHandler::on_readable(int fd)
 	}
 
 	return HANDLE_OK;
+}
+
+int ListenHandler::receive_connect(int listen_fd)
+{
+	int fd = accept(listen_fd, NULL, 0);
+	if(fd == -1)
+	{
+		if(errno==EAGAIN || errno==EINPROGRESS || errno==EINTR)  //被中断
+			SLOG_WARN("accept client socket interrupted. errno=%d", errno);
+		else
+			SLOG_ERROR("accept client socket error. errno=%d", errno);
+	}
+	return fd;
 }

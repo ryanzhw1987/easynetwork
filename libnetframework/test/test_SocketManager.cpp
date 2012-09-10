@@ -32,40 +32,29 @@ public:
 	AppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manger)
 		:NetInterface(io_demuxer, protocol_family, socket_manger){}
 
-	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
-	{
-		DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily*)get_protocol_family();
-		Protocol *protocol = protocol_family->create_protocol(cmd);
-		send_protocol(socket_handle, protocol, has_resp);
-		return 0;
-	}
-
 	//重写父类函数,实现业务层逻辑
-	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
+	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 	{
-		DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
-		ProtocolType type = default_protocol->get_type();
-		switch(type)
+		switch(((DefaultProtocol*)protocol)->get_type())
 		{
-		case PROTOCOL_SIMPLE:
+		case PROTOCOL_STRING:
 			{
-				SimpleCmd* simple_cmd = (SimpleCmd*)default_protocol->get_cmd();
-				SLOG_DEBUG("receive simple cmd. recevie data:%s.", simple_cmd->get_data());
+				StringProtocol* string_protocol = (StringProtocol*)protocol;
+				string data = string_protocol->get_string();
+				SLOG_DEBUG("receive string protocol from fd=%d. receive data:[%s], length=%d", socket_handle, data.c_str(), data.length());
 
-				SimpleCmd* cmd = new SimpleCmd();
-				char str[1024];
-				sprintf(str,"server resp.[receive data:%s]",simple_cmd->get_data());
-				int size = strlen(str)+1;
-				cmd->set_data(str, size);
-
-				send_cmd(socket_handle, cmd, false);				
+				StringProtocol* resp_protocol = (StringProtocol*)((DefaultProtocolFamily*)get_protocol_family())->create_protocol(PROTOCOL_STRING);
+				string temp = "server receive data:";
+				temp += data;
+				resp_protocol->set_string(temp);
+				send_protocol(socket_handle, resp_protocol);
 			}
 			break;
 		default:
-			SLOG_DEBUG("reveive undefine cmd.");
+			SLOG_WARN("reveive undefine protocol. ignore it.");
 			break;
 		}
-		
+
 		return 0;
 	}
 

@@ -27,7 +27,7 @@ int DefaultHeader::encode(char *buf, int buf_size)
 	//4. body size
 	*(int*)buf = htonl(m_body_size);	
 
-	SLOG_TRACE("encode header succ. magic:%d, ver:%d, pro_type:%d, body_size:%d", m_magic_num, m_version, m_type, m_body_size);
+	SLOG_DEBUG("encode header succ. magic:%d, ver:%d, pro_type:%d, header_size:%d, body_size:%d", m_magic_num, m_version, m_type, header_size, m_body_size);
 	return 0;
 }
 
@@ -73,105 +73,117 @@ int DefaultHeader::decode(const char *buf, int buf_size)
 	}
 	m_body_size = ret;
 
+	SLOG_DEBUG("decode header succ. magic_num:%d, ver:%d, type:%d, header_size:%d, body_size:%d", m_magic_num, m_version, m_type, header_size, m_body_size);
 	return 0;
 }
 
-
-/**********************************************  DefaultProtocol  **********************************************/
-MemCache<DefaultHeader> DefaultProtocol::m_defautlheader_memcache;
-//协议编码,成功返回0; 否则返回-1;
-int DefaultProtocol::encode(IOBuffer *io_buffer)
+/////////////////////////////  DefaultProtocolFamily  //////////////////////////
+//父类虚函数
+ProtocolHeader* DefaultProtocolFamily::create_header()
 {
-	if(io_buffer == NULL)
-		return -1;
-	
-	//1. 分配一个header_size大小的空间,暂时不写入数据
-	int header_size = get_header_size();
-	char *header_buffer = io_buffer->write_begin(header_size);
-	bool result = io_buffer->write_end(header_size);
-	assert(result == true);
-	
-	//2. 编码协议体
-	int body_size = m_body->encode(io_buffer); //body size
-	if(body_size == -1)  //失败, 回滚分配的header空间
-	{
-		result = io_buffer->write_rollback(header_size);
-		assert(result == true);
-		return -1;
-	}
+	DefaultHeader *default_header = m_defautlheader_memcache.Alloc();
+	if(default_header != NULL)
+		default_header->init(m_magic_num, m_version);
+	return (ProtocolHeader*)default_header;
+}
 
-	//3. 编码协议头
-	m_header->set_body_size(body_size);
-	if(m_header->encode(header_buffer, header_size) != 0)	//头部编码失败,回滚协议体和协议体占用的空间
-	{
-		result = io_buffer->write_rollback(header_size+body_size);
-		assert(result == true);
+//父类虚函数
+int DefaultProtocolFamily::destroy_header(ProtocolHeader *header)
+{
+	if(header == NULL)
 		return -1;
+	DefaultHeader* default_header = (DefaultHeader*)header;
+	m_defautlheader_memcache.Free(default_header);
+	return 0;
+}
+
+//父类虚函数
+Protocol* DefaultProtocolFamily::create_protocol(ProtocolHeader* protocol_header)
+{
+	if(protocol_header == NULL)
+		return NULL;
+	Protocol *protocol = create_protocol(((DefaultHeader*)protocol_header)->get_type(), false);
+	if(protocol != NULL)
+		protocol->set_header(protocol_header);
+	return protocol;
+}
+
+//父类虚函数
+int DefaultProtocolFamily::destroy_protocol(Protocol* protocol)
+{
+	if(protocol == NULL)
+		return 0;
+	destroy_header(protocol->set_header(NULL));
+	switch(((DefaultProtocol*)protocol)->get_type())
+	{
+	case PROTOCOL_STRING:
+	{
+		StringProtocol* string_protocol = (StringProtocol*)protocol;
+		m_string_protocol_memcache.Free(string_protocol);
+		break;
+	}
+	default:
+		break;
 	}
 	return 0;
 }
 
-
-int DefaultProtocol::decode_body(const char* buf, int buf_size)
+//根据protocol_type创建协议头
+ProtocolHeader* DefaultProtocolFamily::create_header(ProtocolType protocol_type)
 {
-	ProtocolType type = get_type();
-	switch(type)
+	if(protocol_type == PROTOCOL_INVALID)
+		return NULL;
+
+	ProtocolHeader* protocol_header = create_header();
+	if(protocol_header != NULL)
+		((DefaultHeader*)protocol_header)->set_type(protocol_type);
+	return protocol_header;
+}
+
+//根据protoco_type创建对应的protocol.new_header为true时同时创建一个协议头,false时不创建协议头.
+Protocol* DefaultProtocolFamily::create_protocol(ProtocolType protocol_type, bool new_header/*=true*/)
+{
+	Protocol* protocol = NULL;
+	switch(protocol_type)
 	{
-	case PROTOCOL_SIMPLE:
-		m_body = new SimpleCmd();
+	case PROTOCOL_STRING:
+		protocol = (Protocol*)m_string_protocol_memcache.Alloc();
 		break;
 	default:
-		return -1;
+		break;
 	}
 
-	if(m_body->decode(buf, buf_size) != 0)
+	if(protocol!=NULL && new_header==true)
 	{
-		delete m_body;
-		m_body = NULL;
-		return -1;
-	}
-
-	return 0;
-}
-
-/********************* simple cmd *********************/
-int SimpleCmd::set_data(const char *buf, int size)
-{
-	if(buf==NULL || size<=0)
-		return -1;
-	if(m_buf != NULL)
-	{
-		if(m_size < size)
+		ProtocolHeader *protocol_header = create_header(protocol_type);
+		if(protocol_header == NULL)
 		{
-			delete[] m_buf;
-			m_buf = new char[size];
+			destroy_protocol(protocol);
+			return NULL;
 		}
+		protocol->set_header(protocol_header);
 	}
-	else
-	{
-		m_buf = new char[size];
-	}
-
-	memcpy(m_buf, buf, size);
-	m_size = size;
-	return 0;
+	return protocol;
 }
 
-int SimpleCmd::decode(const char *buf, int size)
+///////////////////////////////////////  StringProtocol  ///////////////////////////////
+//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
+int StringProtocol::encode_body(IOBuffer *io_buffer)
 {
-	return set_data(buf, size);
-}
-
-int SimpleCmd::encode(IOBuffer *io_buffer)
-{
-	if(io_buffer==NULL || m_buf==NULL || m_size<=0)
+	if(io_buffer==NULL || m_data.empty())
 		return -1;
-	char *buffer = io_buffer->write_begin(m_size);
+	int size = m_data.length();
+	char *buffer = io_buffer->get_write_buffer(size);
 	if(buffer == NULL)
 		return -1;
-	memcpy(buffer, m_buf, m_size);
-	io_buffer->write_end(m_size);
-
-	return m_size;
+	memcpy(buffer, m_data.c_str(), size);
+	io_buffer->set_write_size(size);
+	return size;
 }
 
+//解码包体.成功返回0,否则返回-1;
+int StringProtocol::decode_body(const char* buf, int buf_size)
+{
+	m_data.assign(buf, buf_size);
+	return 0;
+}

@@ -22,13 +22,13 @@ void test_socket()
 	len = strlen(buf)+1;
 
 	//1.发送
-	SimpleCmd simple_cmd;
-	simple_cmd.set_data(buf, len);
-	DefaultProtocol protocol;
-	protocol.attach_cmd(&simple_cmd);
+	DefaultHeader default_header(PROTOCOL_STRING, VERSION, MAGIC_NUM);
+	StringProtocol string_protocol;
+	string_protocol.set_header(&default_header);
+	string_protocol.set_string("hello, my lib.");
 
 	IOBuffer *send_buffer = client_socket.get_send_buffer();
-	if(protocol.encode(send_buffer) == 0)
+	if(string_protocol.encode(send_buffer) == 0)
     {
     	TransStatus trans_status;
 		while((trans_status=client_socket.send_buffer()) == TRANS_PENDING)
@@ -42,43 +42,33 @@ void test_socket()
 	}
 	else
 		return ;
-	//或者
-	/*
-	IOBuffer send_buffer;
-	if(protocol.encode(&send_buffer) == 0)
-    {
-    	unsigned int size;
-    	char *data_buffer = send_buffer.read_begin(&size);
-    	client_socket.send_data(data_buffer, size)
-		SLOG_DEBUG("send buffer data ok.");
-	}
-	*/
-
-	protocol.detach_cmd();
 
 	//2. 接收
-	int header_size = protocol.get_header_size();
+	int header_size = default_header.get_header_size();
 	int ret = client_socket.recv_data(buf, header_size);
 	if(ret == header_size)
 	{
-		ret = protocol.decode_header(buf, header_size);
+		ret = default_header.decode(buf, header_size);
 		if(ret == 0)
 		{
-			int body_size = protocol.get_body_size();
+			int body_size = default_header.get_body_size();
 			ret= client_socket.recv_data(buf, body_size);
- 			if(ret == body_size &&	protocol.decode_body(buf, body_size) ==0)
+ 			if(ret == body_size)
  			{
- 				ProtocolType type = protocol.get_type();
-				switch(type)
-				{
-				case PROTOCOL_SIMPLE:
-					{
-						SimpleCmd* cmd = (SimpleCmd*)protocol.get_cmd();
-						SLOG_DEBUG("receive data:%s.", cmd->get_data());
-					}
-					break;
-				}
-			}
+ 				switch(default_header.get_type())
+ 				{
+ 				case PROTOCOL_STRING:
+ 					{
+ 						string_protocol.decode_body(buf, body_size);
+ 						string resp = string_protocol.get_string();
+ 						SLOG_DEBUG("receive from server:\"%s\"", resp.c_str());
+ 					}
+ 					break;
+ 				default:
+ 					SLOG_DEBUG("receive undefine protocol. ignore it.");
+ 					break;
+ 				}
+ 			}
 		}
 	}
 }
@@ -94,29 +84,19 @@ public:
 			:NetInterface(io_demuxer, protocol_family, socket_manager)
 	{}
 
-	int send_cmd(SocketHandle socket_handle, Command* cmd, bool has_resp)
-	{
-	    DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily*)get_protocol_family();
-		Protocol *protocol = protocol_family->create_protocol(cmd);
-		send_protocol(socket_handle, protocol, has_resp);
-		return 0;
-	}
-
     //重写父类函数,实现业务层逻辑
-	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, int *has_delete)
+	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 	{
-		DefaultProtocol* default_protocol = (DefaultProtocol*)protocol;
-		ProtocolType type = default_protocol->get_type();
-		switch(type)
+		switch(((DefaultProtocol*)protocol)->get_type())
 		{
-		case PROTOCOL_SIMPLE:
+		case PROTOCOL_STRING:
 			{
-				SimpleCmd* simple_cmd = (SimpleCmd*)default_protocol->get_cmd();
-				SLOG_DEBUG("receive server resp. simple cmd. recevie data:%s.", simple_cmd->get_data());
+				string resp = ((StringProtocol*)protocol)->get_string();
+				SLOG_DEBUG("receive from server:[%s]", resp.c_str());
 			}
 			break;
 		default:
-			SLOG_DEBUG("reveive undefine cmd.");
+			SLOG_DEBUG("receive undefine protocol. ignore it.");
 			break;
 		}
 
@@ -170,9 +150,9 @@ void test_socket_manager()
     {
         sprintf(buf, "hello, my socket.command index=%d", i);
 	    len = strlen(buf)+1;
-        SimpleCmd *simple_cmd = new SimpleCmd;
-        simple_cmd->set_data(buf, len);
-        cient_app_framework.send_cmd(socket_handle, (Command*)simple_cmd, true);
+        StringProtocol *string_protocol = (StringProtocol *)protocol_family.create_protocol(PROTOCOL_STRING);
+        string_protocol->set_string(buf);
+        cient_app_framework.send_protocol(socket_handle, string_protocol, true);
     }
    	io_demuxer.run_loop();
 }
