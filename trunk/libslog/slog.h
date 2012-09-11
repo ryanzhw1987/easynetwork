@@ -20,7 +20,7 @@ void SLOG_INIT(LOG_LEVEL log_level, const char* log_file, int append);
 void SLOG_UNINIT();
 
 #ifdef __SLOG_FULL__
-#define PRE_STR "--%s:%s(%d)--"
+#define PRE_STR "[%s:%s(%d)] ... "
 #define VAL_STR ,__FILE__,__FUNCTION__,__LINE__
 #else
 #define PRE_STR 
