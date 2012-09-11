@@ -1,5 +1,5 @@
 LIB=-lslog
-DEBUG=-g #-D__SLOG_FULL__
+DEBUG=-g -D__SLOG_FULL__
 
 LIB_NAME=libnetframework.a
 SO_NAME=libnetframework.so
@@ -27,5 +27,5 @@ share:*.cpp *.h
 	g++ -shared *.o -o libnetframework.so
 
 clean:
-	rm *.gch *.o
+	rm *.gch *.o -rf
 
