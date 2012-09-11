@@ -17,6 +17,7 @@
 ////////////////////////////////////////////////////////////
 HANDLE_RESULT ListenHandler::on_readable(int fd)
 {
+	SLOG_DEBUG("on readable");
 	int new_fd = receive_connect(fd);
 	if(new_fd == -1)
 		return HANDLE_OK;
