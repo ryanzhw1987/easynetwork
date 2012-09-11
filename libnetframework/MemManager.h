@@ -70,7 +70,7 @@ T* MemCache<T>::Alloc()
 	if(element == NULL)
 		return NULL;
 
-	SLOG_DEBUG("alloc from memcache:%x",element);
+	//SLOG_DEBUG("alloc from memcache:%x",element);
 	element = new(element) T;
 	return element;
 }
@@ -78,7 +78,7 @@ T* MemCache<T>::Alloc()
 template<class T>
 bool MemCache<T>::Free(T *&element)
 {
-	SLOG_DEBUG("free to memcache:%x", element);
+	//SLOG_DEBUG("free to memcache:%x", element);
 	MemBlock *temp = (MemBlock *)((char*)element - sizeof(unsigned int));
 	if(temp->magic_num != MEM_MAGIC_NUM)
 		return false;
