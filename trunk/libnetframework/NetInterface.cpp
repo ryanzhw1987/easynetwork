@@ -32,6 +32,7 @@ NetInterface::~NetInterface()
 //实现ConnectAccepter:接收一个新的连接请求
 bool NetInterface::accept(SocketHandle trans_fd)
 {
+	SLOG_DEBUG("accept trans fd=%d", trans_fd);
 	if(m_io_demuxer->register_event(trans_fd, EVENT_READ|EVENT_PERSIST, 0, this) == -1)
 	{
 		SLOG_ERROR("register trans socket event failed.fd=%d", trans_fd);
@@ -324,7 +325,7 @@ int NetInterface::get_wait_to_send_protocol_number(SocketHandle socket_handle)
 	queue<Protocol*> &protocol_queue = it->second;
 	if(protocol_queue.empty())
 	{
-		SLOG_DEBUG("protocol queue of fd:%d is empty.remove from map", socket_handle);
+		SLOG_TRACE("protocol queue of fd:%d is empty.remove from map", socket_handle);
 		m_protocol_map.erase(it);
 		return 0;
 	}

@@ -31,11 +31,14 @@ SocketManager::~SocketManager()
 Socket* SocketManager::new_trans_socket()
 {
 	//return (Socket*)new TransSocket();
-	return (Socket*)m_trans_socket_memcache.Alloc();
+	Socket* socket = (Socket*)m_trans_socket_memcache.Alloc();
+	SLOG_DEBUG("create TransSocket[%x] from trans_socket_memcache", socket);
+	return socket;
 }
 
 void SocketManager::delete_trans_socket(Socket *socket)
 {
+	SLOG_DEBUG("free TransSocket[%x] to trans_socket_memcache", socket);
 	TransSocket* trans_socket = (TransSocket*)socket;
 	m_trans_socket_memcache.Free(trans_socket);
 }
@@ -48,7 +51,7 @@ Socket* SocketManager::add_active_trans_socket(const char *ip, int port)
 	if(!active_socket->open())
 	{
 		SLOG_ERROR("active connect failed.");
-		delete active_socket;
+		delete_trans_socket(active_socket);
 		return NULL;
 	}
 
