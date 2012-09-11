@@ -17,16 +17,18 @@ class ListenHandler:public EventHandler
 public:
 	ListenHandler(ConnectAccepter *connect_accepter):m_connect_accepter(connect_accepter){}
 	virtual ~ListenHandler(){}
+	void set_accepter(ConnectAccepter *connect_accepter){m_connect_accepter=connect_accepter;}
 
 public:  //重写EventHander的虚函数
-	HANDLE_RESULT on_readable(int fd);
-	//HANDLE_RESULT on_writeabble(int fd){return HANDLE_OK;}	//to do deal with timeout
-	//HANDLE_RESULT on_timeout(int fd){return HANDLE_OK;} 		//to do deal with timeout
-	//HANDLE_RESULT on_error(int fd){return HANDLE_OK;} 		//to do deal with error
+	virtual HANDLE_RESULT on_readable(int fd);
+	//virtual HANDLE_RESULT on_writeabble(int fd){return HANDLE_OK;}	//to do deal with timeout
+	//virtual HANDLE_RESULT on_timeout(int fd){return HANDLE_OK;} 		//to do deal with timeout
+	//virtual HANDLE_RESULT on_error(int fd){return HANDLE_OK;} 		//to do deal with error
 
-private:
+protected:
 	//返回值:从listen_fd接收到的新连接
 	virtual int receive_connect(int listen_fd);
+private:
 	ConnectAccepter *m_connect_accepter;
 };
 
