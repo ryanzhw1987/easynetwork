@@ -28,13 +28,7 @@ class TimerHandler:public EventHandler
 {
 public:
 	TimerHandler(IODemuxer *demuxer):m_demuxer(demuxer){;}
-	HANDLE_RESULT on_timeout(int fd)
-	{
-		SLOG_DEBUG("timer timeout...");
-		m_demuxer->register_event(-1, EVENT_INVALID, 3000, this);
-	
-		return HANDLE_OK;
-	}
+	HANDLE_RESULT on_timeout(int fd);
 private:
 	IODemuxer *m_demuxer;
 };

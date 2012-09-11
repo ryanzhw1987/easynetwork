@@ -59,7 +59,7 @@ int ClientAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 void PingHandler::register_handler()
 {
 	IODemuxer *io_demuxer = m_app_framework->get_io_demuxer();
-	io_demuxer->register_event(-1, EVENT_PERSIST, 1000, this);
+	io_demuxer->register_event(-1, EVENT_PERSIST, 3000, this);
 }
 
 HANDLE_RESULT PingHandler::on_timeout(int fd)

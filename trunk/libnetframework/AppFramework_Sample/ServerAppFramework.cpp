@@ -55,3 +55,12 @@ int ServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	SLOG_DEBUG("server app on socket handle timeout. fd=%d", socket_handle);
 	return 0;
 }
+
+HANDLE_RESULT TimerHandler::on_timeout(int fd)
+{
+	SLOG_DEBUG("timer timeout...");
+	m_demuxer->register_event(-1, EVENT_INVALID, 3000, this);
+
+	return HANDLE_OK;
+}
+
