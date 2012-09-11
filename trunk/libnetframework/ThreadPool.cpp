@@ -37,6 +37,7 @@ bool ThreadPool::start()
 		m_thread_array[i] = create_thread();
 		if(m_thread_array[i] == NULL)
 			SLOG_ERROR("create thread %d failed", i);
+		m_thread_array[i]->set_id(i);
 	}
 	for(i=0; i<m_thread_num; ++i)
 	{
