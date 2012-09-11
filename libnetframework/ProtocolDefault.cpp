@@ -27,7 +27,7 @@ int DefaultHeader::encode(char *buf, int buf_size)
 	//4. body size
 	*(int*)buf = htonl(m_body_size);	
 
-	SLOG_DEBUG("encode header succ. magic:%d, ver:%d, pro_type:%d, header_size:%d, body_size:%d", m_magic_num, m_version, m_type, header_size, m_body_size);
+	SLOG_TRACE("encode header succ. magic:%d, ver:%d, pro_type:%d, header_size:%d, body_size:%d", m_magic_num, m_version, m_type, header_size, m_body_size);
 	return 0;
 }
 
@@ -73,7 +73,7 @@ int DefaultHeader::decode(const char *buf, int buf_size)
 	}
 	m_body_size = ret;
 
-	SLOG_DEBUG("decode header succ. magic_num:%d, ver:%d, type:%d, header_size:%d, body_size:%d", m_magic_num, m_version, m_type, header_size, m_body_size);
+	SLOG_TRACE("decode header succ. magic_num:%d, ver:%d, type:%d, header_size:%d, body_size:%d", m_magic_num, m_version, m_type, header_size, m_body_size);
 	return 0;
 }
 
@@ -84,6 +84,7 @@ ProtocolHeader* DefaultProtocolFamily::create_header()
 	DefaultHeader *default_header = m_defautlheader_memcache.Alloc();
 	if(default_header != NULL)
 		default_header->init(m_magic_num, m_version);
+	SLOG_DEBUG("create DefaultHeader[%x] from defautlheader_memcache", default_header);
 	return (ProtocolHeader*)default_header;
 }
 
@@ -94,6 +95,7 @@ int DefaultProtocolFamily::destroy_header(ProtocolHeader *header)
 		return -1;
 	DefaultHeader* default_header = (DefaultHeader*)header;
 	m_defautlheader_memcache.Free(default_header);
+	SLOG_DEBUG("free DefaultHeader[%x] to defautlheader_memcache", header);
 	return 0;
 }
 
@@ -148,6 +150,7 @@ Protocol* DefaultProtocolFamily::create_protocol(ProtocolType protocol_type, boo
 	{
 	case PROTOCOL_STRING:
 		protocol = (Protocol*)m_string_protocol_memcache.Alloc();
+		SLOG_DEBUG("create StringProtocol[%x] from string_protocol_memcache", protocol);
 		break;
 	default:
 		break;
@@ -158,6 +161,7 @@ Protocol* DefaultProtocolFamily::create_protocol(ProtocolType protocol_type, boo
 		ProtocolHeader *protocol_header = create_header(protocol_type);
 		if(protocol_header == NULL)
 		{
+			SLOG_DEBUG("free StringProtocol[%x] to string_protocol_memcache", protocol);
 			destroy_protocol(protocol);
 			return NULL;
 		}
