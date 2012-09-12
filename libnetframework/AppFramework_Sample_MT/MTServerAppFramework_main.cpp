@@ -12,7 +12,8 @@
 
 int main()
 {
-	SLOG_INIT(SLOG_LEVEL_INFO, NULL, 0);
+	//SLOG_INIT(SLOG_LEVEL_INFO, NULL, 0);
+	SLOG_INIT_WITH_CONFIG("./config/slog.config");
 
 	ListenSocket linsten_socket(3010);
 	if(!linsten_socket.open())
