@@ -18,7 +18,7 @@ class ConnectThread;
 class PipeListenHandler:public ListenHandler
 {
 public:
-	PipeListenHandler(ConnectThread *connect_thread):ListenHandler((ConnectAccepter*)connect_thread){}
+	PipeListenHandler(ConnectAccepter *connect_thread):ListenHandler(connect_thread){}
 protected:
 	int receive_connect(int listen_fd);
 };

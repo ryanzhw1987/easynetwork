@@ -17,7 +17,6 @@ class ListenHandler:public EventHandler
 public:
 	ListenHandler(ConnectAccepter *connect_accepter):m_connect_accepter(connect_accepter){}
 	virtual ~ListenHandler(){}
-	void set_accepter(ConnectAccepter *connect_accepter){m_connect_accepter=connect_accepter;}
 
 public:  //重写EventHander的虚函数
 	virtual HANDLE_RESULT on_readable(int fd);
