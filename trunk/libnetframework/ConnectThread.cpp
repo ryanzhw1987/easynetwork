@@ -24,10 +24,11 @@ int PipeListenHandler::receive_connect(int listen_fd)
 	return 0;  //虚假的链接,由connect_accepter来处理
 }
 
+////////////////// connect thread //////////////////
 ConnectThread::ConnectThread(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager)
 		:NetInterface(io_demuxer, protocol_family, socket_manager)
 		,m_connect_queue(true)
-		,m_listen_handler(NULL)
+		,m_listen_handler(this)
 {
 	if (pipe(m_pipe))
 	{
@@ -42,7 +43,7 @@ ConnectThread::ConnectThread(IODemuxer *io_demuxer, ProtocolFamily *protocol_fam
 		if(fcntl(m_pipe[0], F_SETFL, flags) == -1)
 			SLOG_ERROR("set pipe[0] no block failed. errno=%d", errno);
 	}
-	m_listen_handler.set_accepter(this);
+
 	//注册管道读事件
 	io_demuxer->register_event(m_pipe[0], EVENT_READ|EVENT_PERSIST, -1, &m_listen_handler);
 }

@@ -88,9 +88,10 @@ Socket* SocketManager::add_active_trans_socket(const char *ip, int port)
 	int socket_len = sizeof(peer_addr);
 	if(getpeername(trans_fd, (struct sockaddr*)&peer_addr, (socklen_t*)&socket_len) == 0)
 		peer_ip = inet_ntoa(peer_addr.sin_addr);
+	SLOG_INFO("receive net connect from ip:%s, fd=%d", peer_ip, trans_fd);
+
 	if(init_passive_trans_socket(trans_fd, m_block_mode) == -1)
 		return NULL;
-
 	TransSocket *passive_socket = NULL;
 	SocketMap::iterator it = m_trans_sockets_map.find(trans_fd);
 	if(it == m_trans_sockets_map.end())
