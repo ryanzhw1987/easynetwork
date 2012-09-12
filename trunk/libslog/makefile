@@ -9,8 +9,8 @@ lib:slog.h slog.c
 	gcc -c slog.h slog.c
 	ar rc libslog.a slog.o
 
-test_slog:slog_test.c
-	gcc $^ ${FULL_LOG} -lslog -o $@
+test_slog:slog_test.c slog.c slog.h
+	gcc $^ ${FULL_LOG} -g -lpthread -o $@
 
 install:
 	cp slog.h ${INC_PATH}

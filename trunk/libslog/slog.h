@@ -17,6 +17,7 @@ extern "C"{
 #endif
 
 void SLOG_INIT(LOG_LEVEL log_level, const char* log_file, int append);
+void SLOG_INIT_WITH_CONFIG(const char* config_file);
 void SLOG_UNINIT();
 
 #ifdef __SLOG_FULL__
