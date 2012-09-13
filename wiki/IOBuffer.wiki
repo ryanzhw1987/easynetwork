@@ -20,7 +20,7 @@ IOBuffer io_buffer(BUFFER_SIZE);//创建一个指定初始大小BUFFER_SIZE的io
 
 IOBuffer *p_io_buffer = &io_buffer;
 
- * *获取一个大小为size的写数据缓冲区
+ * *获取一个大小为size的写数据缓冲区*
 char `*`buffer = p_io_buffer->get_write_buffer(size);
 
 if(buffer == NULL)
