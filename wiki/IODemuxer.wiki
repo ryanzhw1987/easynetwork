@@ -27,6 +27,9 @@ const EVENT_TYPE EVENT_WRITE       = 0x2; //可写事件
 const EVENT_TYPE EVENT_PERSIST     = 0x10;//只有当和EVENT_READ组合或者是时钟事件时才有效
 }}}
 
+ * 事件响应类[EventHandler]
+响应事件
+
  * 注销事件unregister_event
 {{{
 //注销fd的事件. fd大于0时有效.0成功, -1失败
