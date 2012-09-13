@@ -21,9 +21,15 @@ IOBuffer io_buffer(BUFFER_SIZE);//创建一个指定初始大小BUFFER_SIZE的io
 IOBuffer *p_io_buffer = &io_buffer;
 
  * *获取一个大小为size的写数据缓冲区
-char +*buffer = get_write_buffer(size);
+char *buffer = p_io_buffer->get_write_buffer(size);
 
+if(buffer == NULL)
 
+    return NO_MEMORY;
+
+memcpy(buffer, data, size); //写入数据
+
+p_io_buffer->set_write_size(size);  //设置写了多少数据
 
 
 Add your content here.  Format your content with:
