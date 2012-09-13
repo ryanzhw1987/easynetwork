@@ -3,3 +3,8 @@
  * *NetFramework的主要组件*
 [http://easynetwork.googlecode.com/files/Component.jpg]
 
+ * *类图*
+[http://easynetwork.googlecode.com/files/Class.jpg]
+
+ * *单线程框架流程图*
+[http://easynetwork.googlecode.com/files/procedure.jpg]
