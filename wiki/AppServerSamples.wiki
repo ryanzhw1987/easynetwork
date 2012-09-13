@@ -16,17 +16,18 @@ public:
 			:NetInterface(io_demuxer, protocol_family, socket_manager)
 	{}
 
-    //////////////////由应用层重写 接收协议函数//////////////////
-    int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
-    //////////////////由应用层重写 协议发送错误处理函数//////////
+	//////////////////由应用层重写 接收协议函数//////////////////
+	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
+	//////////////////由应用层重写 协议发送错误处理函数//////////
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
 	//////////////////由应用层重写 协议发送成功处理函数//////////
 	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol);
-    //////////////////由应用层重写 连接错误处理函数//////////////
-    int on_socket_handle_error(SocketHandle socket_handle);
-    //////////////////由应用层重写 连接超时处理函数//////////////
-    int on_socket_handle_timeout(SocketHandle socket_handle);
+	//////////////////由应用层重写 连接错误处理函数//////////////
+	int on_socket_handle_error(SocketHandle socket_handle);
+	//////////////////由应用层重写 连接超时处理函数//////////////
+	int on_socket_handle_timeout(SocketHandle socket_handle);
 };
+
 
 int ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {
@@ -102,7 +103,7 @@ int main()
 	//listen event
 	ListenHandler listen_handler(&app_server);
 	io_demuxer.register_event(linsten_socket.get_handle(), EVENT_READ|EVENT_PERSIST, -1, &listen_handler);
-    //timer event
+	//timer event
 	TimerHandler timer(&io_demuxer);
 	io_demuxer.register_event(-1, EVENT_INVALID, 3000, &timer);
 
@@ -124,19 +125,19 @@ public:
 			:ConnectThread(io_demuxer, protocol_family, socket_manager)
 	{}
 
-    //////////////////由应用层重写 接收协议函数//////////////////
-    int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
-    //////////////////由应用层重写 协议发送错误处理函数//////////
+	//////////////////由应用层重写 接收协议函数//////////////////
+	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
+	//////////////////由应用层重写 协议发送错误处理函数//////////
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
 	//////////////////由应用层重写 协议发送成功处理函数//////////
 	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol);
-    //////////////////由应用层重写 连接错误处理函数//////////////
-    int on_socket_handle_error(SocketHandle socket_handle);
-    //////////////////由应用层重写 连接超时处理函数//////////////
-    int on_socket_handle_timeout(SocketHandle socket_handle);
+	//////////////////由应用层重写 连接错误处理函数//////////////
+	int on_socket_handle_error(SocketHandle socket_handle);
+	//////////////////由应用层重写 连接超时处理函数//////////////
+	int on_socket_handle_timeout(SocketHandle socket_handle);
 
 protected://实现Thread到纯虚函数
-    void run();
+	void run();
 };
 
 
