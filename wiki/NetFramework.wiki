@@ -1,8 +1,5 @@
 #summary One-sentence summary of this page.
 
-= Introduction =
-  *EasyNetwork*
-
  # *[AppServerSamples 利用框架3分钟搭建服务器]*
  # *[Socket]*
  # *[IOBuffer]*
