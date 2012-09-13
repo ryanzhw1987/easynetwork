@@ -196,6 +196,19 @@ int MTServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	return 0;
 }
 
+}}}
+
+ * 继承ConnectThreadPool实现create_thread
+{{{
+class MTServerAppFrameworkPool:public ConnectThreadPool
+{
+public:
+	MTServerAppFrameworkPool(unsigned int thread_num):ConnectThreadPool(thread_num){}
+protected:
+	//实现创建一个线程
+	Thread* create_thread();
+};
+
 /////////////////  thread pool  /////////////////////
 Thread* MTServerAppFrameworkPool::create_thread()
 {
@@ -204,4 +217,43 @@ Thread* MTServerAppFrameworkPool::create_thread()
 	SocketManager *socket_manager = new SocketManager;
 	return new MTServerAppFramework(io_demuxer, protocol_family, socket_manager);
 }
+
+}}}
+
+ * main函数
+{{{
+int main()
+{
+	//SLOG_INIT(SLOG_LEVEL_INFO, NULL, 0);
+	SLOG_INIT_WITH_CONFIG("./config/slog.config");
+
+	ListenSocket linsten_socket(3010);
+	if(!linsten_socket.open())
+	{
+		SLOG_ERROR("listen on port:3010 error.");
+		return -1;
+	}
+
+
+
+	MTServerAppFrameworkPool server_pool(3);  //3个线程
+	server_pool.start();
+
+	//listen event
+	ListenHandler listen_handler(&server_pool);
+	EpollDemuxer io_demuxer;
+	io_demuxer.register_event(linsten_socket.get_handle(), EVENT_READ|EVENT_PERSIST, -1, &listen_handler);
+
+	//timer event
+	TimerHandler timer(&io_demuxer);
+	io_demuxer.register_event(-1, EVENT_INVALID, 3000, &timer);
+
+	//run server forever
+	io_demuxer.run_loop();
+
+	SLOG_UNINIT();
+	return 0;
+}
+
+}}}
 }}}
