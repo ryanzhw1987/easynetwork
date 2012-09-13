@@ -4,7 +4,7 @@ svn地址:[http://easynetwork.googlecode.com/svn/trunk/]
 
 
  * *模块介绍*
- # *[AppServerSamples 利用框架3分钟搭建服务器]*
+ # *[AppServerSamples 3分钟搭建服务器]*
  # *[Socket]*
  # *[IOBuffer]*
  # *[IODemuxer]*
