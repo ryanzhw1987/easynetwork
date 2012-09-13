@@ -34,3 +34,6 @@ virtual int run_loop()=0;
 {{{
 virtual void exit()=0;
 }}}
+
+ * IODemuxerEpoll
+用epoll实现IODemuxer.
