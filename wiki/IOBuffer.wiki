@@ -18,17 +18,6 @@ IOBuffer *p_io_buffer = &io_buffer;
 //2. 创建一个默认大小BUFFER_SIZE(1024)的io buffer
 //IOBuffer *p_io_buffer = new IOBuffer();
 }}}
- * *获取大小为size的写缓冲区*
-{{{
-char *buffer = p_io_buffer->get_write_buffer(size);
-
-if(buffer == NULL)
-    return NO_MEMORY;
-memcpy(buffer, data, size); //写入数据
-
-p_io_buffer->set_write_size(size);  //设置写了多少数据
-}}}
-
 
  * *获取读缓冲区*
 {{{
@@ -41,7 +30,25 @@ memcpy(data, buffer, size); //使用数据
 
 p_io_buffer->set_read_size(size);
 }}}
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+
+ * *获取大小为size的写缓冲区*
+{{{
+char *buffer = p_io_buffer->get_write_buffer(size);
+
+if(buffer == NULL)
+    return NO_MEMORY;
+memcpy(buffer, data, size); //写入数据
+
+p_io_buffer->set_write_size(size);  //设置写了多少数据
+}}}
+
+ * *回滚写入的脏数据*
+{{{
+p_io_buffer->write_rollback(size);
+//返回true的话, 数组最后的size大小的内容无效
+}}}
+
+ * *定位有效数据的缓冲区*
+{{{
+char* buffer = seek(offset); //定位到有效数据偏移offset处
+}}}
