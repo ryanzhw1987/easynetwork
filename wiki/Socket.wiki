@@ -5,10 +5,10 @@
  * *Socket*
 对底层socket的封装.纯抽象类
 
- * *Listen*
+ * *ListenSocket*
 用于监听socket
 
- * *TransSocket*
+ * *TransSocket *
 用于连接,收发数据的socket
 
 = Details =
