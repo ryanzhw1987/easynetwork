@@ -1,0 +1,17 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+ * *Socket*
+对底层socket的封装.纯抽象类
+
+ * *Listen*
+用于监听socket
+
+ * *TransSocket*
+用于连接,收发数据的socket
+
+= Details =
+
+ * *Socket的方法*
+ * 构造函数  
