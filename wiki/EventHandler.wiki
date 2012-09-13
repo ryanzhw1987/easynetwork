@@ -2,12 +2,27 @@
 
 = Introduction =
 
-Add your content here.
+事件响应函数类.
 
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+ * 响应socket可读
+{{{
+virtual HANDLE_RESULT on_readable(int fd);
+}}}
+
+ * 响应socket可写
+{{{
+virtual HANDLE_RESULT on_writeabble(int fd);
+}}}
+
+ * 响应超时
+{{{
+virtual HANDLE_RESULT on_timeout(int fd);
+}}}
+ 
+ * 响应错误
+{{{
+virtual HANDLE_RESULT on_error(int fd);
+}}}
