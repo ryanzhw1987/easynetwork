@@ -8,6 +8,7 @@
  * *Listen*
 用于监听socket
 
+ * *TransSocket*
 用于连接,收发数据的socket
 
 = Details =
