@@ -2,7 +2,7 @@
 
 = Introduction =
 
-*IOBuffer缓冲区*
+*IOBuffer缓冲区*:提供一个数据读写的缓冲区
 
 
 = Details =
