@@ -4,7 +4,7 @@
 
 用于监听服务器端口的socket
 
- * *实现socket的open方法*
+ * *实现Socket的open方法*
 {{{
 virtual bool open(int timeout_ms=2000);
 }}}
