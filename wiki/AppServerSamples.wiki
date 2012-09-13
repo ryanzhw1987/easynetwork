@@ -1,0 +1,81 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+介绍如何在最短时间内用框架搭建自己的服务器(单线程和多线程).
+
+
+= Details =
+ * *单线程框架*
+ * 继承NetInterface,实现接口函数
+{{{
+class ServerAppFramework: public NetInterface
+{
+public:
+	ServerAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager* socket_manager)
+			:NetInterface(io_demuxer, protocol_family, socket_manager)
+	{}
+
+    //////////////////由应用层重写 接收协议函数//////////////////
+    int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
+    //////////////////由应用层重写 协议发送错误处理函数//////////
+	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
+	//////////////////由应用层重写 协议发送成功处理函数//////////
+	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol);
+    //////////////////由应用层重写 连接错误处理函数//////////////
+    int on_socket_handle_error(SocketHandle socket_handle);
+    //////////////////由应用层重写 连接超时处理函数//////////////
+    int on_socket_handle_timeout(SocketHandle socket_handle);
+};
+
+int ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
+{
+	switch(((DefaultProtocol*)protocol)->get_type())
+	{
+	case PROTOCOL_STRING:
+		{
+			StringProtocol* string_protocol = (StringProtocol*)protocol;
+			string data = string_protocol->get_string();
+			SLOG_DEBUG("receive string protocol from fd=%d. receive data:[%s], length=%d", socket_handle, data.c_str(), data.length());
+
+			Protocol* resp_protocol = ((DefaultProtocolFamily*)get_protocol_family())->create_protocol(PROTOCOL_STRING);
+			string temp = "server receive data:";
+			temp += data;
+			((StringProtocol*)resp_protocol)->set_string(temp);
+			send_protocol(socket_handle, resp_protocol);
+		}
+		break;
+	default:
+		SLOG_DEBUG("receive undefine protocol. ignore it.");
+		break;
+	}
+	
+	return 0;
+}
+
+int ServerAppFramework::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
+{
+	SLOG_ERROR("server app on send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
+	get_protocol_family()->destroy_protocol(protocol);
+	return 0;
+}
+
+int ServerAppFramework::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
+{
+	SLOG_DEBUG("server app on send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
+	get_protocol_family()->destroy_protocol(protocol);
+	return 0;
+}
+
+int ServerAppFramework::on_socket_handle_error(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("server app on socket handle error. fd=%d", socket_handle);
+	return 0;
+}
+
+int ServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("server app on socket handle timeout. fd=%d", socket_handle);
+	return 0;
+}
+}}}
