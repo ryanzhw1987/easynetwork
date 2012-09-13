@@ -1,6 +1,12 @@
 #summary One-sentence summary of this page.
 
 = Introduction =
+实现socket的链接,数据的传送.
+
+= Details =
 
  * *实现[Socket]的open方法*
+{{{
+virtual bool open(int timeout_ms=2000);
+}}}
 连接服务器, 链接超过timeout_ms,连接失败.
