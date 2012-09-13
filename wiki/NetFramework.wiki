@@ -13,3 +13,4 @@
  # *[IOBuffer]*
  # *[IODemuxer]*
  # *[EventHandler]*
+ # *[NetInterface]*
