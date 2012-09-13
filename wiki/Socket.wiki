@@ -15,3 +15,10 @@
 
  * *Socket的方法*
  # 构造函数
+{{{
+//socket_handle:socket描述符
+//port:监听/连接的端口号
+//ip:连接的地址
+//block_mode:阻塞模式. BLOCK(阻塞)/NOBLOCK(非阻塞)
+Socket(SocketHandle socket_handle=SOCKET_INVALID, int port=-1, const char *ip=NULL, BlockMode block_mode=NOBLOCK);
+}}}
