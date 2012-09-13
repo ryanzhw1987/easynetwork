@@ -78,7 +78,10 @@ int ServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	SLOG_DEBUG("server app on socket handle timeout. fd=%d", socket_handle);
 	return 0;
 }
+}}}
 
+ * 单线程框架main函数
+{{{
 ///////////// main 函数 ////////////
 int main()
 {
@@ -220,7 +223,7 @@ Thread* MTServerAppFrameworkPool::create_thread()
 
 }}}
 
- * main函数
+ * 多线程框架main函数
 {{{
 int main()
 {
