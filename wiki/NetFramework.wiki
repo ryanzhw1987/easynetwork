@@ -18,3 +18,4 @@
 [http://easynetwork.googlecode.com/files/procedure.jpg]
 
  * *多线程框架流程图*
+[http://easynetwork.googlecode.com/files/MTframe.jpg]
