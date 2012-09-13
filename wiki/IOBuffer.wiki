@@ -48,7 +48,8 @@ p_io_buffer->write_rollback(size);
 //返回true的话, 数组最后的size大小的内容无效
 }}}
 
- * *定位有效数据的缓冲区*
+ * *定位有效数据的缓冲区(用于更改写入的数据)*
 {{{
 char* buffer = seek(offset); //定位到有效数据偏移offset处
+memcpy(buffer, "hello", 5); //写入数据,必须保证写入的数据不超过剩余的空间!!!
 }}}
