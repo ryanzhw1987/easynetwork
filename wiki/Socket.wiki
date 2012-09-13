@@ -14,7 +14,7 @@
 = Details =
 
  * *Socket的方法*
- #1 构造函数
+ # 1 构造函数
 {{{
 //socket_handle:socket描述符
 //port:监听/连接的端口号
@@ -23,7 +23,7 @@
 Socket(SocketHandle socket_handle=SOCKET_INVALID, int port=-1, const char *ip=NULL, BlockMode block_mode=NOBLOCK);
 }}}
 
- #2 赋值函数
+ # 2 赋值函数
 {{{
 bool assign(SocketHandle socket_handle, int port, const char *ip, BlockMode block_mode);
 }}}
