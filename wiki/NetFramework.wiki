@@ -1,4 +1,6 @@
 #summary One-sentence summary of this page.
+= Introduction =
+  *EasyNetFramework*服务器开发框架,为服务器端的开发提供快速高效的方法.
 
  # *[AppServerSamples 利用框架3分钟搭建服务器]*
  # *[Socket]*
@@ -17,5 +19,3 @@
 [http://easynetwork.googlecode.com/files/procedure.jpg]
 
  * *多线程框架流程图*
-
- 
