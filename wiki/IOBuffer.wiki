@@ -18,18 +18,29 @@ IOBuffer *p_io_buffer = &io_buffer;
 //2. 创建一个默认大小BUFFER_SIZE(1024)的io buffer
 //IOBuffer *p_io_buffer = new IOBuffer();
 }}}
- * *获取一个大小为size的写数据缓冲区*
-char `*`buffer = p_io_buffer->get_write_buffer(size);
+ * *获取大小为size的写缓冲区*
+{{{
+char *buffer = p_io_buffer->get_write_buffer(size);
 
 if(buffer == NULL)
-
     return NO_MEMORY;
-
 memcpy(buffer, data, size); //写入数据
 
 p_io_buffer->set_write_size(size);  //设置写了多少数据
+}}}
 
 
+ * *获取读缓冲区*
+{{{
+unsigned int size;
+char *buffer = p_io_buffer->get_read_buffer(&size); //返回可读数据的大小
+
+if(buffer == NULL)
+    return NO_DATA;
+memcpy(data, buffer, size); //使用数据
+
+p_io_buffer->set_read_size(size);
+}}}
 Add your content here.  Format your content with:
   * Text in *bold* or _italic_
   * Headings, paragraphs, and lists
