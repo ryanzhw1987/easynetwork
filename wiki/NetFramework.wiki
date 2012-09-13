@@ -1,4 +1,4 @@
-#EasyNetwork开发框架, 为服务端的开发提供快速高效的方法.
+#aaaaaaa
 
  # *[AppServerSamples 利用框架3分钟搭建服务器]*
  # *[Socket]*
