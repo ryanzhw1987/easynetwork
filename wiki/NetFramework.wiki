@@ -3,7 +3,6 @@
 = Introduction =
   *EasyNetwork*
 
-= Deatials =
  # *[AppServerSamples 利用框架3分钟搭建服务器]*
  # *[Socket]*
  # *[IOBuffer]*
