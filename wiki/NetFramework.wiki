@@ -8,3 +8,6 @@
 
  * *单线程框架流程图*
 [http://easynetwork.googlecode.com/files/procedure.jpg]
+
+ # *[Socket]*
+ # *[IOBuffer]*
