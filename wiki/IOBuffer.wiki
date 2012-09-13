@@ -13,13 +13,10 @@ IOBuffer维护一个字符数组,提供数据的写入读出. IOBuffer类似于�
 {{{
 //#define BUFFER_SIZE 1024
 //IOBuffer(unsigned int size=BUFFER_SIZE); //构造函数
-}}}
 IOBuffer io_buffer(BUFFER_SIZE);//创建一个指定初始大小BUFFER_SIZE的io buffer
-
 //IOBuffer *p_io_buffer = new IOBuffer(BUFFER_SIZE);
-
 IOBuffer *p_io_buffer = &io_buffer;
-`
+}}}
  * *获取一个大小为size的写数据缓冲区*
 char `*`buffer = p_io_buffer->get_write_buffer(size);
 
