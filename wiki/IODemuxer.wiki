@@ -18,8 +18,19 @@ IO多路复用,事件源.
 virtual int register_event(int fd, EVENT_TYPE type, int timeout_ms, EventHandler *handler)=0;
 }}}
 
- * 注销事件
+ * 注销事件unregister_event
 {{{
 //注销fd的事件. fd大于0时有效.0成功, -1失败
 virtual int unregister_event(int fd)=0;
+}}}
+
+ * 分配事件
+{{{
+//循环等待/处理事件
+virtual int run_loop()=0;
+}}}
+
+ * 退出
+{{{
+virtual void exit()=0;
 }}}
