@@ -18,10 +18,10 @@ public:
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
 	//////////////////由应用层重写 协议发送成功处理函数//////////
 	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol);
-    //////////////////由应用层重写 连接错误处理函数//////////////
-    int on_socket_handle_error(SocketHandle socket_handle);
-    //////////////////由应用层重写 连接超时处理函数//////////////
-    int on_socket_handle_timeout(SocketHandle socket_handle);
+	//////////////////由应用层重写 连接错误处理函数//////////////
+	int on_socket_handle_error(SocketHandle socket_handle);
+	//////////////////由应用层重写 连接超时处理函数//////////////
+	int on_socket_handle_timeout(SocketHandle socket_handle);
 };
 
 

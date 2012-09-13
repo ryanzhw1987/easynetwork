@@ -20,7 +20,7 @@ public: //实现父类函数
 	virtual int get_body_size(){return m_body_size;}
 	virtual void set_body_size(int body_size){m_body_size = body_size;}
 
-   //包头编码.成功返回0. 否则返回-1.
+	//包头编码.成功返回0. 否则返回-1.
 	virtual int encode(char *buf, int buf_size);
 	//包头解码.成功返回0,失败返回-1.
 	virtual int decode(const char *buf, int buf_size);

@@ -12,8 +12,8 @@ const EVENT_TYPE EVENT_PERSIST     = 0x10;//只有当和EVENT_READ组合或者�
 
 typedef enum
 {
-    HANDLE_OK,
-    HANDLE_ERROR
+	HANDLE_OK,
+	HANDLE_ERROR
 }HANDLE_RESULT;
 
 //事件回调类
