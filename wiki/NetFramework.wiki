@@ -1,7 +1,7 @@
  =EasyNetwork网络开发框架,致力于为服务端的开发提供一个快速高效的方法.=
 
-svn地址:[http://easynetwork.googlecode.com/svn/trunk/]
-联系方式:[xmulyj@gmail.com]
+ *svn地址:[http://easynetwork.googlecode.com/svn/trunk/]
+ *联系方式:xmulyj@gmail.com
 
  * *模块介绍*
  # *[AppServerSamples 3分钟搭建服务器]*
