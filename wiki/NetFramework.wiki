@@ -1,5 +1,12 @@
 #summary One-sentence summary of this page.
 
+ # *[AppServerSamples 利用框架3分钟搭建服务器]*
+ # *[Socket]*
+ # *[IOBuffer]*
+ # *[IODemuxer]*
+ # *[EventHandler]*
+ # *[NetInterface]*
+
  * *NetFramework的主要组件*
 [http://easynetwork.googlecode.com/files/Component.jpg]
 
@@ -11,10 +18,4 @@
 
  * *多线程框架流程图*
 
- # *[AppServerSamples 利用框架3分钟搭建服务器]*
- # *[Socket]*
- # *[IOBuffer]*
- # *[IODemuxer]*
- # *[EventHandler]*
- # *[NetInterface]*
  
