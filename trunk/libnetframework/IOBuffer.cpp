@@ -2,7 +2,7 @@
  * IOBuffer.cpp
  *
  *  Created on: 2012-9-8
- *      Author: tim
+ *      Author: LiuYongjin
  */
 
 #include "IOBuffer.h"

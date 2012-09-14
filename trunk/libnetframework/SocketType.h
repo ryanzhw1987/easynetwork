@@ -2,7 +2,7 @@
  * SocketType.h
  *
  *  Created on: 2012-9-5
- *      Author: Administrator
+ *      Author: LiuYongjin
  */
 #ifndef _LIB_SOCKET_TYPE_H_
 #define _LIB_SOCKET_TYPE_H_

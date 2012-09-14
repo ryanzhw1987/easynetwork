@@ -23,6 +23,6 @@ int main()
 
 	SLOG_ERROR("....error....");
 
-    SLOG_UNINIT();
+	SLOG_UNINIT();
 	return 0;
 }

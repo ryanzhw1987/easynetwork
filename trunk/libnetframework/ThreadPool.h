@@ -2,7 +2,7 @@
  * ThreadPool.h
  *
  *  Created on: 2012-9-9
- *      Author: tim
+ *      Author: LiuYongjin
  */
 #ifndef _LIB_THREAD_POOL_H_
 #define _LIB_THREAD_POOL_H_

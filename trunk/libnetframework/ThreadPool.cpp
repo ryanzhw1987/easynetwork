@@ -2,7 +2,7 @@
  * ThreadPool.cpp
  *
  *  Created on: 2012-9-9
- *      Author: tim
+ *      Author: LiuYongjin
  */
 #include "ThreadPool.h"
 #include "slog.h"

@@ -2,7 +2,7 @@
  * ConnectThread.cpp
  *
  *  Created on: 2012-9-11
- *      Author: xl
+ *      Author: LiuYongjin
  */
 
 

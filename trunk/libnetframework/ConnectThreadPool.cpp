@@ -2,7 +2,7 @@
  * ConnectThreadPool.cpp
  *
  *  Created on: 2012-9-10
- *      Author: xl
+ *      Author: LiuYongjin
  */
 
 #include "ConnectThreadPool.h"
