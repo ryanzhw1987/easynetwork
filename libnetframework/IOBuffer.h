@@ -22,8 +22,8 @@ public:
 	//开始写, 获取一个大小为size的缓冲用于写, 成功返回可写的缓冲区, 失败返回NULL,表示没有足够内存
 	char* get_write_buffer(unsigned int size);
 
-	写结束, 设置本次写入多少数据, 成功返回true, 失败返回false
-  	ol set_write_size(unsigned int size);
+	//写结束, 设置本次写入多少数据, 成功返回true, 失败返回false
+  	bool set_write_size(unsigned int size);
 
 	//将写入的数据回滚size个字节.
 	//返回值:
