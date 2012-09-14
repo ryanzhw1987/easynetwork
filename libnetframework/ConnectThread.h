@@ -2,7 +2,7 @@
  * ConnectThread.h
  *
  *  Created on: 2012-9-10
- *      Author: xl
+ *      Author: LiuYongjin
  */
 #ifndef _LIB_CONNECT_THREAD_H_
 #define _LIB_CONNECT_THREAD_H_
