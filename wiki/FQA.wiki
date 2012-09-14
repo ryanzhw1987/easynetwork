@@ -19,8 +19,32 @@
  * *EasyNetwork怎么管理连接*
   EasyNetWork由[SocketManager]模块来管理连接.
 
+ * *EasyNetwork什么时候收/发数据*
+  EasyNetwork有IODemuxer模块来触发socket的读、写、超时、错误事件.并通过EventHandler回调类响应这些事件.当事件发送时,就可以进行数据的读写了.
+  目前EasyNetwork用epoll实现了IODemuxer.
+
  * *EasyNetwork怎么收发数据*
+  当socket可读时,由[TransSocket]完成数据的读取.如trans_socket->recv_buffer();
+  当socket可写时,由[TransSocket]完成数据的发送,如trans_socket->send_buffer();
+
  * *EasyNetwork怎么编/解码(序列化/反序列化)数据*
+  当socket读取到数据时. 通过trans_socket->get_recv_buffer()获取到数据缓冲区,然后利用[protocol]来对数据进行解码.
+  当需要发协议数据时, 由protocol来进行编码,然后把编码数据写入trans_socket的write_buffer中,进行发送数据.
+
+ * *EasyNetwork怎么处理粘包现象*
+  由于数据是存在trans_socket的IOBuffer中的,每次解码时从buffer中取出完整的数据进行解码,然后清掉这些完整的数据.如果buffer里面的数据不够一个完整的包,那么这些不完整的数据会留在IOBuffer中,直到收到完整的数据并被正确解码位置.
+
  * *EasyNetwork怎么处理高并发要求*
+  EasyNetwork实现了一个ConnectThread/ConnectThreadPool的多线程框架模型.当收到新的连接请求时,把新的连接分配到某个线程中去,由该线程处理此连接的数据.
+  应用server继承并实现ConnectThread/ConnectThreadPool相应的接口,即可完成该多线程模型.
+
  * *EasyNetwork怎么处理高吞吐量要求*
+  EasyNetwork不关心次要求, 当收到协议protocol之后, 通过应用层实现的接口函数on_receive_protocol()把protocol发给应用层, 由应用层来负责解决高吞吐量要求.
+  当然,应用层可以利用框架的Thread/ThreadPool来完成这个要求.
+
  * *EasyNetwork内存管理与优化*
+  面对高并发(如每秒成千上万的连接请求),高吞吐量的问题(如每秒收发成千上万甚至更多的协议数据).EasyNetwork需要对TransSocket,Protocol等做优化,以防止内存碎片的产生.
+  框架有MemManager模块完成内存的管理和优化.框架的Socket,Protocol等由MemManager产生和释放.
+
+ * *如何利用EasyNetwork框架搭建自己的服务器*
+  服务器可以继承NetInterface完成一个单线程的server,也可以实现ConnectThread和ConnectThreadPool完成多线程的server.具体例子见[AppServerSamples].
