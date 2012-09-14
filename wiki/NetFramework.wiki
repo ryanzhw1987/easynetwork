@@ -12,6 +12,9 @@
  # *[IODemuxer]*
  # *[EventHandler]*
  # *[Protocol]*
+ # *[MemManager]*
+ # *[Thread]*
+ # *[ThreadPool]*
  # *[NetInterface]*
 
  * *NetFramework的主要组件*
