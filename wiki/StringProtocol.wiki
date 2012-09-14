@@ -1,0 +1,50 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+实现一个简单的字符串协议格式.
+
+
+= Details =
+
+ * *StringProtocol简单字符串协议
+{{{
+//简单的协议.直接传送buf数据;
+class StringProtocol:public DefaultProtocol
+{
+public:
+	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
+	int encode_body(IOBuffer *io_buffer);
+	//解码包体.成功返回0,否则返回-1;
+	int decode_body(const char* buf, int buf_size);
+public:
+	StringProtocol():DefaultProtocol(PROTOCOL_STRING){}
+	void set_string(string data){m_data=data;}
+	void set_string(const char *data){m_data.assign(data);}
+	string get_string(){return m_data;}
+private:
+	string m_data;
+};
+
+//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
+int StringProtocol::encode_body(IOBuffer *io_buffer)
+{
+	if(io_buffer==NULL || m_data.empty())
+		return -1;
+	int size = m_data.length();
+	char *buffer = io_buffer->get_write_buffer(size);
+	if(buffer == NULL)
+		return -1;
+	memcpy(buffer, m_data.c_str(), size);
+	io_buffer->set_write_size(size);
+	return size;
+}
+
+//解码包体.成功返回0,否则返回-1;
+int StringProtocol::decode_body(const char* buf, int buf_size)
+{
+	m_data.assign(buf, buf_size);
+	return 0;
+}
+
+}}}
