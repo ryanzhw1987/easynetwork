@@ -6,7 +6,7 @@
 
 
 = 成员函数 =
- *　*实现积累ConnectAccepter和EventHandler的方法*
+ * *实现基类ConnectAccepter和EventHandler的方法*
 {{{
 //实现ConnectAccepter:接收一个新的连接请求
 virtual bool accept(SocketHandle trans_fd);
