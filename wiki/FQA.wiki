@@ -31,6 +31,9 @@
   当socket读取到数据时. 通过trans_socket->get_recv_buffer()获取到数据缓冲区,然后利用[protocol]来对数据进行解码.
   当需要发协议数据时, 由protocol来进行编码,然后把编码数据写入trans_socket的write_buffer中,进行发送数据.
 
+ * *如何通过EasyNetwork定义自己的协议格式*
+  继承并实现Protocol的方法.具体见[StringProtocol]例子
+
  * *EasyNetwork怎么处理粘包现象*
   由于数据是存在trans_socket的IOBuffer中的,每次解码时从buffer中取出完整的数据进行解码,然后清掉这些完整的数据.如果buffer里面的数据不够一个完整的包,那么这些不完整的数据会留在IOBuffer中,直到收到完整的数据并被正确解码位置.
 
