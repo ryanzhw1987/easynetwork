@@ -9,7 +9,7 @@
 MemManager提供一个MemCache的模版.当框架需要一个对象的时候,从MemCache中分配,当该对象需要释放时,由MemCache收回并管理这些自由的内存空间, 当下次分配时,从这些空闲的空间中获取,从而减少对系统调用alloc(new)和free(delete)的请求次数,避免产生内存碎片.
 
 = Details =
-* Memcache模块
+ * *Memcache模板*
 {{{
 class MemCache
 {
@@ -22,3 +22,40 @@ private:
 	void* m_free_list;
 };
 }}}
+
+ * *分配protocol例子*
+ * 定义StringProtocl的memcache:
+{{{
+MemCache<StringProtocol> m_string_protocol_memcache;
+}}}
+
+ * 生成StringProtocol
+{{{
+Protocol* protocol = (Protocol*)m_string_protocol_memcache.Alloc();
+}}}
+
+ * 释放StringProtocol
+{{{
+StringProtocol* string_protocol = (StringProtocol*)protocol;
+m_string_protocol_memcache.Free(string_protocol);
+}}}
+
+ * *分配TransSocket*
+ * 定义TransSocket的Memcache
+{{{
+MemCache<TransSocket> m_trans_socket_memcache;
+}}}
+ 
+ * 生成TransSocket
+{{{
+Socket* socket = (Socket*)m_trans_socket_memcache.Alloc();
+}}}
+
+ * 释放TransSocket
+{{{
+TransSocket* trans_socket = (TransSocket*)socket;
+m_trans_socket_memcache.Free(trans_socket);
+}}}
+
+
+这些虽然都是由框架来完成的,但是应用程序中同样可以使用Memcache.
