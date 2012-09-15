@@ -4,19 +4,20 @@
  * 联系邮箱:xmulyj@gmail.com
 
  * *[FQA]*
-   # 服务器开发需要做什么
-   # 什么是框架
-   # 什么是EasyNetwork网络开发框架
-   # EasyNetwork怎么管理连接
-   # EasyNetwork什么时候收/发数据
-   # EasyNetwork怎么收发数据
-   # EasyNetwork怎么编/解码(序列化/反序列化)数据
-   # 如何通过EasyNetwork定义自己的协议格式
-   # EasyNetwork怎么处理粘包现象
-   # EasyNetwork怎么处理高并发要求
-   # EasyNetwork怎么处理高吞吐量要求
-   # EasyNetwork内存管理与优化
-   # 如何利用EasyNetwork框架搭建自己的服务器
+   * 服务器开发需要做什么
+   * 什么是框架
+   * 什么是EasyNetwork网络开发框架
+   * EasyNetwork?框架扩展性如何
+   * EasyNetwork怎么管理连接
+   * EasyNetwork什么时候收/发数据
+   * EasyNetwork怎么收发数据
+   * EasyNetwork怎么编/解码(序列化/反序列化)数据
+   * 如何通过EasyNetwork定义自己的协议格式
+   * EasyNetwork怎么处理粘包现象
+   * EasyNetwork怎么处理高并发要求
+   * EasyNetwork怎么处理高吞吐量要求
+   * EasyNetwork内存管理与优化
+   * 如何利用EasyNetwork框架搭建自己的服务器
 
 
  * *模块介绍*
