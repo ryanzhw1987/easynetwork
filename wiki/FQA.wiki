@@ -17,6 +17,9 @@
  * *什么是EasyNetwork网络开发框架*
   EasyNetWork网络开发框架,就是能够帮你完成创建连接,管理连接,完成数据收发,编解码的一个开发框架.只要实现框架的接口, 就可以接收协议请求,发送协议,能够让你集中于业务逻辑的开发.
 
+ * *EasyNetwork框架扩展性如何*
+  EasyNetWork是可扩展的, 只要继承响应模块,并实现接口方法,就可以实现扩展.如IODemuxer, 你可以封装libevent来实现.如Protocol, 应用层可以封装自己的协议格式等.
+
  * *EasyNetwork怎么管理连接*
   EasyNetWork由[SocketManager]模块来管理连接.
 
