@@ -5,10 +5,13 @@ LIBS=-lslog /usr/local/lib/libnetframework.a -lpthread
 SERVER_DIR=./DownServer
 CLIENT_DIR=./DownClient
 
-all:download_server
+all:${SERVER_DIR}/download_server ${CLIENT_DIR}/download_client
 
-download_server:${SERVER_DIR}/*.h ${SERVER_DIR}/*.cpp DownloadProtocol.*
+${SERVER_DIR}/download_server:${SERVER_DIR}/*.h ${SERVER_DIR}/*.cpp DownloadProtocol.*
+	g++ $^ ${INC} ${LIBS} ${FLAGS} -o $@
+
+${CLIENT_DIR}/download_client:${CLIENT_DIR}/*.h ${CLIENT_DIR}/*.cpp DownloadProtocol.*
 	g++ $^ ${INC} ${LIBS} ${FLAGS} -o $@
 
 clean:
-	rm download_server
+	rm ${SERVER_DIR}/download_server ${CLIENT_DIR}/download_client

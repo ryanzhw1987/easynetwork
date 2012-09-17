@@ -22,7 +22,7 @@ int main()
 		return -1;
 	}
 
-	DownloadThreadPool server_pool(3);
+	DownloadThreadPool server_pool(5);
 	server_pool.start();
 
 	//listen event
