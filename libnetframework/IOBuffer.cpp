@@ -33,8 +33,10 @@ IOBuffer::~IOBuffer()
 	m_buffer_size = m_data_size = 0;
 }
 
-//获取一个大小为size的缓冲用于写, 成功返回可写的缓冲区, 失败返回NULL,表示没有足够内存
-char* IOBuffer::get_write_buffer(unsigned int size)
+////////////////////////////////////////////////////////////
+//打开大小为size的缓冲区用于写.
+//成功:返回缓存取到指针; 失败:返回NULL;
+char *IOBuffer::write_open(unsigned int size)
 {
 	unsigned int total_free  = m_buffer_size-m_data_size; //缓冲区总的剩余空间
 	unsigned int offset = m_data-m_buffer;           //缓冲区前端剩余空间
@@ -67,44 +69,52 @@ char* IOBuffer::get_write_buffer(unsigned int size)
 		m_data = m_buffer;
 		return m_data+m_data_size;
 	}
+
 	return NULL;
 }
 
-//设置本次写入多少数据, 成功返回true, 失败返回false
-bool IOBuffer::set_write_size(unsigned int size)
+//关闭写缓冲区;
+//成功:返回true, 设置成功写入的字节数;
+//失败:返回false,缓冲区数据没有任何改变;
+bool IOBuffer::write_close(unsigned int write_size)
 {
-	if(m_buffer_size-m_data_size < size)  //本次写入的长度比剩余空间还多, 错误
+	if(m_buffer_size-m_data_size < write_size)  //本次写入的长度比剩余空间还多, 错误
 		return false;
-	m_data_size += size;
+	m_data_size += write_size;
 	return true;
 }
 
-bool IOBuffer::write_rollback(unsigned int size)
+//打开缓冲区用于读
+//成功:返回缓冲区到指针,设置size为可读缓冲区中数据的大小
+//失败:返回NULL
+const char *IOBuffer::read_open(unsigned int &size)
+{
+	size = m_data_size;
+	if(m_data_size>0)
+		return m_data;
+	else
+		return NULL;
+}
+
+//关闭读缓冲区;
+//成功:返回true,设置成功读出的字节数
+//失败:返回false,缓冲区数据没有任何改变;
+bool IOBuffer::read_close(unsigned int read_size)
+{
+	if(read_size > m_data_size) //读的长度比数据长度还大
+		return false;
+	m_data += read_size;
+	m_data_size -= read_size;
+	return true;
+}
+
+//从尾部将数据截掉size字节
+//成功:返回true, 尾部的size字节无效
+//失败:返回false, 数据没有任何变化
+bool IOBuffer::truncate(unsigned int size)
 {
 	if(size > m_data_size)
 		return false;
 	m_data_size -= size;
 	return true;
 }
-//获取用于读的缓冲区, size返回可读取缓冲区的大小.如果没有数据可读, 返回NULL.
-char* IOBuffer::get_read_buffer(unsigned int *data_size)
-{
-	if(m_data_size>0)
-	{
-		*data_size = m_data_size;
-		return m_data;
-	}
-	*data_size = 0;
-	return NULL;
-}
-
-//设置本次读取多少数据, 成功返回true, 失败返回false
-bool IOBuffer::set_read_size(unsigned int size)
-{
-	if(size > m_data_size) //读的长度比数据长度还大
-		return false;
-	m_data += size;
-	m_data_size -= size;
-	return true;
-}
-

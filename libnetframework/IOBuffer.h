@@ -7,9 +7,9 @@
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 ///////                                                                   ///////
-///////                 IOBuffer用于读写的缓冲区                          ///////
-///////       当空间不够时,会按2倍大小扩展,直到有足够大的空间             ///////
-///////       或者达到最大值.                                             ///////
+///////                 IOBuffer用于读写的缓冲区                         ///////
+///////       当空间不够时,会按2倍大小扩展,直到有足够大的空间          ///////
+///////       或者达到最大值.                                            ///////
 ///////                                                                   ///////
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
@@ -19,29 +19,37 @@ public:
 	IOBuffer(unsigned int size=BUFFER_SIZE);
 	~IOBuffer();
 
-	//开始写, 获取一个大小为size的缓冲用于写, 成功返回可写的缓冲区, 失败返回NULL,表示没有足够内存
-	char* get_write_buffer(unsigned int size);
+	//打开大小为size的缓冲区用于写.
+	//成功:返回缓存取到指针; 失败:返回NULL;
+	char *write_open(unsigned int size);
 
-	//写结束, 设置本次写入多少数据, 成功返回true, 失败返回false
-  	bool set_write_size(unsigned int size);
+	//关闭写缓冲区;
+	//成功:返回true, 设置成功写入的字节数;
+	//失败:返回false,缓冲区数据没有任何改变;
+	bool write_close(unsigned int write_size);
 
-	//将写入的数据回滚size个字节.
-	//返回值:
-	//true: 回滚成功
-	//false: 回滚失败, 数据没有变化
-	bool write_rollback(unsigned int size);
+	//打开缓冲区用于读
+	//成功:返回缓冲区到指针,设置size为可读缓冲区中数据的大小
+	//失败:返回NULL
+	const char *read_open(unsigned int &size);
 
-	//开始读, 获取用于读的缓冲区, size返回可读取缓冲区的大小.如果没有数据可读, 返回NULL.
-	char* get_read_buffer(unsigned int *data_size);
-
-	//读结束, 设置本次读取多少数据, 成功返回true, 失败返回false
-	bool set_read_size(unsigned int size);
+	//关闭读缓冲区;
+	//成功:返回true,设置成功读出的字节数
+	//失败:返回false,缓冲区数据没有任何改变;
+	bool read_close(unsigned int read_size);
 
 	//返回可读数据的大小
-	unsigned int get_data_size(){return m_data_size;}
+	unsigned int get_size(){return m_data_size;}
 
-	//获取有效数据区offset位置的buffer
-	char* seek(unsigned int offset){return offset>m_data_size?NULL:m_data+offset;}
+	//返回偏移位置为offset,大小为size的有效数据缓冲区.
+	//成功:返回缓冲区指针
+	//失败:返回NULL
+	char* seek(unsigned int offset, unsigned int size){return (offset+size > m_data_size?NULL:m_data+offset);}
+
+	//从尾部将数据截掉size字节
+	//成功:返回true, 尾部的size字节无效
+	//失败:返回false, 数据没有任何变化
+	bool truncate(unsigned int size);
 private:
 	char *m_buffer; //缓冲区
 	unsigned int m_buffer_size;  //缓冲区大小
@@ -57,18 +65,18 @@ int main()
 	unsigned int size = sizeof(data);
 
 	IOBuffer io_buffer;
-	char *buffer = io_buffer.write_begin(size);
+	char *buffer = io_buffer.write_open(size);
 	if(buffer != NULL)
 	{
 		memcpy(buffer, data, size);
-		io_buffer.write_end(size);
+		io_buffer.write_close(size);
 	}
 
-	buffer = io_buffer.read_begin(&size);
+	buffer = io_buffer.read_open(size);
 	if(buffer != NULL)
 	{
 		memcpy(data, buffer, size);
-		io_buffer.read_end(size);
+		io_buffer.read_close(size);
 	}
 
 	return 0;

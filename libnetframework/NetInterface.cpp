@@ -81,7 +81,7 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	while(true)
 	{
 		unsigned int size = 0;
-		char *buffer = recv_buffer->get_read_buffer(&size);
+		const char *buffer = recv_buffer->read_open(size);
 		if(buffer == NULL)  //无数据可读
 			break;
 
@@ -147,7 +147,7 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 			m_protocol_family->destroy_protocol(protocol);
 			return HANDLE_ERROR;
 		}
-		recv_buffer->set_read_size(header_size+body_size);  //清空已经读取的数据
+		recv_buffer->read_close(header_size+body_size);  //清空已经读取的数据
 
 		//3. 调用回调函数向应用层发协议
 		on_recv_protocol(fd, protocol);

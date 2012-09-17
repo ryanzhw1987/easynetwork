@@ -40,7 +40,7 @@ public:
 	MTServerAppFrameworkPool(unsigned int thread_num):ConnectThreadPool(thread_num){}
 protected:
 	//实现创建一个线程
-	Thread* create_thread();
+	Thread<SocketHandle>* create_thread();
 };
 
 class TimerHandler:public EventHandler
