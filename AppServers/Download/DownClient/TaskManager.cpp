@@ -104,22 +104,20 @@ bool TaskManager::send_get_filesize_task(string &file_name)
 
 bool TaskManager::download_task(const string &file_name, unsigned long long file_size)
 {
-	int i, N=20; //分成20个分片
+	int i;
 	unsigned long long start_pos = 0;
-	unsigned long long split_size = file_size/N;
-	if(split_size > 0)
+	unsigned long long split_size = 1024*1024;
+
+	for(i=0; start_pos+split_size<=file_size; ++i,start_pos+=split_size)
 	{
-		for(i=0; start_pos+split_size<=file_size; ++i,start_pos+=split_size)
-		{
-			DownloadTask *task = new DownloadTask;
-			task->file_name = file_name;
-			task->start_pos = start_pos;
-			task->size = split_size;
-			task->task_index = i;
-			task->fp = NULL;
-			task->down_size = 0;
-			m_download_pool->add_task(task);
-		}
+		DownloadTask *task = new DownloadTask;
+		task->file_name = file_name;
+		task->start_pos = start_pos;
+		task->size = split_size;
+		task->task_index = i;
+		task->fp = NULL;
+		task->down_size = 0;
+		m_download_pool->add_task(task);
 	}
 
 	if(start_pos < file_size) //最后一个分片
