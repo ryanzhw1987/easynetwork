@@ -18,13 +18,6 @@ HANDLE_RESULT TimerHandler::on_timeout(int fd)
 }
 
 //////////////////由应用层重写 接收协议函数//////////////////
-void MTServerAppFramework::run()
-{
-	SLOG_INFO("MTServerAppFramework[ID=%d] is running...", get_id());
-	get_io_demuxer()->run_loop();
-	SLOG_INFO("MTServerAppFramework end...");
-}
-
 int MTServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {
 	switch(((DefaultProtocol*)protocol)->get_type())

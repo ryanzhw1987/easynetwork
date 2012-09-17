@@ -29,9 +29,6 @@ public:
 	int on_socket_handle_error(SocketHandle socket_handle);
 	//////////////////由应用层重写 连接超时处理函数//////////////
 	int on_socket_handle_timeout(SocketHandle socket_handle);
-
-protected://实现Thread到纯虚函数
-	void run();
 };
 
 class MTServerAppFrameworkPool:public ConnectThreadPool
