@@ -22,34 +22,35 @@ IOBuffer *p_io_buffer = &io_buffer;
  * *获取读缓冲区*
 {{{
 unsigned int size;
-char *buffer = p_io_buffer->get_read_buffer(&size); //返回可读数据的大小
+const char *buffer = p_io_buffer->read_open(size); //返回可读数据的大小
 
 if(buffer == NULL)
     return NO_DATA;
 memcpy(data, buffer, size); //使用数据
 
-p_io_buffer->set_read_size(size);
+p_io_buffer->read_close(size);
 }}}
 
  * *获取大小为size的写缓冲区*
 {{{
-char *buffer = p_io_buffer->get_write_buffer(size);
+char *buffer = p_io_buffer->write_open(size);
 
 if(buffer == NULL)
     return NO_MEMORY;
 memcpy(buffer, data, size); //写入数据
 
-p_io_buffer->set_write_size(size);  //设置写了多少数据
+p_io_buffer->write_close(size);  //设置写了多少数据
 }}}
 
- * *回滚写入的脏数据*
+ * *截断尾部size字节的数据*
 {{{
-p_io_buffer->write_rollback(size);
+p_io_buffer->truncate(size);
 //返回true的话, 数组最后的size大小的内容无效
 }}}
 
- * *定位有效数据的缓冲区(用于更改写入的数据)*
+ * *seek有效数据缓冲区(用于更改写入的数据)*
 {{{
-char* buffer = seek(offset); //定位到有效数据偏移offset处
+//seek到偏移为offset,大小为5的有效数据缓冲区
+char* buffer = p_io_buffer->seek(offset,5);
 memcpy(buffer, "hello", 5); //写入数据,必须保证写入的数据不超过剩余的空间!!!
 }}}
