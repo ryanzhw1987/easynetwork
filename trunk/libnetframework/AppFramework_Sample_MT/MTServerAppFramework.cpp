@@ -77,7 +77,7 @@ int MTServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 }
 
 ///////////////////////////////  thread pool  //////////////////////////////////
-Thread* MTServerAppFrameworkPool::create_thread()
+Thread<SocketHandle>* MTServerAppFrameworkPool::create_thread()
 {
 	EpollDemuxer *io_demuxer = new EpollDemuxer;
 	DefaultProtocolFamily *protocol_family = new DefaultProtocolFamily;

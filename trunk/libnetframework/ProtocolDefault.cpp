@@ -120,6 +120,7 @@ int DefaultProtocolFamily::destroy_protocol(Protocol* protocol)
 	{
 	case PROTOCOL_STRING:
 	{
+		SLOG_DEBUG("free StringProtocol[%x] to string_protocol_memcache", protocol);
 		StringProtocol* string_protocol = (StringProtocol*)protocol;
 		m_string_protocol_memcache.Free(string_protocol);
 		break;
@@ -161,7 +162,6 @@ Protocol* DefaultProtocolFamily::create_protocol(ProtocolType protocol_type, boo
 		ProtocolHeader *protocol_header = create_header(protocol_type);
 		if(protocol_header == NULL)
 		{
-			SLOG_DEBUG("free StringProtocol[%x] to string_protocol_memcache", protocol);
 			destroy_protocol(protocol);
 			return NULL;
 		}
@@ -177,11 +177,11 @@ int StringProtocol::encode_body(IOBuffer *io_buffer)
 	if(io_buffer==NULL || m_data.empty())
 		return -1;
 	int size = m_data.length();
-	char *buffer = io_buffer->get_write_buffer(size);
+	char *buffer = io_buffer->write_open(size);
 	if(buffer == NULL)
 		return -1;
 	memcpy(buffer, m_data.c_str(), size);
-	io_buffer->set_write_size(size);
+	io_buffer->write_close(size);
 	return size;
 }
 

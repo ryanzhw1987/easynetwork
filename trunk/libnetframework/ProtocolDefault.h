@@ -76,20 +76,20 @@ class StringProtocol;
 class DefaultProtocolFamily:public ProtocolFamily
 {
 public: //实现父类的纯虚函数
-	ProtocolHeader* create_header();
-	int destroy_header(ProtocolHeader *header);
+	virtual ProtocolHeader* create_header();
+	virtual int destroy_header(ProtocolHeader *header);
 	//根据protocol_header创建协议. 成功协议头attach到protocol中.失败返回NULL.
-	Protocol* create_protocol(ProtocolHeader* protocol_header);
+	virtual Protocol* create_protocol(ProtocolHeader* protocol_header);
 	//销毁协议. 成功返回0, 失败返回-1.
-	int destroy_protocol(Protocol* protocol);
+	virtual int destroy_protocol(Protocol* protocol);
 public:
 	DefaultProtocolFamily(int magic_num=MAGIC_NUM, int version=VERSION):m_magic_num(magic_num), m_version(version){}
 	virtual ~DefaultProtocolFamily(){}
 
 	//根据protocol_type创建协议头
-	ProtocolHeader* create_header(ProtocolType protocol_type);
+	virtual ProtocolHeader* create_header(ProtocolType protocol_type);
 	//根据protoco_type创建对应的protocol.new_header为true时同时创建一个协议头,false时不创建协议头.
-	Protocol* create_protocol(ProtocolType protocol_type, bool new_header=true);
+	virtual Protocol* create_protocol(ProtocolType protocol_type, bool new_header=true);
 private:
 	int m_magic_num;
 	int m_version;
