@@ -7,62 +7,59 @@
 
 #include "DownloadManager.h"
 #include "DownloadProtocol.h"
+#include "IODemuxerEpoll.h"
+
+#include <sstream>
+#include <iostream>
+using namespace::std;
 
 ///////////////////////////////  thread pool  //////////////////////////////////
 Thread<DownloadTask*>* DownloadThreadPool::create_thread()
 {
 	EpollDemuxer *io_demuxer = new EpollDemuxer;
-	DefaultProtocolFamily *protocol_family = new DefaultProtocolFamily;
+	DownloadProtocolFamily *protocol_family = new DownloadProtocolFamily;
 	SocketManager *socket_manager = new SocketManager;
-	return new DownloadThread(io_demuxer, protocol_family, socket_manager);
-}
-
-
-DownloadThread::DownloadThread(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager)
-		:NetInterface(io_demuxer, protocol_family, socket_manager)
-		,m_pipe_handler(this)
-{
-	if (pipe(m_pipe))
-	{
-		SLOG_ERROR("create pipe errer when creating connect thread");
-		assert(0);
-	}
-
-	int flags = fcntl(m_pipe[0], F_GETFL, 0);
-	if(flags != -1 )
-	{
-		flags |= O_NONBLOCK;
-		if(fcntl(m_pipe[0], F_SETFL, flags) == -1)
-			SLOG_ERROR("set pipe[0] no block failed. errno=%d", errno);
-	}
-
-	//注册管道读事件
-	io_demuxer->register_event(m_pipe[0], EVENT_READ|EVENT_PERSIST, -1, &m_pipe_handler);
-}
-
-/////////////////////////////// thread 的接口  /////////////////////////////////////////
-bool DownloadThread::notify_add_task()
-{
-	//往管道写数据,通知connect thread
-	if(write(m_pipe[1], "", 1) != 1)
-		SLOG_WARN("notify connect thread to accept a new connect failed.");
-	return true;
+	DownloadThread* temp = new DownloadThread(io_demuxer, protocol_family, socket_manager);
+	temp->set_idle_timeout(30000);
+	return (Thread<DownloadTask*>*)temp;
 }
 
 bool DownloadThread::do_task()
 {
 	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_id(), this);
-	Queue<SocketHandle> trans_queue(false);
-	get_task_queue()->transform(&trans_queue, false);
+	Queue<DownloadTask*> task_queue(false);
+	get_task_queue()->transform(&task_queue, false);
 
-	SocketHandle trans_fd;
-	while(trans_queue.pop(trans_fd))
+	DownloadTask* download_task=NULL;
+	while(task_queue.pop(download_task))
 	{
-		SLOG_DEBUG("thread accept trans fd=%d", trans_fd);
-		if(accept(trans_fd)==false)
-			SLOG_ERROR("connect thread accept fd=%d failed", trans_fd);
+		SLOG_DEBUG("Thread[ID=%d,Addr=%x] download task[file=%s, start_pos=%ld, size=%d, index=%d]"
+				,get_id()
+				,this
+				,download_task->file_name.c_str()
+				,download_task->start_pos
+				,download_task->size
+				,download_task->task_index);
+		if(send_download_task(download_task) == false)
+		{
+			SLOG_ERROR("send download task[file=%s, start_pos=%ld, size=%d, index=%d] failed."
+					,download_task->file_name.c_str()
+					,download_task->start_pos
+					,download_task->size
+					,download_task->task_index);
+			delete download_task;
+		}
+		else
+		{
+			ostringstream temp;
+			temp<<download_task->file_name<<"_"<<download_task->start_pos;
+			m_downloading_task.insert(make_pair(temp.str(), download_task));
+		}
 	}
+
+	return true;
 }
+
 void DownloadThread::run()
 {
 	SLOG_INFO("MTServerAppFramework[ID=%d] is running...", get_id());
@@ -75,16 +72,42 @@ int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 {
 	switch(((DefaultProtocol*)protocol)->get_type())
 	{
-	case PROTOCOL_REQUEST_SIZE:
-	{
-		RespondSize* temp_protocol = (RespondSize*)protocol;
-		SLOG_INFO("receive RespondSize[file=%s, size=%ld]", temp_protocol->get_file_name().c_str(), temp_protocol->get_size());
-		break;
-	}
-	case PROTOCOL_REQUEST_SIZE:
+	case PROTOCOL_RESPOND_DATA:
 	{
 		RespondData* temp_protocol = (RespondData*)protocol;
-		SLOG_INFO("receive RespondData[file=%s]", temp_protocol->get_file_name().c_str());
+		const string file_name = temp_protocol->get_file_name();
+		unsigned long long start_pos = temp_protocol->get_start_pos();
+		unsigned int size = temp_protocol->get_size();
+		string data = temp_protocol->get_data();
+
+		ostringstream temp;
+		temp<<file_name<<"_"<<start_pos;
+		DownloadMap::iterator it = m_downloading_task.find(temp.str());
+		if(it == m_downloading_task.end())
+		{
+			SLOG_WARN("receive RespondData[file=%s, start=%ld], but can't not find task", file_name.c_str(), start_pos);
+		}
+		else
+		{
+			DownloadTask* task = it->second;
+			SLOG_INFO("receive RespondData[fd=%d, file=%s, index=%d, start_pos=%ld, size=%d]", socket_handle, file_name.c_str(), task->task_index, start_pos, size);
+			if(task->fp == NULL)
+			{
+				char buf[128];
+				sprintf(buf, "%s.%d", task->file_name.c_str(), task->task_index);
+				task->fp = fopen(buf, "wb");
+			}
+
+			fwrite(data.c_str(), 1, data.size(), task->fp);
+			task->down_size += data.size();
+			if(task->down_size == task->size)
+			{
+				SLOG_INFO("finish download[fd=%d, file=%s, index=%d]", socket_handle, file_name.c_str(), task->task_index);
+				fclose(task->fp);
+				delete task;
+				m_downloading_task.erase(it);
+			}
+		}
 		break;
 	}
 	default:
@@ -121,3 +144,19 @@ int DownloadThread::on_socket_handle_timeout(SocketHandle socket_handle)
 	return 0;
 }
 
+////////////////////////////////////////////////////////
+bool DownloadThread::send_download_task(DownloadTask* down_task)
+{
+	SocketHandle socket_handle = get_active_trans_socket("127.0.0.1", 3011);
+	if(socket_handle == SOCKET_INVALID)
+		return false;
+	DownloadProtocolFamily *protocol_family = (DownloadProtocolFamily*)get_protocol_family();
+	RequestData *temp_protocol = (RequestData *)protocol_family->create_protocol(PROTOCOL_REQUEST_DATA);
+	if(temp_protocol == NULL)
+		return false;
+	temp_protocol->assign(down_task->file_name, down_task->start_pos, down_task->size);
+	if(send_protocol(socket_handle, temp_protocol)==0) //发送请求文件大小的协议
+		return true;
+	else
+		return false;
+}

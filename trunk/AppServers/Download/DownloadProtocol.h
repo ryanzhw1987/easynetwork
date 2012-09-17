@@ -42,7 +42,7 @@ class RespondSize: public DefaultProtocol
 	//解码包体.成功返回0,否则返回-1;
 	int decode_body(const char* buf, int buf_size);
 public:
-	RespondSize():DefaultProtocol(PROTOCOL_RESPOND_SIZE){}
+	RespondSize():DefaultProtocol(PROTOCOL_RESPOND_SIZE), m_file_size(0){}
 	RespondSize(string &filename, unsigned long long file_size):DefaultProtocol(PROTOCOL_RESPOND_SIZE)
 	{
 		m_file_size = file_size;
@@ -71,7 +71,7 @@ public:
 	//解码包体.成功返回0,否则返回-1;
 	int decode_body(const char* buf, int buf_size);
 public:
-	RequestData():DefaultProtocol(PROTOCOL_REQUEST_DATA){}
+	RequestData():DefaultProtocol(PROTOCOL_REQUEST_DATA), m_start_pos(0), m_size(0){}
 	RequestData(string &filename, unsigned long long start_pos, unsigned int size):DefaultProtocol(PROTOCOL_REQUEST_DATA)
 	{
 		m_start_pos = start_pos;
@@ -104,7 +104,7 @@ public:
 	//解码包体.成功返回0,否则返回-1;
 	int decode_body(const char* buf, int buf_size);
 public:
-	RespondData():DefaultProtocol(PROTOCOL_RESPOND_DATA){}
+	RespondData():DefaultProtocol(PROTOCOL_RESPOND_DATA), m_start_pos(0), m_size(0){}
 	RespondData(string &filename, unsigned long long start_pos, unsigned int size, string &data):DefaultProtocol(PROTOCOL_RESPOND_DATA)
 	{
 		m_start_pos = start_pos;

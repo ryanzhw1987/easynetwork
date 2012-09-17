@@ -92,7 +92,7 @@ int RespondData::encode_body(IOBuffer *io_buffer)
 {
 	int name_len = m_file_name.size();
 	int size  = sizeof(m_start_pos)+sizeof(m_size)+sizeof(name_len)+m_file_name.size()+m_data.size();
-		string m_data;
+
 	char *buffer = io_buffer->write_open(size);
 	if(buffer == NULL)
 		return -1;
@@ -103,7 +103,8 @@ int RespondData::encode_body(IOBuffer *io_buffer)
 	memcpy((void*)buffer, (void*)&name_len, sizeof(name_len));	//length of name
 	buffer += sizeof(name_len);
 	memcpy((void*)buffer, (void*)m_file_name.c_str(), m_file_name.size()); //filename
-	memcpy((void*)buffer, (void*)m_file_name.c_str(), m_file_name.size()); //data
+	buffer += m_file_name.size();
+	memcpy((void*)buffer, (void*)m_data.c_str(), m_data.size()); //data
 	io_buffer->write_close(size);
 	return size;
 }
@@ -123,7 +124,7 @@ int RespondData::decode_body(const char* buf, int buf_size)
 	buf += sizeof(name_len);
 	m_file_name.assign(buf, name_len);
 	buf += name_len;
-	m_data.assign(buf, buf_size-size);
+	m_data.assign(buf, buf_size-size-name_len);
 
 	return 0;
 }

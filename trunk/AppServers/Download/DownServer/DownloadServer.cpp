@@ -8,6 +8,8 @@
 #include "IODemuxerEpoll.h"
 #include "slog.h"
 
+#include <stdio.h>
+
 HANDLE_RESULT TimerHandler::on_timeout(int fd)
 {
 	SLOG_INFO("timer timeout...");
@@ -33,6 +35,30 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 		RequestSize *temp_protocol = (RequestSize*)protocol;
 		const string file_name = temp_protocol->get_file_name();
 		SLOG_INFO("receive <RequestSize:file=%s>", file_name.c_str());
+
+		string path="/data/";
+		path += file_name;
+
+		//get file size
+		unsigned long long file_size=0;
+		FILE *fp = fopen(path.c_str(), "r");
+		if(fp != NULL)
+		{
+			fseek(fp, 0, SEEK_END);
+			file_size = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+			fclose(fp);
+		}
+		DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
+		RespondSize* resp_protocol = (RespondSize*)protocol_family->create_protocol(PROTOCOL_RESPOND_SIZE);
+		if(resp_protocol)
+		{
+			resp_protocol->assign(file_name, file_size);
+			send_protocol(socket_handle, resp_protocol);
+		}
+		else
+			SLOG_ERROR("create RespondSize protocol failed.");
+
 		break;
 	}
 	case PROTOCOL_REQUEST_DATA:
@@ -42,6 +68,34 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 		unsigned long long start_pos = temp_protocol->get_start_pos();
 		unsigned int size = temp_protocol->get_size();
 		SLOG_INFO("receive <RequestData: file=%s, start_pos=%ld, size=%d>", file_name.c_str(), start_pos, size);
+
+		string path="/data/";
+		path += file_name;
+		FILE *fp = fopen(path.c_str(), "r");
+		if(fp != NULL)
+		{
+			IOBuffer io_buffer;
+			fseek(fp, start_pos, SEEK_SET);
+			char* buf = io_buffer.write_open(size);
+			fread(buf, 1, size, fp);
+			fclose(fp);
+			string data;
+			data.assign(buf, size);
+			io_buffer.write_close(size);
+
+			DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
+			RespondData* resp_protocol = (RespondData*)protocol_family->create_protocol(PROTOCOL_RESPOND_DATA);
+			if(resp_protocol)
+			{
+				resp_protocol->assign(file_name, start_pos, size);
+				resp_protocol->assign(data);
+				send_protocol(socket_handle, resp_protocol);
+			}
+		}
+		else
+		{
+			SLOG_ERROR("can't open file=%s", file_name.c_str());
+		}
 		break;
 	}
 	default:
@@ -78,13 +132,14 @@ int DownloadServer::on_socket_handle_timeout(SocketHandle socket_handle)
 	return 0;
 }
 
+
 ///////////////////////////////  thread pool  //////////////////////////////////
 Thread<SocketHandle>* DownloadThreadPool::create_thread()
 {
 	EpollDemuxer *io_demuxer = new EpollDemuxer;
 	DownloadProtocolFamily *protocol_family = new DownloadProtocolFamily;
 	SocketManager *socket_manager = new SocketManager;
-	return new DownloadServer(io_demuxer, protocol_family, socket_manager);
+	DownloadServer* temp = new DownloadServer(io_demuxer, protocol_family, socket_manager);
+	temp->set_idle_timeout(30000);
+	return (Thread<SocketHandle>*)temp;
 }
-
-
