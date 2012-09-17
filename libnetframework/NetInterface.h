@@ -48,6 +48,7 @@ public:
 	IODemuxer* get_io_demuxer(){return m_io_demuxer;}
 	ProtocolFamily* get_protocol_family(){return m_protocol_family;}
 	SocketManager* get_socket_manager(){return m_socket_manager;}
+	void set_idle_timeout(int timeout_ms){m_socket_idle_timeout_ms = timeout_ms;}
 
 private:
 	IODemuxer *m_io_demuxer;
