@@ -32,6 +32,114 @@ private:
 };
 }}}
 
+ * *RespondSize 回复文件大小*
+{{{
+class RespondSize: public DefaultProtocol
+{
+public://实现protocol的接口
+	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
+	int encode_body(IOBuffer *io_buffer);
+	//解码包体.成功返回0,否则返回-1;
+	int decode_body(const char* buf, int buf_size);
+public:
+	RespondSize():DefaultProtocol(PROTOCOL_RESPOND_SIZE), m_file_size(0){}
+	RespondSize(string &filename, unsigned long long file_size):DefaultProtocol(PROTOCOL_RESPOND_SIZE)
+	{
+		m_file_size = file_size;
+		m_file_name = filename;
+	}
+
+	void assign(const string &file_name, unsigned long long file_size)
+	{
+		m_file_name = file_name;
+		m_file_size = file_size;
+	}
+
+	const string& get_file_name(){return m_file_name;}
+	unsigned long long get_file_size(){return m_file_size;}
+private:
+	unsigned long long m_file_size;
+	string m_file_name;
+};
+}}}
+
+ * *RequestData 请求文件数据*
+{{{
+public://实现protocol的接口
+	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
+	int encode_body(IOBuffer *io_buffer);
+	//解码包体.成功返回0,否则返回-1;
+	int decode_body(const char* buf, int buf_size);
+public:
+	RequestData():DefaultProtocol(PROTOCOL_REQUEST_DATA), m_start_pos(0), m_size(0){}
+	RequestData(string &filename, unsigned long long start_pos, unsigned int size):DefaultProtocol(PROTOCOL_REQUEST_DATA)
+	{
+		m_start_pos = start_pos;
+		m_size = size;
+		m_file_name = filename;
+	}
+
+	void assign(const string &file_name, unsigned long long start_pos, unsigned int size)
+	{
+		m_file_name = file_name;
+		m_start_pos = start_pos;
+		m_size = size;
+	}
+
+	unsigned long long get_start_pos(){return m_start_pos;}
+	unsigned int get_size(){return m_size;}
+	const string& get_file_name(){return m_file_name;}
+private:
+	unsigned long long m_start_pos;
+	unsigned int m_size;
+	string m_file_name;
+};
+}}}
+
+ * *RespondData 回复文件数据*
+{{{
+class RespondData: public DefaultProtocol
+{
+public://实现protocol的接口
+	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
+	int encode_body(IOBuffer *io_buffer);
+	//解码包体.成功返回0,否则返回-1;
+	int decode_body(const char* buf, int buf_size);
+public:
+	RespondData():DefaultProtocol(PROTOCOL_RESPOND_DATA), m_start_pos(0), m_size(0){}
+	RespondData(string &filename, unsigned long long start_pos, unsigned int size, string &data):DefaultProtocol(PROTOCOL_RESPOND_DATA)
+	{
+		m_start_pos = start_pos;
+		m_size = size;
+		m_file_name = filename;
+		m_data = data;
+	}
+
+	void assign(const string &file_name, unsigned long long start_pos, unsigned int size)
+	{
+		m_file_name = file_name;
+		m_start_pos = start_pos;
+		m_size = size;
+	}
+
+	void assign(string &data)
+	{
+		m_data = data;
+	}
+
+	const string& get_file_name(){return m_file_name;}
+	const string& get_data(){return m_data;}
+	unsigned long long get_start_pos(){return m_start_pos;}
+	unsigned int get_size(){return m_size;}
+
+private:
+	string m_file_name;
+	string m_data;
+	unsigned long long m_start_pos;
+	unsigned int m_size;
+};
+}}}
+
 
 = 二. Download Serer =
  
