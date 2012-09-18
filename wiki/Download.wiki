@@ -460,3 +460,90 @@ bool TaskManager::download_task(const string &file_name, unsigned long long file
 }
 }}}
 
+
+ * *下载线程*
+下载线程池的内容我们就不说了,利用框架很快就可以搞一个出来.我们直接讲下载线程.
+
+下载线程要做的事情主要有:
+1. 接收TaskManager发送过来的下载任务
+2. 从队列里面获取一个任务进行下载.
+3. 下载完后跳到2 (即每个线程一次只下载一个分片任务)
+
+ * 接收任务
+同样,下载线程收到任务时,会收到on_notify_add_task的通知(怎么收呢?呃,框架帮你做了),在这里面我们发送一个下载任务,即发送一个RequestData请求.
+{{{
+bool DownloadThread::on_notify_add_task()
+{
+	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_id(), this);
+	return send_download_task();
+}
+
+bool DownloadThread::send_download_task(SocketHandle socket_handle)
+{
+	if(m_is_downloading)  //一次只执行一个下载任务
+		return false;
+
+	DownloadTask* download_task = NULL;
+	if(get_task(download_task) && send_download_task(socket_handle, download_task))
+		m_is_downloading = true;
+	return true;
+}
+}}}
+
+ * 接收数据
+同样,还是在on_recv_protocol里面处理啦,都不用说的啦...
+在接收完数据后, 会调用send_download_task来发送下一个分片任务的请求.
+
+{{{
+int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
+{
+	switch(((DefaultProtocol*)protocol)->get_type())
+	{
+	case PROTOCOL_RESPOND_DATA: //接收数据
+	{
+		RespondData* temp_protocol = (RespondData*)protocol;
+		const string file_name = temp_protocol->get_file_name();
+		unsigned long long start_pos = temp_protocol->get_start_pos();
+		unsigned int size = temp_protocol->get_size();
+		string data = temp_protocol->get_data();
+
+		ostringstream temp;
+		temp<<file_name<<"_"<<start_pos;
+		DownloadMap::iterator it = m_downloading_task.find(temp.str());
+		if(it == m_downloading_task.end())
+		{
+			SLOG_WARN("receive RespondData[file=%s, start=%ld], but can't not find task", file_name.c_str(), start_pos);
+		}
+		else
+		{
+			DownloadTask* task = it->second;
+			SLOG_INFO("receive RespondData[fd=%d, file=%s, index=%d, start_pos=%ld, size=%d]", socket_handle, file_name.c_str(), task->task_index, start_pos, size);
+			if(task->fp == NULL)
+			{
+				char buf[128];
+				sprintf(buf, "%s.%d", task->file_name.c_str(), task->task_index);
+				task->fp = fopen(buf, "wb");
+			}
+
+			fwrite(data.c_str(), 1, data.size(), task->fp);
+			task->down_size += data.size();
+			if(task->down_size == task->size)
+			{
+				SLOG_INFO("finish download[fd=%d, file=%s, index=%d]", socket_handle, file_name.c_str(), task->task_index);
+				fclose(task->fp);
+				delete task;
+				m_downloading_task.erase(it);
+				m_is_downloading = false;
+				send_download_task(socket_handle); //请求下个任务
+			}
+		}
+		break;
+	}
+	default:
+		SLOG_WARN("receive undefine protocol. ignore it.");
+		break;
+	}
+
+	return 0;
+}
+}}}
