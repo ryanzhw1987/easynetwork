@@ -18,6 +18,7 @@ const ProtocolType PROTOCOL_RESPOND_DATA = 4;   //回复
 //请求文件大小
 class RequestSize: public DefaultProtocol
 {
+public://实现protocol的接口
 	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
 	int encode_body(IOBuffer *io_buffer);
 	//解码包体.成功返回0,否则返回-1;
@@ -37,6 +38,7 @@ private:
 //回复文件大小
 class RespondSize: public DefaultProtocol
 {
+public://实现protocol的接口
 	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
 	int encode_body(IOBuffer *io_buffer);
 	//解码包体.成功返回0,否则返回-1;
@@ -65,7 +67,7 @@ private:
 //请求数据协议
 class RequestData: public DefaultProtocol
 {
-public:
+public://实现protocol的接口
 	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
 	int encode_body(IOBuffer *io_buffer);
 	//解码包体.成功返回0,否则返回-1;
@@ -98,7 +100,7 @@ private:
 //回复数据协议
 class RespondData: public DefaultProtocol
 {
-public:
+public://实现protocol的接口
 	//编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
 	int encode_body(IOBuffer *io_buffer);
 	//解码包体.成功返回0,否则返回-1;
