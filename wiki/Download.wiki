@@ -8,7 +8,7 @@
  * [Download#1_Download_Protocol]
  * [Download#2_Download_Server]
  * [Download#3_Download_Client]
-
+ * [Download#4_Ending]
 
 = 1 Download Protocol =
 下载协议,是最基本到要求了,我就不说啥了. 我们利用框架的DefaultProtocol来定义我们下载的4个协议:RequestSize, RespondSize, RequestData, RespondData.
@@ -548,9 +548,9 @@ int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 }
 }}}
 
-= 结束语 =
+= 4 Ending =
 本节快速地介绍了用EasyNetwork框架快速地搭建一个下载服务器和下载客户端...感觉还不错吧.
-贴几行log展示一下下载的过程吧:
+贴几行log展示一下下载的过程吧,各个分片由不同的线程下载:
 
 
 2012-09-18-14:13:00 [INFO] [DownClient/DownloadManager.cpp:on_recv_protocol(68)] ... finish download[ID=4, fd=29, file=test.flv, index=4]
