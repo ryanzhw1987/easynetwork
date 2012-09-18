@@ -21,7 +21,7 @@
 
  * *[用EasyNetwork搭建的Server]*
    # [Download 下载服务(支持多任务多线程,支持断点续传)]
-   # memcache服务器(敬请期待)
+   # memcache服务器(敬请期待...:p)
 
  * *模块介绍*
  # *[AppServerSamples 3分钟搭建服务器]*
