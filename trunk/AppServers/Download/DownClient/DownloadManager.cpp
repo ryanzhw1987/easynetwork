@@ -26,7 +26,7 @@ Thread<DownloadTask*>* DownloadThreadPool::create_thread()
 
 bool DownloadThread::on_notify_add_task()
 {
-	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_id(), this);
+	SLOG_INFO("Thread[ID=%d,Addr=%x] on_notify_add_task", get_id(), this);
 	return send_download_task();
 }
 
@@ -53,7 +53,7 @@ int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 		else
 		{
 			DownloadTask* task = it->second;
-			SLOG_INFO("receive RespondData[fd=%d, file=%s, index=%d, start_pos=%ld, size=%d]", socket_handle, file_name.c_str(), task->task_index, start_pos, size);
+			SLOG_INFO("receive RespondData[ID=%d, fd=%d, file=%s, index=%d, start_pos=%ld, size=%d]", get_id(), socket_handle, file_name.c_str(), task->task_index, task->start_pos, task->size);
 			if(task->fp == NULL)
 			{
 				char buf[128];
@@ -65,7 +65,7 @@ int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 			task->down_size += data.size();
 			if(task->down_size == task->size)
 			{
-				SLOG_INFO("finish download[fd=%d, file=%s, index=%d]", socket_handle, file_name.c_str(), task->task_index);
+				SLOG_INFO("finish download[ID=%d, fd=%d, file=%s, index=%d]", get_id(), socket_handle, file_name.c_str(), task->task_index);
 				fclose(task->fp);
 				delete task;
 				m_downloading_task.erase(it);
