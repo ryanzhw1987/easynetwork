@@ -9,7 +9,7 @@ lib:slog.h slog.c
 	gcc -c slog.h slog.c
 	ar rc libslog.a slog.o
 
-test_slog:slog_test.c slog.c slog.h
+test:slog_test.c slog.c slog.h
 	gcc $^ ${FULL_LOG} -g -lpthread -o $@
 
 install:

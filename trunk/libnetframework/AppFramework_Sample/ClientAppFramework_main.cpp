@@ -8,7 +8,7 @@
 
 int main()
 {
-	SLOG_INIT(SLOG_LEVEL_DEBUG, NULL, 0);
+	SLOG_INIT(SLOG_LEVEL_INFO, NULL, 0);
 
 	EpollDemuxer io_demuxer;
 	DefaultProtocolFamily protocol_family;

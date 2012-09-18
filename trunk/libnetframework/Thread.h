@@ -12,6 +12,10 @@
 #include "Queue.h"
 #include "slog.h"
 
+////////////////////////////////////////////////////////
+/////              Thread线程模板                  /////
+/////          T表示线程需要处理到任务             /////
+////////////////////////////////////////////////////////
 template <class T>
 class Thread
 {
@@ -25,7 +29,7 @@ public:
 		,m_my_id(id)
 		,m_task_queue(true){}
 	virtual ~Thread(){}
-
+	bool start();
 	bool set_detatchable(bool detachable)
 	{
 		if(m_running)
@@ -45,24 +49,27 @@ public:
 		if(!m_detachable)
 			pthread_join(m_thread_id, NULL);
 	}
-
 	int get_id(){return m_my_id;}
 	void set_id(int id){m_my_id=id;}
 
-	bool start();
-	bool add_task(T &task);		//添加任务
-	virtual bool do_task()=0; 	//处理任务
+	//添加任务
+	bool add_task(T &task);
+	//获取任务
+	bool get_task(T &task);
+protected:
+	//线程实际运行的入口
+	virtual void run()=0;
+	//发送添加任务事件
+	virtual bool notify_add_task()=0;
+	//响应添加任务事件
+	virtual bool on_notify_add_task()=0;
 private:
 	bool m_running;
 	bool m_detachable;
 	unsigned int m_stack_size;
 	int m_my_id;
 	pthread_t m_thread_id;
-	Queue<T> m_task_queue;
-protected:
-	Queue<T>* get_task_queue(){return &m_task_queue;}
-	virtual bool notify_add_task()=0;
-	virtual void run()=0;
+	Queue<T> m_task_queue; //线程安全队列
 };
 
 #define MIN_STACK_SIZE 2*1024*1204
@@ -83,8 +90,7 @@ bool Thread<T>::start()
 
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
-	// set stack size
-	if(m_stack_size > 0)
+	if(m_stack_size > 0)// set stack size
 	{
 		if(m_stack_size < MIN_STACK_SIZE)
 		{
@@ -98,8 +104,8 @@ bool Thread<T>::start()
 	if(pthread_create(&m_thread_id, &attr, thread_proc, (void*)this) != 0)
 		return false;
 	pthread_attr_destroy(&attr);
-
 	m_running = true;
+
 	return true;
 }
 
@@ -110,8 +116,14 @@ bool Thread<T>::add_task(T &task)
 	if(m_task_queue.push(task) == false)
 		return false;
 	if(notify_add_task() == false)
-		SLOG_WARN("notify recv new task failed.");
+		SLOG_WARN("notify add task failed.");
 	return true;
+}
+
+template <class T>
+bool Thread<T>::get_task(T &task)
+{
+	return m_task_queue.pop(task);
 }
 
 #endif //_LIB_THREAD_H_

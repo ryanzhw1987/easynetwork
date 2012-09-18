@@ -27,5 +27,5 @@ share:*.cpp *.h
 	g++ -shared *.o -o libnetframework.so
 
 clean:
-	rm *.gch *.o -rf
+	rm *.gch *.o *.a *.so -rf
 
