@@ -141,6 +141,24 @@ private:
 }}}
 
 
+ * *DownloadProtocolFamily协议族*
+最后需要定义一个协议族来生成上面四个协议
+{{{
+class DownloadProtocolFamily:public DefaultProtocolFamily
+{
+public:
+	Protocol* create_protocol(ProtocolType protocol_type, bool new_header=true);
+	int destroy_protocol(Protocol* protocol);
+private:
+	//memory cache: StringProtocol
+	MemCache<RequestSize> m_request_size_memcache;
+	MemCache<RespondSize> m_respond_size_memcache;
+	MemCache<RequestData> m_request_data_memcache;
+	MemCache<RespondData> m_respond_data_memcache;
+};
+}}}
+
+
 = 二. Download Serer =
  
 
