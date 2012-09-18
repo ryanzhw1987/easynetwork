@@ -19,8 +19,9 @@
    * EasyNetwork内存管理与优化
    * 如何利用EasyNetwork框架搭建自己的服务器
 
- * *[用EasyNetwork搭建到Server]*
+ * *[用EasyNetwork搭建的Server]*
    # [Download 下载服务(支持多任务多线程,支持断点续传)]
+   # memcache服务器(敬请期待)
 
  * *模块介绍*
  # *[AppServerSamples 3分钟搭建服务器]*
