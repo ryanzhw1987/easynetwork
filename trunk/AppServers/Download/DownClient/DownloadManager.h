@@ -35,20 +35,28 @@ typedef map<string, DownloadTask*> DownloadMap;
 
 class DownloadThread:public PipeThread<DownloadTask* >, public NetInterface
 {
-public://实现Thread的接口
-	bool do_task();
-protected://实现Thread的接口
-	void run();
+protected:
+	//实现接口:线程实际运行的入口
+	void run()
+	{
+		SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
+		get_io_demuxer()->run_loop();
+		SLOG_INFO("ConnectThread end...");
+	}
+
+	//实现接口:响应添加任务事件
+	bool on_notify_add_task();
 public:
 	DownloadThread(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager)
 			:PipeThread<DownloadTask*>(io_demuxer)
-			,NetInterface(io_demuxer, protocol_family, socket_manager){}
-
+			,NetInterface(io_demuxer, protocol_family, socket_manager)
+			,m_is_downloading(false){}
 protected:
-	bool send_download_task(DownloadTask*);
+	bool send_download_task(SocketHandle socket_handle=SOCKET_INVALID);
+	bool send_download_task(SocketHandle socket_handle, DownloadTask* download_task);
 private:
 	DownloadMap m_downloading_task;
-
+	bool m_is_downloading;	//是否正在下载
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
