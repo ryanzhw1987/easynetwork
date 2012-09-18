@@ -5,10 +5,10 @@
 本节介绍一个使用EasyNetwork框架搭建到下载服务器.该服务器支持多任务/多线程/下载,支持断点续传.
 
 该Donwload server/client比较简单,没有过多的优化工作,以及保证服务的稳定性以及.因为我们的focus是“怎么使用框架搭建Download server",而不是“Download server". 当然,现在我们的精力是在应用层,而不是框架.呵呵...好吧,进入主题,下面内容主要有:
- # [Download#一. 下载协议]
+ [Download#DownloadProtocol]
 
 
-= 一. 下载协议 =
+= DownloadProtocol =
 下载协议,是最基本到要求了,我就不说啥了. 我们利用框架的DefaultProtocol来定义我们下载的4个协议:RequestSize, RespondSize, RequestData, RespondData.
 
  * *RequestSize 请求文件大小*
