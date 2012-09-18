@@ -8,15 +8,12 @@
 #include "ConnectThread.h"
 #include "slog.h"
 
-
-bool ConnectThread::do_task()
+bool ConnectThread::on_notify_add_task()
 {
 	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_id(), this);
-	Queue<SocketHandle> trans_queue(false);
-	get_task_queue()->transform(&trans_queue, false);
 
 	SocketHandle trans_fd;
-	while(trans_queue.pop(trans_fd))
+	while(get_task(trans_fd))
 	{
 		SLOG_DEBUG("thread accept trans fd=%d", trans_fd);
 		if(NetInterface::accept(trans_fd) == false)

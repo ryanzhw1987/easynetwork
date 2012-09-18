@@ -16,11 +16,11 @@ int ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *p
 	case PROTOCOL_STRING:
 		{
 			string resp = ((StringProtocol*)protocol)->get_string();
-			SLOG_DEBUG("receive from server:[%s]", resp.c_str());
+			SLOG_INFO("receive from server:[%s]", resp.c_str());
 		}
 		break;
 	default:
-		SLOG_DEBUG("receive undefine protocol. ignore it.");
+		SLOG_WARN("receive undefine protocol. ignore it.");
 		break;
 	}
 

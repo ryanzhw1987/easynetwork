@@ -17,37 +17,47 @@
 #include <unistd.h>
 #include <errno.h>
 
-template<class T>
-class PipeHandler:public EventHandler
-{
-public: //实现EventHandler的接口
-	virtual HANDLE_RESULT on_readable(int fd)
-	{
-		//接收消息,把管道到数据全部读取出来
-		//很快,一般只循环一次;链接发得太快,导致很多消息堵塞...但是没有关系
-		char buf[100];
-		while(read(fd, buf, 100) > 0)
-			;
-		SLOG_DEBUG("Thread[ID=%d, Addr=%x] pipe fd=%d reable able", m_thread->get_id(), m_thread, fd);
-		m_thread->do_task(); //处理任务
-		return HANDLE_OK;
-	}
-public:
-	PipeHandler(Thread<T> *thread):m_thread(thread){}
-private:
-	Thread<T> *m_thread;
-};
-
+////////////////////////////////////////////////////////////
+/////                 PipeThread                       /////
+/////         通过向IODemuxer注册读事件,接收           /////
+/////         添加任务的消息.                          /////
+////////////////////////////////////////////////////////////
 template <class T>
 class PipeThread: public Thread<T>
 {
+	////////////////////////////////////////////////////////////////
+	/////                    PipeHandler                       /////
+	/////     响应PipeThread的管道读事件，调用PipeThread的     /////
+	////      on_notify_add_task接口通知线程处理任务           /////
+	////////////////////////////////////////////////////////////////
+	friend class PipeHandler;
+	class PipeHandler:public EventHandler
+	{
+	public:
+		PipeHandler(PipeThread<T> *thread):m_thread(thread){}
+		HANDLE_RESULT on_readable(int fd) //实现EventHandler的接口
+		{
+			SLOG_DEBUG("Thread[ID=%d, Addr=%x] pipe fd=%d readable", m_thread->get_id(), m_thread, fd);
+			//接收消息,把管道到数据全部读取出来,很快,一般只循环一次;
+			//如果链接发得太快,导致很多消息堵塞呢?...
+			char buf[100];
+			while(read(fd, buf, 100) > 0)
+				;
+			m_thread->on_notify_add_task();
+			return HANDLE_OK;
+		}
+	private:
+		PipeThread<T> *m_thread;
+	};
+
 public:
 	PipeThread(IODemuxer *io_demuxer, bool detachable=true, unsigned int stack_size=0, int id=0);
-protected://实现Thread的接口
+protected:
+	//实现接口:发送添加任务事件
 	bool notify_add_task();
 private:
 	int m_pipe[2];
-	PipeHandler<T> m_pipe_handler;
+	PipeHandler m_pipe_handler;
 };
 
 template <class T>

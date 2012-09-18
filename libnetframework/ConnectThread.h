@@ -16,15 +16,17 @@
 
 class ConnectThread:public PipeThread<SocketHandle>, public NetInterface
 {
-public://实现Thread的接口
-	bool do_task();
 protected:
+	//实现接口:线程实际运行的入口
 	void run()
 	{
 		SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
 		get_io_demuxer()->run_loop();
 		SLOG_INFO("ConnectThread end...");
 	}
+
+	//实现接口:响应添加任务事件
+	bool on_notify_add_task();
 public:
 	ConnectThread(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager, bool detachable=true, unsigned int stack_size=0, int id=0)
 			:PipeThread<SocketHandle>(io_demuxer, detachable, stack_size, id)
