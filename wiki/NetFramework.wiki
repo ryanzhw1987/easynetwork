@@ -20,7 +20,7 @@
    * 如何利用EasyNetwork框架搭建自己的服务器
 
  * *[用EasyNetwork搭建到Server]*
-   # 多任务多线程支持断点续传的下载服务([DownServer]和[DownClient])
+   # 下载服务(支持多任务多线程,支持断点续传[DownServer]和[DownClient])
 
  * *模块介绍*
  # *[AppServerSamples 3分钟搭建服务器]*
