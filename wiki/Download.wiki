@@ -163,6 +163,157 @@ private:
 
 
 = 2 Download Serer =
- 
+这一节我们介绍一个多线程下载服务器.
+1.服务器收到一个请求时,将该任务分配到某个线程,由该线程处理对应的请求.
+2.某个线程收到RequestSize时,返回协议指定file_name返回文件的大小给客户端(回复RespondSize协议).
+3.某个线程收到RequestData请求时,按协议指定的数据偏移start_pos请求file_name的size大小的数据块返回给客户端(回复RespondData协议).
+
+ * *Download 线程池*
+下载线程池从框架到ConnectThreadPool继承,创建下载线程:
+{{{
+class DownloadThreadPool:public ConnectThreadPool
+{
+public:
+	DownloadThreadPool(unsigned int thread_num):ConnectThreadPool(thread_num){}
+protected:
+	//实现创建一个线程
+	Thread<SocketHandle>* create_thread();
+};
+
+//创建下载线程
+Thread<SocketHandle>* DownloadThreadPool::create_thread()
+{
+	...
+	DownloadServer* temp = new DownloadServer(io_demuxer, protocol_family, socket_manager);
+	...
+	return (Thread<SocketHandle>*)temp;
+}
+
+}}}
+
+ * *Download 线程*
+下载线程从ConnectThread继承,实现基类的接口,提供请求文件大小和下载数据的功能
+{{{
+class DownloadServer:public ConnectThread
+{
+public:
+	DownloadServer(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager* socket_manager)
+			:ConnectThread(io_demuxer, protocol_family, socket_manager)
+	{}
+
+	//////////////////由应用层重写 接收协议函数//////////////////
+	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
+	//////////////////由应用层重写 协议发送错误处理函数//////////
+	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
+	//////////////////由应用层重写 协议发送成功处理函数//////////
+	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol);
+	//////////////////由应用层重写 连接错误处理函数//////////////
+	int on_socket_handle_error(SocketHandle socket_handle);
+	//////////////////由应用层重写 连接超时处理函数//////////////
+	int on_socket_handle_timeout(SocketHandle socket_handle);
+
+protected://实现Thread到纯虚函数
+	void run();
+};
+}}}
+
+ * run
+实现线程接口run比较简单,调用IODemuxer的run_loop(),望穿秋水的,默默的等待请求的到来.
+{{{
+void DownloadServer::run()
+{
+	SLOG_INFO("MTServerAppFramework[ID=%d] is running...", get_id());
+	get_io_demuxer()->run_loop();
+	SLOG_INFO("MTServerAppFramework end...");
+}
+}}}
+
+ * 接收请求协议
+处理请求协议是核心了,来看看我们是如何做到的:当然是实现on_recv_protocol接口了.
+
+{{{
+int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
+{
+	switch(((DefaultProtocol*)protocol)->get_type())
+	{
+	case PROTOCOL_REQUEST_SIZE:
+	{
+		RequestSize *temp_protocol = (RequestSize*)protocol;
+		const string file_name = temp_protocol->get_file_name();
+		SLOG_INFO("receive <RequestSize:file=%s>", file_name.c_str());
+
+		//大家一定要原谅我下面偷懒的行为
+		string path="/data/"; 
+		path += file_name;
+
+		//get file size
+		unsigned long long file_size=0;
+		FILE *fp = fopen(path.c_str(), "r");
+		if(fp != NULL)
+		{
+			fseek(fp, 0, SEEK_END);
+			file_size = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+			fclose(fp);
+		}
+		DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
+		RespondSize* resp_protocol = (RespondSize*)protocol_family->create_protocol(PROTOCOL_RESPOND_SIZE);
+		if(resp_protocol)
+		{
+			resp_protocol->assign(file_name, file_size);
+			send_protocol(socket_handle, resp_protocol);//发送回复
+		}
+		else
+			SLOG_ERROR("create RespondSize protocol failed.");
+
+		break;
+	}
+	case PROTOCOL_REQUEST_DATA:
+	{
+		RequestData *temp_protocol = (RequestData*)protocol;
+		const string file_name = temp_protocol->get_file_name();
+		unsigned long long start_pos = temp_protocol->get_start_pos();
+		unsigned int size = temp_protocol->get_size();
+		SLOG_INFO("receive <RequestData: file=%s, start_pos=%ld, size=%d>", file_name.c_str(), start_pos, size);
+
+		//大家一定要原谅我下面偷懒的行为
+		string path="/data/";
+		path += file_name;
+		FILE *fp = fopen(path.c_str(), "r");
+		if(fp != NULL)
+		{
+			IOBuffer io_buffer;
+			fseek(fp, start_pos, SEEK_SET);
+			char* buf = io_buffer.write_open(size);
+			fread(buf, 1, size, fp);
+			fclose(fp);
+			string data;
+			data.assign(buf, size);  //获取数据
+			io_buffer.write_close(size);
+
+			DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
+			RespondData* resp_protocol = (RespondData*)protocol_family->create_protocol(PROTOCOL_RESPOND_DATA);
+			if(resp_protocol)
+			{
+				resp_protocol->assign(file_name, start_pos, size);
+				resp_protocol->assign(data);
+				send_protocol(socket_handle, resp_protocol); //发送回复
+			}
+		}
+		else
+		{
+			SLOG_ERROR("can't open file=%s", file_name.c_str());
+		}
+		break;
+	}
+	default:
+		SLOG_WARN("receive undefine protocol. ignore it.");
+		break;
+	}
+
+	return 0;
+}
+}}}
+
 
 = 3 Download Client =
