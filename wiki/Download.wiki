@@ -10,7 +10,7 @@
  * [Download#3_Download_Client]
 
 
-= 1_Download Protocol =
+= 1 Download Protocol =
 下载协议,是最基本到要求了,我就不说啥了. 我们利用框架的DefaultProtocol来定义我们下载的4个协议:RequestSize, RespondSize, RequestData, RespondData.
 
  * *RequestSize 请求文件大小*
