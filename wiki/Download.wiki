@@ -4,7 +4,7 @@
 
 本节介绍一个使用EasyNetwork框架搭建到下载服务器.该服务器支持多任务/多线程/下载,支持断点续传.
 
-该Donwload server/client比较简单,没有过多的优化工作,以及保证服务的稳定性以及.因为我们的focus是“怎么使用框架搭建Download server",而不是“Download server". 当然,现在我们的精力是在应用层,而不是框架.呵呵...好吧,进入主题,下面内容主要有:
+该Donwload server/client比较简单,没有过多的优化工作,以及保证服务的稳定性以及.因为我们的focus是“怎么使用框架搭建Download server",而不是“Download server". 当然,现在我们的精力是在应用层,而不是框架.呵呵...好吧,进入主题,本次新闻联播的主要内容有:
  * [Download#1_Download_Protocol]
  * [Download#2_Download_Server]
  * [Download#3_Download_Client]
@@ -162,7 +162,7 @@ private:
 }}}
 
 
-= 2 Download Serer =
+= 2 Download Server =
 这一节我们介绍一个多线程下载服务器.
 1.服务器收到一个请求时,将该任务分配到某个线程,由该线程处理对应的请求.
 2.某个线程收到RequestSize时,返回协议指定file_name返回文件的大小给客户端(回复RespondSize协议).
