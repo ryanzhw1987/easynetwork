@@ -8,21 +8,11 @@
 #include "TaskManager.h"
 #include "DownloadProtocol.h"
 
-//实现thread的接口
-void TaskManager::run()
-{
-	SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
-	get_io_demuxer()->run_loop();
-	SLOG_INFO("ConnectThread end...");
-}
-bool TaskManager::do_task()
+bool TaskManager::on_notify_add_task()
 {
 	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_id(), this);
-	Queue<string> temp_queue(false);
-	get_task_queue()->transform(&temp_queue, false);
-
 	string file_name;
-	while(temp_queue.pop(file_name))
+	while(get_task(file_name))
 	{
 		SLOG_DEBUG("Thread[ID=%d, Addr=%x] receive task=%s", get_id(), this, file_name.c_str());
 		if(send_get_filesize_task(file_name) == false)

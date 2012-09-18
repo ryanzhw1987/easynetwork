@@ -17,10 +17,17 @@ using std::string;
 
 class TaskManager: public PipeThread<string>, public NetInterface
 {
-public:		//实现thread到接口
-	bool do_task();
-protected:	//实现thread的接口
-	void run();
+protected:
+	//实现接口:线程实际运行的入口
+	void run()
+	{
+		SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
+		get_io_demuxer()->run_loop();
+		SLOG_INFO("ConnectThread end...");
+	}
+
+	//实现接口:响应添加任务事件
+	bool on_notify_add_task();
 public:
 	//////////////////由应用层重写 接收协议函数//////////////////
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
