@@ -10,6 +10,8 @@
  * [Download#3._Download_Client]
  * [Download#4_Ending]
 
+
+
 = 1. Download Protocol =
 下载协议,是最基本到要求了,我就不说啥了. 我们利用框架的DefaultProtocol来定义我们下载的4个协议:RequestSize, RespondSize, RequestData, RespondData.
 
@@ -160,6 +162,8 @@ private:
 	MemCache<RespondData> m_respond_data_memcache;
 };
 }}}
+
+
 
 
 = 2. Download Server =
@@ -318,6 +322,8 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 
 嗯,我们到下载服务器完成了.收工,洗洗睡了...
 哦,忘记还有客户端的代码,顺便提供一下,嘿嘿...
+
+
 
 
 = 3. Download Client =
@@ -547,6 +553,9 @@ int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 	return 0;
 }
 }}}
+
+
+
 
 = 4. Ending =
 本节快速地介绍了用EasyNetwork框架快速地搭建一个下载服务器和下载客户端...感觉还不错吧.
