@@ -329,7 +329,7 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
  * 下载完所有分片后合并成一个完整的文件 (请再次原谅我没有做这一步)
 
 
- * *任务管理器TaskManager*
+ * *1. 任务管理器TaskManager*
 任务管理器其实是一个线程,用来接收任务,向服务器请求文件大小,然后将文件划分成分片任务提交给下载线程池,由下载线程池完成分片的下载任务.
 
 任务管理器还从Netnterface派生,实现协议的发送和接收.
@@ -461,13 +461,13 @@ bool TaskManager::download_task(const string &file_name, unsigned long long file
 }}}
 
 
- * *下载线程*
+ * *2. 下载线程*
 下载线程池的内容我们就不说了,利用框架很快就可以搞一个出来.我们直接讲下载线程.
 
 下载线程要做的事情主要有:
-1. 接收TaskManager发送过来的下载任务
-2. 从队列里面获取一个任务进行下载.
-3. 下载完后跳到2 (即每个线程一次只下载一个分片任务)
+ (1) 接收TaskManager发送过来的下载任务
+ (2) 从队列里面获取一个任务进行下载.
+ (3) 下载完后跳到step 2. (即每个线程一次只下载一个分片任务)
 
  * 接收任务
 同样,下载线程收到任务时,会收到on_notify_add_task的通知(怎么收呢?呃,框架帮你做了),在这里面我们发送一个下载任务,即发送一个RequestData请求.
@@ -547,3 +547,7 @@ int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 	return 0;
 }
 }}}
+
+= 结束语 =
+本节快速地介绍了用EasyNetwork框架快速地搭建一个下载服务器和下载客户端...感觉还不错吧.
+贴几行log展示一下下载的过程吧:
