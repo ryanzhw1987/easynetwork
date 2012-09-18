@@ -5,12 +5,12 @@
 本节介绍一个使用EasyNetwork框架搭建的下载服务器.该服务器支持多任务/多线程/下载,支持断点续传.
 
 该Donwload server/client比较简单,没有做过多的优化/检查工作来保证服务的稳定性.因为我们的focus是“怎么使用框架搭建Download server",而不是“Download server". 当然,现在我们只要把精力放在应用层的实现逻辑就可以了,呵呵...好吧,进入主题,本次新闻联播的主要内容有:
- * [Download#1_Download_Protocol]
- * [Download#2_Download_Server]
- * [Download#3_Download_Client]
- * [Download#4_Ending]
+ * [Download#一_Download_Protocol]
+ * [Download#二_Download_Server]
+ * [Download#三_Download_Client]
+ * [Download#四_Ending]
 
-= 1 Download Protocol =
+= 一 Download Protocol =
 下载协议,是最基本到要求了,我就不说啥了. 我们利用框架的DefaultProtocol来定义我们下载的4个协议:RequestSize, RespondSize, RequestData, RespondData.
 
  * *RequestSize 请求文件大小*
@@ -162,7 +162,7 @@ private:
 }}}
 
 
-= 2 Download Server =
+= 二 Download Server =
 这一节我们介绍一个多线程下载服务器.
 1.服务器收到一个请求时,将该任务分配到某个线程,由该线程处理对应的请求.
 2.某个线程收到RequestSize时,返回协议指定file_name返回文件的大小给客户端(回复RespondSize协议).
@@ -320,7 +320,7 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 哦,忘记还有客户端的代码,顺便提供一下,嘿嘿...
 
 
-= 3 Download Client =
+= 三 Download Client =
 实际上客户端的东西跟下载服务器没有太大的关系了,但是你总得对服务进行测试吧,人不能太懒了.更重要的是你不能说你利用框架搭了一个下载服务器,就说明它是OK的吧.(嗯,好,我们大家一起来验证一下...代码如下...我发现,客户端反而复杂了一点..)
 
 客户端所做的事情如下:
@@ -548,7 +548,7 @@ int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 }
 }}}
 
-= 4 Ending =
+= 四 Ending =
 本节快速地介绍了用EasyNetwork框架快速地搭建一个下载服务器和下载客户端...感觉还不错吧.
 贴几行log展示一下下载的过程吧,各个分片由不同的线程下载:
 
