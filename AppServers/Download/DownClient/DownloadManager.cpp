@@ -6,7 +6,6 @@
  */
 
 #include "DownloadManager.h"
-#include "DownloadProtocol.h"
 #include "IODemuxerEpoll.h"
 
 #include <sstream>
@@ -16,10 +15,7 @@ using namespace::std;
 ///////////////////////////////  thread pool  //////////////////////////////////
 Thread<DownloadTask*>* DownloadThreadPool::create_thread()
 {
-	EpollDemuxer *io_demuxer = new EpollDemuxer;
-	DownloadProtocolFamily *protocol_family = new DownloadProtocolFamily;
-	SocketManager *socket_manager = new SocketManager;
-	DownloadThread* temp = new DownloadThread(io_demuxer, protocol_family, socket_manager);
+	DownloadThread* temp = new DownloadThread();
 	temp->set_idle_timeout(30000);
 	return (Thread<DownloadTask*>*)temp;
 }
@@ -30,6 +26,11 @@ bool DownloadThread::on_notify_add_task()
 	return send_download_task();
 }
 
+bool DownloadThread::register_notify_handler(int read_pipe, EVENT_TYPE event_type, EventHandler* event_handler)
+{
+	IODemuxer* io_demuxer = get_io_demuxer();
+	return io_demuxer->register_event(read_pipe,event_type,-1,event_handler)==0?true:false;
+}
 ////////////////// NetInterface的接口 由应用层重写 接收协议函数//////////////////
 int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {

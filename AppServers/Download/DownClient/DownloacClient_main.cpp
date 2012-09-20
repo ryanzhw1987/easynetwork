@@ -5,7 +5,6 @@
 #include "TaskManager.h"
 #include "SocketManager.h"
 #include "IODemuxerEpoll.h"
-#include "DownloadProtocol.h"
 #include "DownloadManager.h"
 
 int main()
@@ -15,10 +14,7 @@ int main()
 	DownloadThreadPool download_pool(5);
 	download_pool.start();
 
-	EpollDemuxer io_demuxer;
-	DownloadProtocolFamily protocol_family;
-	SocketManager socket_manager;
-	TaskManager task_manager(&io_demuxer, &protocol_family, &socket_manager);
+	TaskManager task_manager;
 	task_manager.set_download_pool(&download_pool);
 	task_manager.start();
 

@@ -15,9 +15,12 @@
 class DownloadServer:public ConnectThread
 {
 public:
-	DownloadServer(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager* socket_manager)
-			:ConnectThread(io_demuxer, protocol_family, socket_manager)
-	{}
+	DownloadServer()
+	{
+		init_instance();
+	}
+	ProtocolFamily* create_protocol_family(){return new DownloadProtocolFamily;}
+
 
 	//////////////////由应用层重写 接收协议函数//////////////////
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);

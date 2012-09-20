@@ -14,8 +14,9 @@ using std::string;
 #include "PipeThread.h"
 #include "NetInterface.h"
 #include "DownloadManager.h"
+#include "DownloadProtocol.h"
 
-class TaskManager: public PipeThread<string>, public NetInterface
+class TaskManager: public NetInterface, public PipeThread<string>
 {
 protected:
 	//实现接口:线程实际运行的入口
@@ -28,6 +29,7 @@ protected:
 
 	//实现接口:响应添加任务事件
 	bool on_notify_add_task();
+	bool register_notify_handler(int write_pipe, EVENT_TYPE event_type, EventHandler* event_handler);
 public:
 	//////////////////由应用层重写 接收协议函数//////////////////
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
@@ -42,12 +44,12 @@ public:
 
 ////////////////////////////////////////////////
 public:
-	TaskManager(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager)
-			:PipeThread<string>(io_demuxer)
-			 ,NetInterface(io_demuxer, protocol_family, socket_manager)
+	TaskManager():PipeThread<string>(get_io_demuxer())
 	{
+		init_instance();
 		m_download_pool = NULL;
 	}
+	ProtocolFamily* create_protocol_family(){return new DownloadProtocolFamily;}
 
 	void set_download_pool(DownloadThreadPool* download_pool)
 	{

@@ -14,8 +14,9 @@ using std::string;
 #include "PipeThread.h"
 #include "ThreadPool.h"
 #include "NetInterface.h"
-#include <stdio.h>
+#include "DownloadProtocol.h"
 
+#include <stdio.h>
 #include <map>
 using std::map;
 using std::make_pair;
@@ -33,7 +34,7 @@ typedef struct _download_task_
 
 typedef map<string, DownloadTask*> DownloadMap;
 
-class DownloadThread:public PipeThread<DownloadTask* >, public NetInterface
+class DownloadThread:public NetInterface, public PipeThread<DownloadTask* >
 {
 protected:
 	//实现接口:线程实际运行的入口
@@ -46,11 +47,14 @@ protected:
 
 	//实现接口:响应添加任务事件
 	bool on_notify_add_task();
+	bool register_notify_handler(int write_pipe, EVENT_TYPE event_type, EventHandler* event_handler);
 public:
-	DownloadThread(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager)
-			:PipeThread<DownloadTask*>(io_demuxer)
-			,NetInterface(io_demuxer, protocol_family, socket_manager)
-			,m_is_downloading(false){}
+	DownloadThread():PipeThread<DownloadTask*>(get_io_demuxer()), m_is_downloading(false)
+	{
+		init_instance();
+	}
+	ProtocolFamily* create_protocol_family(){return new DownloadProtocolFamily;}
+
 protected:
 	bool send_download_task(SocketHandle socket_handle=SOCKET_INVALID);
 	bool send_download_task(SocketHandle socket_handle, DownloadTask* download_task);

@@ -6,7 +6,6 @@
  */
 
 #include "TaskManager.h"
-#include "DownloadProtocol.h"
 
 bool TaskManager::on_notify_add_task()
 {
@@ -20,6 +19,12 @@ bool TaskManager::on_notify_add_task()
 	}
 
 	return true;
+}
+
+bool TaskManager::register_notify_handler(int read_pipe, EVENT_TYPE event_type, EventHandler* event_handler)
+{
+	IODemuxer* io_demuxer = get_io_demuxer();
+	return io_demuxer->register_event(read_pipe,event_type,-1,event_handler)==0?true:false;
 }
 
 /////////////////////////////////////  实现 NetInterface的接口  ///////////////////////
