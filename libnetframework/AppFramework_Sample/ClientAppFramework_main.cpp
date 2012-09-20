@@ -10,7 +10,7 @@ int main()
 	SLOG_INIT(SLOG_LEVEL_INFO, NULL, 0);
 
 	ClientAppFramework app_framework;  //异步
-	app_framework.init_instance();
+	app_framework.start_instance();
 
 	SocketHandle socket_handle = app_framework.get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
 	if(socket_handle == SOCKET_INVALID)
@@ -21,7 +21,7 @@ int main()
 
 	app_framework.get_io_demuxer()->run_loop();
 
-	app_framework.uninit_instance();
+	app_framework.stop_instance();
 	SLOG_UNINIT();
 	return 0;
 }

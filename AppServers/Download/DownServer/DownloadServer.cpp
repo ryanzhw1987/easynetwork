@@ -162,7 +162,7 @@ int DownloadServer::on_socket_handle_timeout(SocketHandle socket_handle)
 Thread<SocketHandle>* DownloadThreadPool::create_thread()
 {
 	DownloadServer* temp = new DownloadServer();
-	temp->init_instance();
+	temp->start_instance();
 	temp->set_idle_timeout(30000);
 	return (Thread<SocketHandle>*)temp;
 }

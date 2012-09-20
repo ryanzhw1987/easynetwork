@@ -187,7 +187,7 @@ bool DownloadThread::send_download_task(SocketHandle socket_handle, DownloadTask
 Thread<DownloadTask*>* DownloadThreadPool::create_thread()
 {
 	DownloadThread* temp = new DownloadThread;
-	temp->init_instance();
+	temp->start_instance();
 	temp->set_idle_timeout(30000);
 	return (Thread<DownloadTask*>*)temp;
 }

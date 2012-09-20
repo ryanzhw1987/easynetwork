@@ -18,15 +18,17 @@ NetInterface::NetInterface()
 				,m_socket_idle_timeout_ms(12000)
 {}
 
-bool NetInterface::init_instance()
+bool NetInterface::start_instance()
 {
 	m_io_demuxer = create_io_demuxer();
 	m_socket_manager = create_socket_manager();
 	m_protocol_family = create_protocol_family();
+
+	on_start_instance();
 	return true;
 }
 
-bool NetInterface::uninit_instance()
+bool NetInterface::stop_instance()
 {
 	delete_io_demuxer(m_io_demuxer);
 	m_io_demuxer = NULL;
@@ -34,6 +36,8 @@ bool NetInterface::uninit_instance()
 	m_socket_manager = NULL;
 	delete_protocol_family(m_protocol_family);
 	m_protocol_family = NULL;
+
+	on_stop_instance();
 	return true;
 }
 
