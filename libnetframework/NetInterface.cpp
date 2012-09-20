@@ -11,6 +11,32 @@
 using std::pair;
 using std::make_pair;
 
+NetInterface::NetInterface()
+				:m_io_demuxer(NULL)
+				,m_socket_manager(NULL)
+				,m_protocol_family(NULL)
+				,m_socket_idle_timeout_ms(12000)
+{}
+
+bool NetInterface::init_instance()
+{
+	m_io_demuxer = create_io_demuxer();
+	m_socket_manager = create_socket_manager();
+	m_protocol_family = create_protocol_family();
+	return true;
+}
+
+bool NetInterface::uninit_instance()
+{
+	delete_io_demuxer(m_io_demuxer);
+	m_io_demuxer = NULL;
+	delete_socket_manager(m_socket_manager);
+	m_socket_manager = NULL;
+	delete_protocol_family(m_protocol_family);
+	m_protocol_family = NULL;
+	return true;
+}
+
 NetInterface::~NetInterface()
 {
 	ProtocolMap::iterator it;
@@ -254,6 +280,13 @@ SocketHandle NetInterface::get_active_trans_socket(const char *ip, int port)
 	}
 
 	return socket_handle;
+}
+
+//释放链接
+bool NetInterface::release_trans_socket(SocketHandle socket_handle)
+{
+	m_socket_manager->remove_trans_socket(socket_handle);
+	return true;
 }
 
 //添加协议到发送队列.成功返回0.失败返回-1,需要自行处理protocol.

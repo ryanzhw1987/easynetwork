@@ -15,6 +15,7 @@ int main()
 	download_pool.start();
 
 	TaskManager task_manager;
+	task_manager.init_instance();
 	task_manager.set_download_pool(&download_pool);
 	task_manager.start();
 

@@ -25,11 +25,21 @@
 template <class T>
 class PipeThread: public Thread<T>
 {
-	////////////////////////////////////////////////////////////////
-	/////                    PipeHandler                       /////
-	/////     响应PipeThread的管道读事件，调用PipeThread的     /////
-	////      on_notify_add_task接口通知线程处理任务           /////
-	////////////////////////////////////////////////////////////////
+public:
+	PipeThread(bool detachable=true, unsigned int stack_size=0, int id=0);
+	virtual ~PipeThread();
+private:
+	int m_pipe[2];
+	void close_pipe();
+	bool m_register_handler;	//是否需要注册管道事件
+
+	/////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////
+	/////////                  PipeHandler                  /////////
+	/////////  响应PipeThread的管道读事件，调用PipeThread   /////////
+	////////   的on_notify_add_task接口通知线程处理任务     /////////
+	/////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////
 	friend class PipeHandler;
 	class PipeHandler:public EventHandler
 	{
@@ -49,48 +59,76 @@ class PipeThread: public Thread<T>
 	private:
 		PipeThread<T> *m_thread;
 	};
-
-public:
-	PipeThread(IODemuxer *io_demuxer, bool detachable=true, unsigned int stack_size=0, int id=0);
-protected:
-	//实现接口:发送添加任务事件
-	bool notify_add_task();
-private:
-	int m_pipe[2];
 	PipeHandler m_pipe_handler;
+
+////////////////// Thread线程接口 ////////////////
+protected:
+	//实现Thread接口:发送添加任务事件
+	bool notify_add_task();
+
+	////线程实际运行的入口
+	//virtual void run_thread()=0;
+	////响应添加任务事件
+	//virtual bool on_notify_add_task()=0;
+	//新增加的接口:注册管道事件,当写入管道时,通知线程调用on_notify_add_task来响应事件
+	virtual bool register_notify_handler(int write_pipe, EVENT_TYPE event_type, EventHandler* event_handler)=0;
 };
 
 template <class T>
-PipeThread<T>::PipeThread(IODemuxer *io_demuxer, bool detachable, unsigned int stack_size, int id)
-					:Thread<T>(detachable, stack_size, id)
-					 ,m_pipe_handler(this)
+PipeThread<T>::PipeThread(bool detachable, unsigned int stack_size, int id)
+								:Thread<T>(detachable, stack_size, id)
+								 ,m_pipe_handler(this)
+								 ,m_register_handler(true)
 {
+	int flags;
 	if (pipe(m_pipe))
 	{
 		SLOG_ERROR("create pipe errer when creating connect thread");
-		assert(0);
+		return ;
 	}
-
-	int flags = fcntl(m_pipe[0], F_GETFL, 0);
-	if(flags != -1 )
+	if((flags=fcntl(m_pipe[0], F_GETFL, 0)) == -1)
 	{
-		flags |= O_NONBLOCK;
-		if(fcntl(m_pipe[0], F_SETFL, flags) == -1)
-			SLOG_ERROR("set pipe[0] no block failed. errno=%d", errno);
+		close_pipe();
+		SLOG_ERROR("fcntl pipe errer when register_notify_handler");
+		return ;
 	}
+	if(fcntl(m_pipe[0], F_SETFL, flags|O_NONBLOCK) == -1)
+	{
+		close_pipe();
+		SLOG_ERROR("fcntl pipe no block failed. errno=%d", errno);
+		return ;
+	}
+}
 
-	//注册管道读事件
-	if(io_demuxer->register_event(m_pipe[0], EVENT_READ|EVENT_PERSIST, -1, &m_pipe_handler) == -1)
-		SLOG_ERROR("register pipe=%d read event failed",m_pipe[0]);
+template <class T>
+PipeThread<T>::~PipeThread()
+{
+	close_pipe();
 }
 
 template <class T>
 bool PipeThread<T>::notify_add_task()
 {
+	if(m_register_handler)	//先注册管道可读事件
+	{
+		if(register_notify_handler(m_pipe[0], EVENT_READ|EVENT_PERSIST, &m_pipe_handler))
+			m_register_handler = false;
+		else
+			return false;
+	}
+
 	//往管道写数据,通知connect thread
 	if(write(m_pipe[1], "", 1) != 1)
 		SLOG_WARN("notify connect thread to accept a new connect failed.");
 	return true;
+}
+
+template <class T>
+void PipeThread<T>::close_pipe()
+{
+	close(m_pipe[0]);
+	close(m_pipe[1]);
+	m_pipe[0] = m_pipe[1] = -1;
 }
 
 #endif //_LIB_PIPE_THREAD_H_

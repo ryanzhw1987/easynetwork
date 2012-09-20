@@ -6,6 +6,16 @@
  */
 
 #include "TaskManager.h"
+#include "IODemuxerEpoll.h"
+#include "SocketManager.h"
+#include "DownloadProtocol.h"
+
+void TaskManager::run_thread()
+{
+	SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
+	get_io_demuxer()->run_loop();
+	SLOG_INFO("ConnectThread end...");
+}
 
 bool TaskManager::on_notify_add_task()
 {
@@ -25,6 +35,37 @@ bool TaskManager::register_notify_handler(int read_pipe, EVENT_TYPE event_type, 
 {
 	IODemuxer* io_demuxer = get_io_demuxer();
 	return io_demuxer->register_event(read_pipe,event_type,-1,event_handler)==0?true:false;
+}
+
+//////////////////由应用层重写 创建IODemuxer//////////////////
+IODemuxer* TaskManager::create_io_demuxer()
+{
+	return new EpollDemuxer;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void TaskManager::delete_io_demuxer(IODemuxer* io_demuxer)
+{
+	delete io_demuxer;
+}
+//////////////////由应用层重写 创建SocketManager//////////////
+SocketManager* TaskManager::create_socket_manager()
+{
+	return new SocketManager;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void TaskManager::delete_socket_manager(SocketManager* socket_manager)
+{
+	delete socket_manager;
+}
+///////////////////  由应用层实现 创建协议族  //////////////////////////
+ProtocolFamily* TaskManager::create_protocol_family()
+{
+	return new DownloadProtocolFamily;
+}
+///////////////////  由应用层实现 销毁协议族  //////////////////////////
+void TaskManager::delete_protocol_family(ProtocolFamily* protocol_family)
+{
+	delete protocol_family;
 }
 
 /////////////////////////////////////  实现 NetInterface的接口  ///////////////////////

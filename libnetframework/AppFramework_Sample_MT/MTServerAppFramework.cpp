@@ -9,12 +9,35 @@
 #include "slog.h"
 #include "IODemuxerEpoll.h"
 
-HANDLE_RESULT TimerHandler::on_timeout(int fd)
+//////////////////由应用层重写 创建IODemuxer//////////////////
+IODemuxer* MTServerAppFramework::create_io_demuxer()
 {
-	SLOG_INFO("timer timeout...");
-	m_demuxer->register_event(-1, EVENT_INVALID, 3000, this);
-
-	return HANDLE_OK;
+	return new EpollDemuxer;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void MTServerAppFramework::delete_io_demuxer(IODemuxer* io_demuxer)
+{
+	delete io_demuxer;
+}
+//////////////////由应用层重写 创建SocketManager//////////////
+SocketManager* MTServerAppFramework::create_socket_manager()
+{
+	return new SocketManager;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void MTServerAppFramework::delete_socket_manager(SocketManager* socket_manager)
+{
+	delete socket_manager;
+}
+///////////////////  由应用层实现 创建协议族  //////////////////////////
+ProtocolFamily* MTServerAppFramework::create_protocol_family()
+{
+	return new DefaultProtocolFamily;
+}
+///////////////////  由应用层实现 销毁协议族  //////////////////////////
+void MTServerAppFramework::delete_protocol_family(ProtocolFamily* protocol_family)
+{
+	delete protocol_family;
 }
 
 //////////////////由应用层重写 接收协议函数//////////////////
@@ -72,8 +95,15 @@ int MTServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 ///////////////////////////////  thread pool  //////////////////////////////////
 Thread<SocketHandle>* MTServerAppFrameworkPool::create_thread()
 {
-	EpollDemuxer *io_demuxer = new EpollDemuxer;
-	DefaultProtocolFamily *protocol_family = new DefaultProtocolFamily;
-	SocketManager *socket_manager = new SocketManager;
-	return new MTServerAppFramework(io_demuxer, protocol_family, socket_manager);
+	MTServerAppFramework *app = new MTServerAppFramework;
+	app->init_instance();
+	return app;
+}
+
+/////////////////////////////// Timer Handler  /////////////////////////////////
+HANDLE_RESULT TimerHandler::on_timeout(int fd)
+{
+	SLOG_INFO("timer timeout...");
+	m_demuxer->register_event(-1, EVENT_INVALID, 3000, this);
+	return HANDLE_OK;
 }

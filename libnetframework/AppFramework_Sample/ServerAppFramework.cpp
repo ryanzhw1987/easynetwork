@@ -1,8 +1,65 @@
 #include "ServerAppFramework.h"
-
 #include <stdio.h>
 #include <string.h>
+
 #include "slog.h"
+#include "Socket.h"
+#include "ListenHandler.h"
+#include "ProtocolDefault.h"
+#include "IODemuxerEpoll.h"
+
+bool ServerAppFramework::run_server()
+{
+	ListenSocket linsten_socket(3010);
+	if(!linsten_socket.open())
+	{
+		SLOG_ERROR("listen on port:3010 error.");
+		return -1;
+	}
+
+	//listen event
+	ListenHandler listen_handler(this);
+	get_io_demuxer()->register_event(linsten_socket.get_handle(), EVENT_READ|EVENT_PERSIST, -1, &listen_handler);
+	//timer event
+	TimerHandler timer(get_io_demuxer());
+	get_io_demuxer()->register_event(-1, EVENT_INVALID, 3000, &timer);
+
+	//run server forever
+	get_io_demuxer()->run_loop();
+
+	return true;
+}
+
+//////////////////由应用层重写 创建IODemuxer//////////////////
+IODemuxer* ServerAppFramework::create_io_demuxer()
+{
+	return new EpollDemuxer;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void ServerAppFramework::delete_io_demuxer(IODemuxer* io_demuxer)
+{
+	delete io_demuxer;
+}
+//////////////////由应用层重写 创建SocketManager//////////////
+SocketManager* ServerAppFramework::create_socket_manager()
+{
+	return new SocketManager;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void ServerAppFramework::delete_socket_manager(SocketManager* socket_manager)
+{
+	delete socket_manager;
+}
+///////////////////  由应用层实现 创建协议族  //////////////////////////
+ProtocolFamily* ServerAppFramework::create_protocol_family()
+{
+	return new DefaultProtocolFamily;
+}
+///////////////////  由应用层实现 销毁协议族  //////////////////////////
+void ServerAppFramework::delete_protocol_family(ProtocolFamily* protocol_family)
+{
+	delete protocol_family;
+}
 
 //////////////////由应用层重写 接收协议函数//////////////////
 int ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
@@ -56,6 +113,7 @@ int ServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	return 0;
 }
 
+//////////////////////////////  Timer Handler  /////////////////////////////////
 HANDLE_RESULT TimerHandler::on_timeout(int fd)
 {
 	SLOG_DEBUG("timer timeout...");
