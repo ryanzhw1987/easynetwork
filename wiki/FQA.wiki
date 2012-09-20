@@ -55,3 +55,6 @@
 
  * *如何利用EasyNetwork框架搭建自己的服务器*
   服务器可以继承NetInterface完成一个单线程的server,也可以实现ConnectThread和ConnectThreadPool完成多线程的server.具体例子见[AppServerSamples].
+
+ * *服务器框架自动化生成工具server_tool*
+  [敬请期待...]
