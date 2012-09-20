@@ -136,10 +136,7 @@ int DownloadServer::on_socket_handle_timeout(SocketHandle socket_handle)
 ///////////////////////////////  thread pool  //////////////////////////////////
 Thread<SocketHandle>* DownloadThreadPool::create_thread()
 {
-	EpollDemuxer *io_demuxer = new EpollDemuxer;
-	DownloadProtocolFamily *protocol_family = new DownloadProtocolFamily;
-	SocketManager *socket_manager = new SocketManager;
-	DownloadServer* temp = new DownloadServer(io_demuxer, protocol_family, socket_manager);
+	DownloadServer* temp = new DownloadServer();
 	temp->set_idle_timeout(30000);
 	return (Thread<SocketHandle>*)temp;
 }

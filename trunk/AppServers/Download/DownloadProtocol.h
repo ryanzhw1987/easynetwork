@@ -6,7 +6,7 @@
  */
 
 #ifndef APP_SERVER_DOWNLOAD_PROTOCOL_H_
-#define APP_SERVER_OWNLOAD_PROTOCOL_H_
+#define APP_SERVER_DOWNLOAD_PROTOCOL_H_
 
 #include "ProtocolDefault.h"
 
