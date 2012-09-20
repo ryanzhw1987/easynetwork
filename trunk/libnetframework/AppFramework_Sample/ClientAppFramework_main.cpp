@@ -3,17 +3,14 @@
 
 #include "slog.h"
 #include "ClientAppFramework.h"
-#include "IODemuxerEpoll.h"
 #include "ProtocolDefault.h"
 
 int main()
 {
 	SLOG_INIT(SLOG_LEVEL_INFO, NULL, 0);
 
-	EpollDemuxer io_demuxer;
-	DefaultProtocolFamily protocol_family;
-	SocketManager socket_manager;
-	ClientAppFramework app_framework(&io_demuxer, &protocol_family, &socket_manager);  //异步
+	ClientAppFramework app_framework;  //异步
+	app_framework.init_instance();
 
 	SocketHandle socket_handle = app_framework.get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
 	if(socket_handle == SOCKET_INVALID)
@@ -22,8 +19,9 @@ int main()
 	PingHandler ping_handler(&app_framework, socket_handle);
 	ping_handler.register_handler();
 
-	io_demuxer.run_loop();
+	app_framework.get_io_demuxer()->run_loop();
 
+	app_framework.uninit_instance();
 	SLOG_UNINIT();
 	return 0;
 }

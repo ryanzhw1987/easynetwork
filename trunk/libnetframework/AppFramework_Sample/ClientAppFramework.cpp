@@ -6,6 +6,37 @@
 #include "IODemuxerEpoll.h"
 #include "slog.h"
 
+//////////////////由应用层重写 创建IODemuxer//////////////////
+IODemuxer* ClientAppFramework::create_io_demuxer()
+{
+	return new EpollDemuxer;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void ClientAppFramework::delete_io_demuxer(IODemuxer* io_demuxer)
+{
+	delete io_demuxer;
+}
+//////////////////由应用层重写 创建SocketManager//////////////
+SocketManager* ClientAppFramework::create_socket_manager()
+{
+	return new SocketManager;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void ClientAppFramework::delete_socket_manager(SocketManager* socket_manager)
+{
+	delete socket_manager;
+}
+///////////////////  由应用层实现 创建协议族  //////////////////////////
+ProtocolFamily* ClientAppFramework::create_protocol_family()
+{
+	return new DefaultProtocolFamily;
+}
+///////////////////  由应用层实现 销毁协议族  //////////////////////////
+void ClientAppFramework::delete_protocol_family(ProtocolFamily* protocol_family)
+{
+	delete protocol_family;
+}
+
 //////////////////由应用层重写 接收协议函数//////////////////
 int ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {

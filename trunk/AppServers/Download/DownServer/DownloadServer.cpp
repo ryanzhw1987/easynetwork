@@ -6,26 +6,51 @@
  */
 #include "DownloadServer.h"
 #include "IODemuxerEpoll.h"
+#include "DownloadProtocol.h"
 #include "slog.h"
 
 #include <stdio.h>
 
-HANDLE_RESULT TimerHandler::on_timeout(int fd)
-{
-	SLOG_INFO("timer timeout...");
-	m_demuxer->register_event(-1, EVENT_INVALID, 3000, this);
-
-	return HANDLE_OK;
-}
-
 //////////////////由应用层重写 接收协议函数//////////////////
-void DownloadServer::run()
+void DownloadServer::run_thread()
 {
 	SLOG_INFO("MTServerAppFramework[ID=%d] is running...", get_id());
 	get_io_demuxer()->run_loop();
 	SLOG_INFO("MTServerAppFramework end...");
 }
 
+//////////////////由应用层重写 创建IODemuxer//////////////////
+IODemuxer* DownloadServer::create_io_demuxer()
+{
+	return new EpollDemuxer;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void DownloadServer::delete_io_demuxer(IODemuxer* io_demuxer)
+{
+	delete io_demuxer;
+}
+//////////////////由应用层重写 创建SocketManager//////////////
+SocketManager* DownloadServer::create_socket_manager()
+{
+	return new SocketManager;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void DownloadServer::delete_socket_manager(SocketManager* socket_manager)
+{
+	delete socket_manager;
+}
+///////////////////  由应用层实现 创建协议族  //////////////////////////
+ProtocolFamily* DownloadServer::create_protocol_family()
+{
+	return new DownloadProtocolFamily;
+}
+///////////////////  由应用层实现 销毁协议族  //////////////////////////
+void DownloadServer::delete_protocol_family(ProtocolFamily* protocol_family)
+{
+	delete protocol_family;
+}
+
+/////////////////////////////////////  实现 NetInterface的接口  ///////////////////////
 int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {
 	switch(((DefaultProtocol*)protocol)->get_type())
@@ -137,6 +162,16 @@ int DownloadServer::on_socket_handle_timeout(SocketHandle socket_handle)
 Thread<SocketHandle>* DownloadThreadPool::create_thread()
 {
 	DownloadServer* temp = new DownloadServer();
+	temp->init_instance();
 	temp->set_idle_timeout(30000);
 	return (Thread<SocketHandle>*)temp;
+}
+
+///////////////////////////////  Timer Handler /////////////////////////////////
+HANDLE_RESULT TimerHandler::on_timeout(int fd)
+{
+	SLOG_INFO("timer timeout...");
+	m_demuxer->register_event(-1, EVENT_INVALID, 3000, this);
+
+	return HANDLE_OK;
 }

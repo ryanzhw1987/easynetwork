@@ -7,17 +7,17 @@
 
 #include "DownloadManager.h"
 #include "IODemuxerEpoll.h"
+#include "DownloadProtocol.h"
 
 #include <sstream>
 #include <iostream>
 using namespace::std;
 
-///////////////////////////////  thread pool  //////////////////////////////////
-Thread<DownloadTask*>* DownloadThreadPool::create_thread()
+void DownloadThread::run_thread()
 {
-	DownloadThread* temp = new DownloadThread();
-	temp->set_idle_timeout(30000);
-	return (Thread<DownloadTask*>*)temp;
+	SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
+	get_io_demuxer()->run_loop();
+	SLOG_INFO("ConnectThread end...");
 }
 
 bool DownloadThread::on_notify_add_task()
@@ -31,6 +31,38 @@ bool DownloadThread::register_notify_handler(int read_pipe, EVENT_TYPE event_typ
 	IODemuxer* io_demuxer = get_io_demuxer();
 	return io_demuxer->register_event(read_pipe,event_type,-1,event_handler)==0?true:false;
 }
+
+//////////////////由应用层重写 创建IODemuxer//////////////////
+IODemuxer* DownloadThread::create_io_demuxer()
+{
+	return new EpollDemuxer;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void DownloadThread::delete_io_demuxer(IODemuxer* io_demuxer)
+{
+	delete io_demuxer;
+}
+//////////////////由应用层重写 创建SocketManager//////////////
+SocketManager* DownloadThread::create_socket_manager()
+{
+	return new SocketManager;
+}
+//////////////////由应用层重写 销毁IODemuxer//////////////////
+void DownloadThread::delete_socket_manager(SocketManager* socket_manager)
+{
+	delete socket_manager;
+}
+///////////////////  由应用层实现 创建协议族  //////////////////////////
+ProtocolFamily* DownloadThread::create_protocol_family()
+{
+	return new DownloadProtocolFamily;
+}
+///////////////////  由应用层实现 销毁协议族  //////////////////////////
+void DownloadThread::delete_protocol_family(ProtocolFamily* protocol_family)
+{
+	delete protocol_family;
+}
+
 ////////////////// NetInterface的接口 由应用层重写 接收协议函数//////////////////
 int DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
 {
@@ -149,4 +181,13 @@ bool DownloadThread::send_download_task(SocketHandle socket_handle, DownloadTask
 	}
 	else
 		return false;
+}
+
+///////////////////////////////  thread pool  //////////////////////////////////
+Thread<DownloadTask*>* DownloadThreadPool::create_thread()
+{
+	DownloadThread* temp = new DownloadThread;
+	temp->init_instance();
+	temp->set_idle_timeout(30000);
+	return (Thread<DownloadTask*>*)temp;
 }

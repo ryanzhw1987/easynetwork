@@ -14,7 +14,6 @@ using std::string;
 #include "PipeThread.h"
 #include "ThreadPool.h"
 #include "NetInterface.h"
-#include "DownloadProtocol.h"
 
 #include <stdio.h>
 #include <map>
@@ -38,37 +37,25 @@ class DownloadThread:public NetInterface, public PipeThread<DownloadTask* >
 {
 protected:
 	//实现接口:线程实际运行的入口
-	void run()
-	{
-		SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
-		get_io_demuxer()->run_loop();
-		SLOG_INFO("ConnectThread end...");
-	}
-
+	void run_thread();
 	//实现接口:响应添加任务事件
 	bool on_notify_add_task();
+	//实现接口:注册管道事件
 	bool register_notify_handler(int write_pipe, EVENT_TYPE event_type, EventHandler* event_handler);
-public:
-	DownloadThread():PipeThread<DownloadTask*>(get_io_demuxer()), m_is_downloading(false)
-	{
-		init_instance();
-	}
-	ProtocolFamily* create_protocol_family(){return new DownloadProtocolFamily;}
-
 protected:
-	bool send_download_task(SocketHandle socket_handle=SOCKET_INVALID);
-	bool send_download_task(SocketHandle socket_handle, DownloadTask* download_task);
-private:
-	DownloadMap m_downloading_task;
-	bool m_is_downloading;	//是否正在下载
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-//////////                            //////////
-//////////   应用层重写事件响应函数  //////////
-//////////                            //////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-public:
+	//////////////////由应用层重写 创建IODemuxer//////////////////
+	virtual IODemuxer* create_io_demuxer();
+	//////////////////由应用层重写 销毁IODemuxer//////////////////
+	virtual void delete_io_demuxer(IODemuxer* io_demuxer);
+	//////////////////由应用层重写 创建SocketManager//////////////
+	virtual SocketManager* create_socket_manager();
+	//////////////////由应用层重写 销毁SocketManager//////////////
+	virtual void delete_socket_manager(SocketManager* socket_manager);
+	//////////////////由应用层重写 创建具体的协议族//////////////
+	virtual ProtocolFamily* create_protocol_family();
+	//////////////////由应用层重写 销毁协议族////////////////////
+	virtual void delete_protocol_family(ProtocolFamily* protocol_family);
+
 	//////////////////由应用层重写 接收协议函数//////////////////
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
 	//////////////////由应用层重写 协议发送错误处理函数//////////
@@ -81,6 +68,16 @@ public:
 	int on_socket_handle_timeout(SocketHandle socket_handle);
 	//////////////////由应用层重写 收到一个新的连接请求////////
 	int on_socket_handler_accpet(SocketHandle socket_handle){return 0;}
+
+public:
+	DownloadThread():m_is_downloading(false){}
+
+protected:
+	bool send_download_task(SocketHandle socket_handle=SOCKET_INVALID);
+	bool send_download_task(SocketHandle socket_handle, DownloadTask* download_task);
+private:
+	DownloadMap m_downloading_task;
+	bool m_is_downloading;	//是否正在下载
 };
 
 class DownloadThreadPool:public ThreadPool<DownloadTask *>

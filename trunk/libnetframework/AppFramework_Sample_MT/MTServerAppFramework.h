@@ -14,10 +14,19 @@
 
 class MTServerAppFramework:public ConnectThread
 {
-public:
-	MTServerAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager* socket_manager)
-			:ConnectThread(io_demuxer, protocol_family, socket_manager)
-	{}
+protected:
+	//////////////////由应用层重写 创建IODemuxer//////////////////
+	virtual IODemuxer* create_io_demuxer();
+	//////////////////由应用层重写 销毁IODemuxer//////////////////
+	virtual void delete_io_demuxer(IODemuxer* io_demuxer);
+	//////////////////由应用层重写 创建SocketManager//////////////
+	virtual SocketManager* create_socket_manager();
+	//////////////////由应用层重写 销毁SocketManager//////////////
+	virtual void delete_socket_manager(SocketManager* socket_manager);
+	//////////////////由应用层重写 创建具体的协议族//////////////
+	virtual ProtocolFamily* create_protocol_family();
+	//////////////////由应用层重写 销毁协议族////////////////////
+	virtual void delete_protocol_family(ProtocolFamily* protocol_family);
 
 	//////////////////由应用层重写 接收协议函数//////////////////
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol);
