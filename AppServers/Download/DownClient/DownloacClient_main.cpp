@@ -2,9 +2,8 @@
 #include <string.h>
 
 #include "slog.h"
-#include "TaskManager.h"
-#include "SocketManager.h"
 #include "IODemuxerEpoll.h"
+#include "TaskManager.h"
 #include "DownloadManager.h"
 
 int main()
