@@ -96,7 +96,7 @@ int MTServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 Thread<SocketHandle>* MTServerAppFrameworkPool::create_thread()
 {
 	MTServerAppFramework *app = new MTServerAppFramework;
-	app->init_instance();
+	app->start_instance();
 	return app;
 }
 

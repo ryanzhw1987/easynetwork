@@ -35,11 +35,12 @@ public:
 public:
 	NetInterface();
 	virtual ~NetInterface();
-
     //应用层在创建实例之后必须调用该函数来初始化实例
-	bool init_instance();
+	bool start_instance();
+	virtual bool on_start_instance(){return true;}
 	//应用层在销毁实例之前必须调用该函数来反初始化实例
-	bool uninit_instance();
+	bool stop_instance();
+	virtual bool on_stop_instance(){return true;}
 
 	IODemuxer* get_io_demuxer(){return m_io_demuxer;}
 	ProtocolFamily* get_protocol_family(){return m_protocol_family;}

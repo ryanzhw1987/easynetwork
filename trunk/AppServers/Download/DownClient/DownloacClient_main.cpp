@@ -15,7 +15,7 @@ int main()
 	download_pool.start();
 
 	TaskManager task_manager;
-	task_manager.init_instance();
+	task_manager.start_instance();
 	task_manager.set_download_pool(&download_pool);
 	task_manager.start();
 
@@ -25,6 +25,7 @@ int main()
 	EpollDemuxer main_io_demuxer;
 	main_io_demuxer.run_loop();
 
+	task_manager.stop_instance();
 	SLOG_UNINIT();
 	return 0;
 }
