@@ -2,7 +2,7 @@
 
 = Introduction =
 
-libslog:一个c/c++多线程安全日志库.
+libslog:一个高性能的c/c++多线程安全日志库.
 
 
 = Details =
