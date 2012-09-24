@@ -323,7 +323,7 @@ void format_time(char *buf)
 {
     time_t now = time(NULL);
     struct tm* t = localtime(&now);
-    sprintf(buf,"%d%02d%02d %02d:%02d:%02d",t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+    sprintf(buf,"%d-%02d-%02d %02d:%02d:%02d",t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 }
 
 //打印当前配置参数
@@ -372,12 +372,13 @@ void output_string_to_buffer(const char *str)
 	if(kill_result == ESRCH)
 		create_flush_thread();
 
-	int len = strlen(str)+1;
+	int len = strlen(str)+2;  //include '\n' and '\0'
 	char* buf = calloc(sizeof(DataNode)+len, 1);
 	DataNode* data_node = (DataNode*)buf;
-	data_node->str_len = len; //include '\0'
+	data_node->str_len = len-1; //exclude '\0'
 	buf += sizeof(DataNode);
 	strcpy(buf, str);
+	buf[data_node->str_len-1] = '\n';
 
 	//将数据插入到链表头(逆序)
 	pthread_mutex_lock(&g_slog_setting.mutex);
@@ -398,7 +399,7 @@ void output_string_to_buffer(const char *str)
 
 void notify_flush()
 {
-	printf("notify_flush\n");
+	//printf("notify_flush\n");
 	pthread_mutex_lock(&g_slog_setting.cond_mutex);
 	pthread_cond_signal(&g_slog_setting.cond);
 	pthread_mutex_unlock(&g_slog_setting.cond_mutex);
@@ -430,6 +431,7 @@ void* flush_thread(void* user_data)
 		gettimeofday(&start, NULL);
 		if(start.tv_sec-last_update.tv_sec > g_slog_setting.config_update_interval)
 		{
+			printf("init...\n");
 			SLOG_INIT(g_slog_setting.config_name);  //update the configure at short intervals
 			last_update.tv_sec = start.tv_sec;
 		}
@@ -450,7 +452,7 @@ void create_flush_thread()
 
 void flush_buffer_to_file()
 {
-	printf("flush to file\n");
+	//printf("flush to file\n");
 	DataNode *temp = NULL, *data_list = NULL;
 	pthread_mutex_lock(&g_slog_setting.mutex);
 	data_list = g_slog_setting.buf_list.prev;
@@ -462,7 +464,8 @@ void flush_buffer_to_file()
 	for(temp=data_list; temp; temp=data_list)
 	{
 		data_list = temp->prev;
-		fprintf(g_slog_setting.log_file, "%s\n", (char*)temp+sizeof(DataNode));
+		//fprintf(g_slog_setting.log_file, "%s", (char*)temp+sizeof(DataNode));
+		fwrite((char*)temp+sizeof(DataNode), temp->str_len, 1, g_slog_setting.log_file);
 		g_slog_setting.log_size += temp->str_len; //include '\n'
 		if(g_slog_setting.log_size >= log_size) //重新创建新的log文件
 			rename_log_file();

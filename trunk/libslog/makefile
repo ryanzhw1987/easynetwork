@@ -1,7 +1,7 @@
 INC_PATH=/usr/local/include
 LIB_PATH=/usr/local/lib
 
-FULL_LOG=-D__SLOG_FULL__
+FULL_LOG=#-D__SLOG_FULL__
 #FULL_LOG=
 
 all:lib test
@@ -22,4 +22,4 @@ uninstall:
 	rm ${LIB_PATH}/libslog.a
 
 clean:
-	rm *.o *.gch test
+	rm *.o *.gch *.a test
