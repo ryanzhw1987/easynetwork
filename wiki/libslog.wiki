@@ -1,0 +1,62 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+libslog:一个c/c++多线程安全日志库.
+
+
+= Details =
+ * *特性*
+1. 多线程安全
+2. 支持不重启服务更新log参数(比如从INFO级别更改为DEBUG,方便在线跟踪)
+3. 简单的配置参数
+4. 使用简单, 跟printf类似
+
+ * *性能*
+和log4cpp对比测试;
+
+1.每次写入100w条数据,测试10次;
+2.每条数据的格式:
+   1) slog:  2012-09-24 17:55:52[WARN]ccccccc...  (99个'C'字符)
+   2) log4cpp:  2012-09-24 18:03:58 [INFO]: [sub1] ccccccc...  (99个'C'字符)
+3.机器负载:
+   1) slog:  load average: 0.25, 0.32, 0.60
+   2) log4cpp:  load average: 0.29, 0.37, 0.51
+4. log4cpp版本: log4cpp-1.1rc1.tar.gz
+5. 测试结果:
+----------------------------
+ \  |  slog     |  log4cpp  
+---------------------------
+ 1  | 1.7867    |  10.4785  
+ 2  | 1.8693    |  11.6938  
+ 3  | 1.8035    |  9.6103   
+ 4  | 1.9039    |  9.6179   
+ 5  | 1.7574    |  10.6606 
+ 6  | 1.7622    |  9.7011   
+ 7  | 1.7441    |  9.5807 
+ 8  | 1.8711    |  11.1646
+ 9  | 1.7866    |  9.6206
+10  | 1.7732    |  9.6028
+----|-----------------------
+avg |  1.8058   | 10.17309
+----------------------------
+                    (单位:s)
+
+性能比log4cpp高5倍:)
+
+ * *配置参数*
+### log级别
+slog_level=DEBUG
+#slog_level=INFO
+### log文件名
+slog_log_name=./log/server.log
+### log 文件最大大小(单位M)
+slog_log_maxsize=20M
+### log文件最多个数
+slog_log_maxcount=30
+### log缓冲区大小(单位KB,默认512KB)
+slog_flush_size=1024
+### log缓冲刷新间隔(单位s,默认1s)
+slog_flush_interval=2
+### log动态更新配置参数的时间间隔(单位s,默认60s)
+config_update_interval=30
