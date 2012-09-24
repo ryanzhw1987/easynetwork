@@ -100,23 +100,23 @@ int SLOG_INIT(const char* config)
 	if(is_first_invoke)
 	{
 		is_first_invoke = 0;
-		g_slog_setting.config_name[0]			= '\0';
-		g_slog_setting.log_name[0]			= '\0';
-		g_slog_setting.log_level				= SLOG_LEVEL_DEBUG;
-		g_slog_setting.log_file				= stdout;
-		g_slog_setting.log_size				= 0;
-		g_slog_setting.flush_size				= 512;	//默认512KB
-		g_slog_setting.flush_interval			= 1;	//默认刷新间隔1s
-		g_slog_setting.config_update_interval	= 60;	//默认60s
-		g_slog_setting.buf_size				= 0;	//slog缓冲区大小
-		g_slog_setting.buf_list.next			= NULL;	//slog缓冲区链表
-		g_slog_setting.buf_list.prev			= NULL;	//slog缓冲区链表
+		g_slog_setting.config_name[0]           = '\0';
+		g_slog_setting.log_name[0]              = '\0';
+		g_slog_setting.log_level                = SLOG_LEVEL_DEBUG;
+		g_slog_setting.log_file                 = stdout;
+		g_slog_setting.log_size                 = 0;
+		g_slog_setting.flush_size               = 512*1024;	//默认512KB
+		g_slog_setting.flush_interval           = 1;		//默认刷新间隔1s
+		g_slog_setting.config_update_interval   = 60;		//默认60s
+		g_slog_setting.buf_size                 = 0;		//slog缓冲区大小
+		g_slog_setting.buf_list.next            = NULL;		//slog缓冲区链表
+		g_slog_setting.buf_list.prev            = NULL;		//slog缓冲区链表
 		//the 3 elements are invalid when slog_file is set to stdout
-		g_slog_setting.log_max_size			= 10;	//10M
-		g_slog_setting.log_max_count			= 10;	//10 log files
-		g_slog_setting.log_count				= 0;	//当前生成的log文件数
+		g_slog_setting.log_max_size             = 10;		//10M
+		g_slog_setting.log_max_count            = 10;		//10 log files
+		g_slog_setting.log_count                = 0;		//当前生成的log文件数
 
-		g_slog_setting.exit_flush_thread		= 0;
+		g_slog_setting.exit_flush_thread        = 0;
 		pthread_mutex_init(&g_slog_setting.mutex, NULL);
 		pthread_mutex_init(&g_slog_setting.cond_mutex, NULL);
 		pthread_cond_init(&g_slog_setting.cond, NULL);
@@ -201,6 +201,7 @@ int SLOG_INIT(const char* config)
 		else if(strcmp(key, "slog_flush_size") == 0)
 		{
 			sscanf(value, "%d", &g_slog_setting.flush_size);
+			g_slog_setting.flush_size *= 1024;
 		}
 		else if(strcmp(key, "slog_flush_interval") == 0)
 		{
@@ -397,6 +398,7 @@ void output_string_to_buffer(const char *str)
 
 void notify_flush()
 {
+	printf("notify_flush\n");
 	pthread_mutex_lock(&g_slog_setting.cond_mutex);
 	pthread_cond_signal(&g_slog_setting.cond);
 	pthread_mutex_unlock(&g_slog_setting.cond_mutex);
@@ -406,12 +408,16 @@ void notify_flush()
 //slog的刷新线程
 void* flush_thread(void* user_data)
 {
-	struct timeval start, end;
+	struct timeval start, last_update;
 	struct timespec timeout;
 
+	last_update.tv_sec = 0;
 	while(g_slog_setting.exit_flush_thread != 1)
 	{
 		gettimeofday(&start, NULL);
+		if(last_update.tv_sec == 0)
+			last_update.tv_sec = start.tv_sec;
+
 		timeout.tv_sec = start.tv_sec + g_slog_setting.flush_interval;
 		timeout.tv_nsec = start.tv_usec*1000;
 		//等待超时或者刷新通知
@@ -421,9 +427,12 @@ void* flush_thread(void* user_data)
 		//将缓冲区数据刷新到log文件
 		flush_buffer_to_file();
 
-		gettimeofday(&end, NULL);
-		if(end.tv_sec-start.tv_sec > g_slog_setting.config_update_interval)
+		gettimeofday(&start, NULL);
+		if(start.tv_sec-last_update.tv_sec > g_slog_setting.config_update_interval)
+		{
 			SLOG_INIT(g_slog_setting.config_name);  //update the configure at short intervals
+			last_update.tv_sec = start.tv_sec;
+		}
 	}
 	//将缓冲区的剩余数据刷新到log文件
 	flush_buffer_to_file();
@@ -441,6 +450,7 @@ void create_flush_thread()
 
 void flush_buffer_to_file()
 {
+	printf("flush to file\n");
 	DataNode *temp = NULL, *data_list = NULL;
 	pthread_mutex_lock(&g_slog_setting.mutex);
 	data_list = g_slog_setting.buf_list.prev;
