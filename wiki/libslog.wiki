@@ -46,6 +46,7 @@ avg |  1.8058   | 10.17309
 性能比log4cpp高5倍:)
 
  * *配置参数*
+{{{
 ### log级别
 slog_level=DEBUG
 #slog_level=INFO
@@ -61,3 +62,4 @@ slog_flush_size=1024
 slog_flush_interval=2
 ### log动态更新配置参数的时间间隔(单位s,默认60s)
 config_update_interval=30
+}}}
