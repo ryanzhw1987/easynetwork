@@ -4,6 +4,7 @@ LIB_PATH=/usr/local/lib
 FULL_LOG=-D__SLOG_FULL__
 #FULL_LOG=
 
+all:lib test
 
 lib:slog.h slog.c
 	gcc -c slog.h slog.c
