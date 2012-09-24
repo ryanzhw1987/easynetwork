@@ -21,4 +21,4 @@ uninstall:
 	rm ${LIB_PATH}/libslog.a
 
 clean:
-	rm *.o *.gch test_slog
+	rm *.o *.gch test

@@ -1,23 +1,19 @@
-#ifndef _SAMPLE_LOG_H_20120612_LIUYONGJIN_
-#define _SAMPLE_LOG_H_20120612_LIUYONGJIN_
+/*
+ * slog.h
+ *
+ *  Created on: 2012-6-12
+ *      Author: LiuYongjin
+ * Description: 多线程安全日志库
+ */
 
-
-typedef enum __log_level
-{
-    SLOG_LEVEL_TRACE = 0,
-	SLOG_LEVEL_DEBUG,
-	SLOG_LEVEL_INFO,
-	SLOG_LEVEL_WARN,
-	SLOG_LEVEL_ERROR,
-    SLOG_LEVEL_NOLOG
-}LOG_LEVEL;
+#ifndef _LIB_SAMPLE_LOG_H_
+#define _LIB_SAMPLE_LOG_H_
 
 #ifdef __cplusplus
 extern "C"{
 #endif
 
-void SLOG_INIT(LOG_LEVEL log_level, const char* log_file, int append);
-void SLOG_INIT_WITH_CONFIG(const char* config_file);
+int SLOG_INIT(const char* config);
 void SLOG_UNINIT();
 
 #ifdef __SLOG_FULL__
@@ -43,6 +39,5 @@ void slog_error(const char *fmt, ...);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif
