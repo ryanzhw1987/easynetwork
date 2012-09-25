@@ -68,7 +68,7 @@ slog_flush_interval=2
 config_update_interval=30
 }}}
 
- * *测试代码*
+ * *测试代码(见源码)*
  * slog_test.c
 {{{
 	char buf[100];
