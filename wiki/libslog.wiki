@@ -3,7 +3,7 @@
 = Introduction =
 
 libslog:一个高性能的c/c++多线程安全日志库.
-
+svn地址: https://easynetwork.googlecode.com/svn/trunk/libslog
 
 = Details =
  * *特性*
@@ -66,4 +66,48 @@ slog_flush_size=1024
 slog_flush_interval=2
 ### log动态更新配置参数的时间间隔(单位s,默认60s)
 config_update_interval=30
+}}}
+
+ * *测试代码*
+ * slog_test.c
+{{{
+	char buf[100];
+	memset(buf, 'c', 100);
+	buf[99]=0;
+
+	int i,j;
+	struct timeval start, end;
+
+	printf("start...\n");
+	gettimeofday(&start, NULL);
+	for(i=0; i<100; ++i)
+	{
+		for(j=0;j<10000; ++j)
+			SLOG_WARN("%s", buf);
+	}
+	gettimeofday(&end, NULL);
+	printf("end...\n");
+
+	int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
+	printf("use time:%0.4f(s)\n", us/1000000.0);
+}}}
+
+ * log4cpp_test.cpp
+{{{
+	char buf[100];
+	memset(buf, 'C', 100);
+	buf[99] = '\0';
+	int i, j;
+	struct timeval start, end;
+
+	printf("start...\n");
+	gettimeofday(&start, NULL);
+	for(i=0; i<100; ++i)
+		for(j=0; j<10000; ++j)
+			sub1.info(buf);
+	gettimeofday(&end, NULL);
+	printf("end...\n");
+
+	int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
+	printf("use time:%0.4f(s)\n", us/1000000.0);
 }}}
