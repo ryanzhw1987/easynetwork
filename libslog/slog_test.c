@@ -35,18 +35,18 @@ void test3()
 	int i,j;
 	struct timeval start, end;
 
-    printf("start...\n");
-    gettimeofday(&start, NULL);
-    for(i=0; i<100; ++i)
-    {
-            for(j=0;j<10000; ++j)
-                    SLOG_WARN("%s", buf);
-    }
-    gettimeofday(&end, NULL);
-    printf("end...\n");
+	printf("start...\n");
+	gettimeofday(&start, NULL);
+	for(i=0; i<100; ++i)
+	{
+		for(j=0;j<10000; ++j)
+			SLOG_WARN("%s", buf);
+	}
+	gettimeofday(&end, NULL);
+	printf("end...\n");
 
-    int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
-    printf("use time:%0.4f(s)\n", us/1000000.0);
+	int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
+	printf("use time:%0.4f(s)\n", us/1000000.0);
 }
 
 
