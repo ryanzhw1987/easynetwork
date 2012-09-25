@@ -33,8 +33,10 @@ int main(int argc, char* argv[])
 	printf("start...\n");
 	gettimeofday(&start, NULL);
 	for(i=0; i<100; ++i)
+	{
 		for(j=0; j<10000; ++j)
 			sub1.info(buf);
+	}
 	gettimeofday(&end, NULL);
 	printf("end...\n");
 
