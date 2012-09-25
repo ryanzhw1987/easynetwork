@@ -1,6 +1,6 @@
  =EasyNetwork网络开发框架,致力于为服务端的开发提供一个快速高效的方法.=
 
- * 源码svn地址:[http://easynetwork.googlecode.com/svn/trunk/]
+ * 源码svn地址:[http://easynetwork.googlecode.com/svn/trunk/libnetframework]
  * 联系邮箱:xmulyj@gmail.com
 
  * *[FQA]*
