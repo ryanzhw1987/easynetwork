@@ -29,8 +29,6 @@ private:
 class AppFramework: public NetInterface
 {
 public:
-	AppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manger)
-		:NetInterface(io_demuxer, protocol_family, socket_manger){}
 
 	//重写父类函数,实现业务层逻辑
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
@@ -83,11 +81,42 @@ public:
 		SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
 		return 0;
 	}
+
+	//////////////////由应用层重写 创建IODemuxer//////////////////
+	IODemuxer* create_io_demuxer()
+	{
+		return new EpollDemuxer;
+	}
+	//////////////////由应用层重写 销毁IODemuxer//////////////////
+	void delete_io_demuxer(IODemuxer* io_demuxer)
+	{
+		delete io_demuxer;
+	}
+	//////////////////由应用层重写 创建SocketManager//////////////
+	SocketManager* create_socket_manager()
+	{
+		return new SocketManager();
+	}
+	//////////////////由应用层重写 销毁SocketManager//////////////
+	void delete_socket_manager(SocketManager* socket_manager)
+	{
+		delete socket_manager;
+	}
+	//////////////////由应用层重写 创建具体的协议族//////////////
+	ProtocolFamily* create_protocol_family()
+	{
+		return new DefaultProtocolFamily;
+	}
+	//////////////////由应用层重写 销毁协议族////////////////////
+	void delete_protocol_family(ProtocolFamily* protocol_family)
+	{
+		delete protocol_family;
+	}
 };
 
 int main()
 {
-	SLOG_INIT(SLOG_LEVEL_DEBUG, NULL, 0);
+	SLOG_INIT(NULL);
 
 	ListenSocket linsten_socket(3010);
 	if(!linsten_socket.open())
@@ -96,21 +125,18 @@ int main()
 		return -1;
 	}
 
-	EpollDemuxer io_demuxer;
-	DefaultProtocolFamily protocol_family;
-	SocketManager socket_manager;
-	AppFramework app_server(&io_demuxer, &protocol_family, &socket_manager);
+	AppFramework app_server;
 
 	//listen event
 	ListenHandler listen_handler(&app_server);
-	io_demuxer.register_event(linsten_socket.get_handle(), EVENT_READ|EVENT_PERSIST, -1, &listen_handler);
+	app_server.get_io_demuxer()->register_event(linsten_socket.get_handle(), EVENT_READ|EVENT_PERSIST, -1, &listen_handler);
 
 	//timer event
-	TimerHandler timer(&io_demuxer);
-	io_demuxer.register_event(-1, EVENT_INVALID, 3000, &timer);
+	TimerHandler timer(app_server.get_io_demuxer());
+	app_server.get_io_demuxer()->register_event(-1, EVENT_INVALID, 3000, &timer);
 
 	//run server
-	io_demuxer.run_loop();
+	app_server.get_io_demuxer()->run_loop();
 
 	SLOG_UNINIT();
 	return 0;

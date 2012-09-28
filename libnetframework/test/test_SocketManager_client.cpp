@@ -80,9 +80,6 @@ void test_socket()
 class ClientAppFramework: public NetInterface
 {
 public:
-	ClientAppFramework(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager)
-			:NetInterface(io_demuxer, protocol_family, socket_manager)
-	{}
 
     //重写父类函数,实现业务层逻辑
 	int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
@@ -104,62 +101,91 @@ public:
 		return 0;
 	}
 	int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
-    {
-    	SLOG_ERROR("app send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
-    	get_protocol_family()->destroy_protocol(protocol);
-    	return 0;
-    }
+	{
+		SLOG_ERROR("app send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
+		get_protocol_family()->destroy_protocol(protocol);
+		return 0;
+	}
 
-    int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
-    {
-    	SLOG_DEBUG("app send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
-    	get_protocol_family()->destroy_protocol(protocol);
-    	return 0;
-    }
+	int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
+	{
+		SLOG_DEBUG("app send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
+		get_protocol_family()->destroy_protocol(protocol);
+		return 0;
+	}
 
-    int on_socket_handle_error(SocketHandle socket_handle)
-    {
-    	SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
-    	return 0;
-    }
+	int on_socket_handle_error(SocketHandle socket_handle)
+	{
+		SLOG_DEBUG("app socket handle error. fd=%d", socket_handle);
+		return 0;
+	}
 
-    int on_socket_handle_timeout(SocketHandle socket_handle)
-    {
-    	SLOG_DEBUG("app socket handle timeout. fd=%d", socket_handle);
+	int on_socket_handle_timeout(SocketHandle socket_handle)
+	{
+		SLOG_DEBUG("app socket handle timeout. fd=%d", socket_handle);
 		get_io_demuxer()->exit();
-    	return 0;
-    }
+		return 0;
+	}
+
+	//////////////////由应用层重写 创建IODemuxer//////////////////
+		IODemuxer* create_io_demuxer()
+		{
+			return new EpollDemuxer;
+		}
+		//////////////////由应用层重写 销毁IODemuxer//////////////////
+		void delete_io_demuxer(IODemuxer* io_demuxer)
+		{
+			delete io_demuxer;
+		}
+		//////////////////由应用层重写 创建SocketManager//////////////
+		SocketManager* create_socket_manager()
+		{
+			return new SocketManager();
+		}
+		//////////////////由应用层重写 销毁SocketManager//////////////
+		void delete_socket_manager(SocketManager* socket_manager)
+		{
+			delete socket_manager;
+		}
+		//////////////////由应用层重写 创建具体的协议族//////////////
+		ProtocolFamily* create_protocol_family()
+		{
+			return new DefaultProtocolFamily;
+		}
+		//////////////////由应用层重写 销毁协议族////////////////////
+		void delete_protocol_family(ProtocolFamily* protocol_family)
+		{
+			delete protocol_family;
+		}
 };
 
 void test_socket_manager()
 {
-    SLOG_DEBUG("2. test framework......");
-	EpollDemuxer io_demuxer;
-	DefaultProtocolFamily protocol_family;
-	SocketManager socket_manager;
-	ClientAppFramework cient_app_framework(&io_demuxer, &protocol_family, &socket_manager);  //异步
-    SocketHandle socket_handle = cient_app_framework.get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
-    if(socket_handle == SOCKET_INVALID)
-        return;
+	SLOG_DEBUG("2. test framework......");
 
-    char buf[100];
-    int len = 100;
+	ClientAppFramework cient_app_framework;  //异步
+	SocketHandle socket_handle = cient_app_framework.get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
+	if(socket_handle == SOCKET_INVALID)
+	return;
 
-    int i=0;
-    while(i++<5)
-    {
-        sprintf(buf, "hello, my socket.command index=%d", i);
-	    len = strlen(buf)+1;
-        StringProtocol *string_protocol = (StringProtocol *)protocol_family.create_protocol(PROTOCOL_STRING);
-        string_protocol->set_string(buf);
-        cient_app_framework.send_protocol(socket_handle, string_protocol, true);
-    }
-   	io_demuxer.run_loop();
+	char buf[100];
+	int len = 100;
+
+	int i=0;
+	while(i++<5)
+	{
+		sprintf(buf, "hello, my socket.command index=%d", i);
+		len = strlen(buf)+1;
+		StringProtocol *string_protocol = (StringProtocol *)cient_app_framework.get_protocol_family()->create_protocol(PROTOCOL_STRING);
+		string_protocol->set_string(buf);
+		cient_app_framework.send_protocol(socket_handle, string_protocol, true);
+	}
+	cient_app_framework.get_io_demuxer()->run_loop();
 }
 
 int main()
 {
-	SLOG_INIT(SLOG_LEVEL_DEBUG, NULL, 0);
+	SLOG_INIT(NULL);
 	
 	test_socket(); //使用socket和protocol来发送数据
 	test_socket_manager();  //使用框架来发送数据

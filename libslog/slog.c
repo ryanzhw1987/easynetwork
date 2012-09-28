@@ -431,7 +431,7 @@ void* flush_thread(void* user_data)
 		gettimeofday(&start, NULL);
 		if(start.tv_sec-last_update.tv_sec > g_slog_setting.config_update_interval)
 		{
-			printf("init...\n");
+			//printf("init...\n");
 			SLOG_INIT(g_slog_setting.config_name);  //update the configure at short intervals
 			last_update.tv_sec = start.tv_sec;
 		}

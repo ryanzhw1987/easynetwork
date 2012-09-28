@@ -7,7 +7,7 @@
 
 int main()
 {
-	SLOG_INIT(SLOG_LEVEL_INFO, NULL, 0);
+	SLOG_INIT("./config/slog.config");
 
 	ClientAppFramework app_framework;  //异步
 	app_framework.start_instance();

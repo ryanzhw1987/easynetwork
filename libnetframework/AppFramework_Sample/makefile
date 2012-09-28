@@ -2,7 +2,7 @@ INC=-I/usr/local/include/libnetframework
 
 FLAGS=-D__SLOG_FULL__ -g #-static
 #LIBS=-lslog -lnetframework
-LIBS=-lslog /usr/local/lib/libnetframework.a
+LIBS=-lslog /usr/local/lib/libnetframework.a -pthread
 
 
 all:test_server test_client

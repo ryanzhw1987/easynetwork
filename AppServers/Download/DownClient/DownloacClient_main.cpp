@@ -8,7 +8,7 @@
 
 int main()
 {
-	SLOG_INIT_WITH_CONFIG("./config/slog.config");
+	SLOG_INIT("./config/slog.config");
 
 	DownloadThreadPool download_pool(5);
 	download_pool.start();
