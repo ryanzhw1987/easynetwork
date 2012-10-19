@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ConnectThread.h
  *
  *  Created on: 2012-9-10
