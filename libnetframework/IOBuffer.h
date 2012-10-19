@@ -16,7 +16,7 @@
 class IOBuffer
 {
 public:
-	IOBuffer(unsigned int size=BUFFER_SIZE);
+	IOBuffer(unsigned int init_size=BUFFER_SIZE);
 	~IOBuffer();
 
 	//打开大小为size的缓冲区用于写.
