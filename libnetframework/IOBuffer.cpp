@@ -108,7 +108,7 @@ bool IOBuffer::read_close(unsigned int read_size)
 	return true;
 }
 
-//从尾部将数据截掉size字节
+//从有效数据区尾部将数据截掉size字节
 //成功:返回true, 尾部的size字节无效
 //失败:返回false, 数据没有任何变化
 bool IOBuffer::truncate(unsigned int size)

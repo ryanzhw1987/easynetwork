@@ -41,12 +41,12 @@ public:
 	//返回可读数据的大小
 	unsigned int get_size(){return m_data_size;}
 
-	//返回偏移位置为offset,大小为size的有效数据缓冲区.
+	//返回有效数据区中偏移位置为offset,大小为size的有效数据缓冲区.
 	//成功:返回缓冲区指针
 	//失败:返回NULL
 	char* seek(unsigned int offset, unsigned int size){return (offset+size > m_data_size?NULL:m_data+offset);}
 
-	//从尾部将数据截掉size字节
+	//从有效数据区尾部将数据截掉size字节
 	//成功:返回true, 尾部的size字节无效
 	//失败:返回false, 数据没有任何变化
 	bool truncate(unsigned int size);
