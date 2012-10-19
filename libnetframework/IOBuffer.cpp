@@ -8,7 +8,6 @@
 #include "IOBuffer.h"
 #include <string.h>
 #include <stdlib.h>
-#include "slog.h"
 
 #define MAX_BUFFER_SIZE 10*1024*1024   //缓冲区最大10M
 
@@ -108,13 +107,3 @@ bool IOBuffer::read_close(unsigned int read_size)
 	return true;
 }
 
-//从有效数据区尾部将数据截掉size字节
-//成功:返回true, 尾部的size字节无效
-//失败:返回false, 数据没有任何变化
-bool IOBuffer::truncate(unsigned int size)
-{
-	if(size > m_data_size)
-		return false;
-	m_data_size -= size;
-	return true;
-}
