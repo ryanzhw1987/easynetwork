@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ConnectThread.cpp
  *
  *  Created on: 2012-9-11
