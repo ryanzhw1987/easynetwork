@@ -3,11 +3,10 @@
 
 #include "slog.h"
 #include "ClientAppFramework.h"
-#include "ProtocolDefault.h"
 
 int main()
 {
-	SLOG_INIT("./config/slog.config");
+	SLOG_INIT(NULL);
 
 	ClientAppFramework app_framework;  //异步
 	app_framework.start_instance();

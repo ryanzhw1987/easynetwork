@@ -26,7 +26,7 @@ public:
 		SLOG_TRACE("fd=%d reable able. do nothing.",fd);
 		return HANDLE_OK;
 	}
-	virtual HANDLE_RESULT on_writeabble(int fd)
+	virtual HANDLE_RESULT on_writeable(int fd)
 	{
 		SLOG_TRACE("fd=%d write able. do nothing.",fd);
 		return HANDLE_OK;

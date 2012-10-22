@@ -242,6 +242,7 @@ int EpollDemuxer::run_loop()
 		for (i=0; i<count; i++)
 		{
 			int is_error = 0;
+			bool event_modify = 0;
 			EventInfo *event_info = (EventInfo *)m_events[i].data.ptr;
 			event_info->m_occur_type = EVENT_INVALID;
 
@@ -254,11 +255,15 @@ int EpollDemuxer::run_loop()
 			{
 				event_info->m_occur_type |= EVENT_READ;
 				if((event_info->m_type&EVENT_PERSIST) == 0)
+				{
+					event_modify = true;
 					event_info->m_type &= ~EVENT_READ;
+				}
 			}
 			if(!is_error && (m_events[i].events&EPOLLOUT))
 			{
 				event_info->m_occur_type |= EVENT_WRITE;
+				event_modify = true;
 				event_info->m_type &= ~EVENT_WRITE;
 			}
 
@@ -273,10 +278,24 @@ int EpollDemuxer::run_loop()
 			{
 				SLOG_TRACE("remove fd=%d from epoll because of error or unpersist.", event_info->m_fd);
 				epoll_ctl(m_epoll_fd, EPOLL_CTL_DEL, event_info->m_fd, NULL);
-				m_using_event_info.erase(event_info->m_fd);				
+				m_using_event_info.erase(event_info->m_fd);
 				m_free_event_info.push_back(event_info);
 			}
-
+			else if(event_modify == true)
+			{
+				SLOG_TRACE("modify event of fd=%d.", event_info->m_fd);
+				struct epoll_event temp;
+				int flags = 0;
+				temp.data.ptr = (void*)event_info;
+				if(event_info->m_type&EVENT_READ)  //添加读
+					flags |= EPOLLIN;
+				if(event_info->m_type&EVENT_WRITE) //添加写
+					flags |= EPOLLOUT;
+				if(m_et_mode)
+					flags |= EPOLLET;
+				temp.events = flags;
+				epoll_ctl(m_epoll_fd, EPOLL_CTL_MOD, event_info->m_fd, &temp);
+			}
 			event_info->m_occur_timestamp = start_time_ms;
 			occur_events.push_back(event_info);
 		}
@@ -368,7 +387,7 @@ int EpollDemuxer::run_loop()
 				}
 				if(handle_result==HANDLE_OK && (event_info->m_occur_type&EVENT_WRITE))
 				{
-					handle_result = event_info->m_handler->on_writeabble(event_info->m_fd);
+					handle_result = event_info->m_handler->on_writeable(event_info->m_fd);
 					if(handle_result == HANDLE_ERROR)
 					{
 						event_info->m_handler->on_error(event_info->m_fd);
