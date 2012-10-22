@@ -29,7 +29,7 @@ public:
 public:
 	//重写EventHandler:实现trans socket的读写
 	virtual HANDLE_RESULT on_readable(int fd);
-	virtual HANDLE_RESULT on_writeabble(int fd);
+	virtual HANDLE_RESULT on_writeable(int fd);
 	virtual HANDLE_RESULT on_timeout(int fd);  //to do deal with timeout
 	virtual HANDLE_RESULT on_error(int fd); //to do deal with error
 public:

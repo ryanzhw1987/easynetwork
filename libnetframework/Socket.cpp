@@ -138,8 +138,8 @@ TransSocket::~TransSocket()
 
 	while(!m_recv_queue.empty())
 	{
-		IOBuffer *io_buffer = m_send_queue.front();
-		m_send_queue.pop_front();
+		IOBuffer *io_buffer = m_recv_queue.front();
+		m_recv_queue.pop_front();
 		delete io_buffer;
 	}
 	SLOG_DEBUG("~TransSocket().remain %d bytes data unrecv", m_recv_queue_size);
@@ -336,7 +336,7 @@ bool TransSocket::push_send_buffer(IOBuffer *io_buffer)
 	m_send_queue.push_back(io_buffer);
 	m_send_queue_size += io_buffer->get_size();
 
-	SLOG_DEBUG("total %s bytes data waiting to send on socket fd=%d", m_send_queue_size, m_socket_handle);
+	SLOG_DEBUG("total %d bytes data waiting to send on socket fd=%d", m_send_queue_size, m_socket_handle);
 	return true;
 }
 
@@ -346,7 +346,7 @@ bool TransSocket::push_send_buffer(IOBuffer *io_buffer)
 //TRANS_ERROR: 错误
 int TransSocket::send_buffer()
 {
-	SLOG_DEBUG("try to send %s bytes data of socket fd=%d", m_send_queue_size, m_socket_handle);
+	SLOG_DEBUG("try to send %d bytes data of socket fd=%d", m_send_queue_size, m_socket_handle);
 
 	int ret = 0;
 	unsigned int size = 0;
@@ -404,12 +404,12 @@ int TransSocket::recv_buffer(IOBuffer *io_buffer, int len, bool wait_all=true)
 //将io_buffer保存到待接收队列末尾
 bool TransSocket::push_recv_buffer(IOBuffer *io_buffer)
 {
-	if(io_buffer == NULL || io_buffer->get_size() <=0)
+	if(io_buffer == NULL)
 		return false;
 	m_recv_queue.push_back(io_buffer);
 	m_recv_queue_size += io_buffer->get_size();
 
-	SLOG_DEBUG("total %s bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
+	SLOG_DEBUG("total %d bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
 	return true;
 }
 
@@ -421,8 +421,8 @@ IOBuffer* TransSocket::pop_recv_buffer()
 	IOBuffer *io_buffer = m_recv_queue.front();
 	m_recv_queue.pop_front();
 	m_recv_queue_size -= io_buffer->get_size();
-	
-	SLOG_DEBUG("total %s bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
+
+	SLOG_DEBUG("total %d bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
 	return io_buffer;
 }
 
