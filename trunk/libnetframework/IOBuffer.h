@@ -31,7 +31,7 @@ public:
 	//打开缓冲区用于读
 	//成功:返回缓冲区到指针,设置size为可读缓冲区中数据的大小
 	//失败:返回NULL
-	const char *read_open(unsigned int &size);
+	char *read_open(unsigned int &size);
 
 	//关闭读缓冲区;
 	//成功:返回true,设置成功读出的字节数

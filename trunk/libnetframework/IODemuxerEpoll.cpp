@@ -1,5 +1,6 @@
 #include "IODemuxerEpoll.h"
 #include <errno.h>
+#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
@@ -42,32 +43,28 @@ public:
 };
 
 //epoll io server.
-EpollDemuxer::EpollDemuxer(unsigned int max_events/*=4096*/, unsigned int et_mode/*=1*/)
+EpollDemuxer::EpollDemuxer(unsigned int max_events/*=4096*/, bool et_mode/*=flase*/)
 {
 	m_exit = false;
-
-	m_epoll_fd = -1;
-	if(max_events <= 0)
-		return ;
 
 	m_epoll_fd = epoll_create(max_events+1);
 	if (m_epoll_fd == -1) 
 	{
-		SLOG_ERROR("epoll create error. errno=%d", errno);
+		SLOG_ERROR("epoll create error. errno=%d(%s)", errno, strerror(errno));
 		return;
 	}
 	//close on exec
 	int flags;
 	if ((flags = fcntl(m_epoll_fd, F_GETFD, NULL)) < 0)
 	{
-		SLOG_ERROR("epoll fcntl get error. errno=%d", errno);
+		SLOG_ERROR("epoll fcntl get error. errno=%d(%s)", errno, strerror(errno));
 		close(m_epoll_fd);
 		m_epoll_fd = -1;
 		return;
 	}
 	if (fcntl(m_epoll_fd, F_SETFD, flags|FD_CLOEXEC) == -1)
 	{
-		SLOG_ERROR("epoll fcntl set error. errno=%d", errno);
+		SLOG_ERROR("epoll fcntl set error. errno=%d(%s)", errno, strerror(errno));
 		close(m_epoll_fd);
 		m_epoll_fd = -1;
 		return;
@@ -108,22 +105,17 @@ EpollDemuxer::~EpollDemuxer()
 int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventHandler *handler)
 {
 	SLOG_TRACE("register_event. fd=%d, type=%d, timeout_ms=%d.", fd, type, timeout_ms);
-	
-	if(m_epoll_fd == -1)
-	{
-		return -1;
-	}
 
-	if(handler == NULL)
-	{
+	if(m_epoll_fd == -1)
 		return -1;
-	}
+	if(handler == NULL)
+		return -1;
 
 	if(fd <= 0) //时钟超时事件
 	{
 		if(timeout_ms <= 0) //timeout_ms必须大于0
 			return -1;
-			
+
 		//时钟事件		
 		EventInfo *event_info = NULL;
 		if(m_free_timer.empty())
@@ -141,14 +133,10 @@ int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventH
 	else
 	{
 		if(m_free_event_info.empty()) //没有空闲
-		{
 			return -1;
-		}
 
 		if((type&(EVENT_READ|EVENT_WRITE)) == 0) //非时钟事件,却没有注册读写事件
-		{
 			return -1;
-		}
 		
 		int epoll_op = EPOLL_CTL_ADD;
 		int flags = 0;
@@ -183,7 +171,7 @@ int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventH
 			flags |= EPOLLIN;
 		if(event_info->m_type&EVENT_WRITE) //添加写
 			flags |= EPOLLOUT;
-		if(m_et_mode != 0)
+		if(m_et_mode)
 			flags |= EPOLLET;
 
 		struct epoll_event temp;
@@ -191,7 +179,7 @@ int EpollDemuxer::register_event(int fd, EVENT_TYPE type, int timeout_ms, EventH
 		temp.events = flags;
 		if(epoll_ctl(m_epoll_fd, epoll_op, fd, &temp) == -1)
 		{
-			SLOG_ERROR("register event failed. errno=%d", errno);
+			SLOG_ERROR("register event failed. errno=%d(%s)", errno, strerror(errno));
 			m_free_event_info.push_back(it->second);			
 			m_using_event_info.erase(it);
 			return -1;
@@ -223,7 +211,7 @@ int EpollDemuxer::unregister_event(int fd)
 	return 0;
 }
 
-const int WAIT_TIME_MS = 10; //10ms
+const int WAIT_TIME_MS = 200; //100ms
 const EVENT_TYPE EVENT_ERROR   = 0x100;  //发送错误(内部使用)
 const EVENT_TYPE EVENT_TIMEOUT = 0x1000; //超时
 typedef vector<EventInfo*> OccurEventList;
@@ -243,13 +231,13 @@ int EpollDemuxer::run_loop()
 			if (errno == EINTR)
 				continue;
 
-			SLOG_ERROR("epoll_wait error. errno=%d.", errno);
+			SLOG_ERROR("epoll_wait error. errno=%d(%s).", errno, strerror(errno));
 			break;
 		}
 
 		occur_events.clear();
 		start_time_ms = get_current_time_ms();
-		
+
 		//1. 检查发生的读写事件
 		for (i=0; i<count; i++)
 		{
