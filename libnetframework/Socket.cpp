@@ -37,7 +37,7 @@ Socket::~Socket()
 {
 	if(m_socket_handle != SOCKET_INVALID)
 	{
-		SLOG_TRACE("close fd=%d in ~Socket()", m_socket_handle);
+		SLOG_TRACE("~Socket() close socket. fd=%d", m_socket_handle);
 		close(m_socket_handle);
 		m_socket_handle = SOCKET_INVALID;
 	}
@@ -59,7 +59,7 @@ bool Socket::assign(SocketHandle socket_handle, int port, const char *ip, BlockM
 ///////////////////////////////////////////////////////////////
 ///////////////      ListenSocket        ///////////////
 ///////////////////////////////////////////////////////////////
-bool ListenSocket::open(int timeout_ms/*=2000*/)
+bool ListenSocket::open(int /*timeout_ms=2000*/)
 {
 	if(m_socket_handle!=SOCKET_INVALID || m_port<=0)
 		return false;
@@ -73,7 +73,7 @@ bool ListenSocket::open(int timeout_ms/*=2000*/)
 	int flags = fcntl(fd, F_GETFL, 0);
 	if(flags == -1 )
 	{
-		SLOG_ERROR("fcntl<get> failed. errno=%d", errno);
+		SLOG_ERROR("fcntl<get> failed. errno=%d(%s)", errno, strerror(errno));
 		close(fd);
 		return false;
 	}
@@ -85,7 +85,7 @@ bool ListenSocket::open(int timeout_ms/*=2000*/)
 	flags |= FD_CLOEXEC;  //close on exec
 	if(fcntl(fd, F_SETFL, flags) == -1)
 	{
-		SLOG_ERROR("<set> failed. errno=%d", errno);
+		SLOG_ERROR("<set> failed. errno=%d(%s)", errno, strerror(errno));
 		close(fd);
 		return false;
 	}
@@ -94,7 +94,7 @@ bool ListenSocket::open(int timeout_ms/*=2000*/)
 	int reuse = 1;
 	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) == -1)
 	{
-		SLOG_ERROR("set socket SO_REUSEADDR option failed, errno=%d",errno);
+		SLOG_ERROR("set socket SO_REUSEADDR option failed, errno=%d(%s)",errno, strerror(errno));
 		close(fd);
 		return false;
 	}
@@ -106,7 +106,7 @@ bool ListenSocket::open(int timeout_ms/*=2000*/)
 	addr.sin_port = htons(m_port);
 	if(bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
 	{
-		SLOG_ERROR("bind failed, errno=%d",errno);
+		SLOG_ERROR("bind failed, errno=%d(%s)",errno, strerror(errno));
 		close(fd);
 		return false;
 	}
@@ -114,7 +114,7 @@ bool ListenSocket::open(int timeout_ms/*=2000*/)
 	//4. 监听端口.监听队列中等待accept的最大连接数设置为默认值
 	if(listen(fd, 128) == -1)
 	{
-		SLOG_ERROR("listen failed, errno=%d",errno);
+		SLOG_ERROR("listen failed, errno=%d(%s)",errno, strerror(errno));
 		close(fd);
 		return false;
 	}
@@ -126,6 +126,25 @@ bool ListenSocket::open(int timeout_ms/*=2000*/)
 ///////////////////////////////////////////////////////////////
 ///////////////       TransSocket       ///////////////
 ///////////////////////////////////////////////////////////////
+TransSocket::~TransSocket()
+{
+	while(!m_send_queue.empty())
+	{
+		IOBuffer *io_buffer = m_send_queue.front();
+		m_send_queue.pop_front();
+		delete io_buffer;
+	}
+	SLOG_DEBUG("~TransSocket().remain %d bytes data unsend", m_send_queue_size);
+
+	while(!m_recv_queue.empty())
+	{
+		IOBuffer *io_buffer = m_send_queue.front();
+		m_send_queue.pop_front();
+		delete io_buffer;
+	}
+	SLOG_DEBUG("~TransSocket().remain %d bytes data unrecv", m_recv_queue_size);
+}
+
 bool TransSocket::open(int timeout_ms/*=2000*/)
 {
 	if(m_socket_handle!=SOCKET_INVALID || strlen(m_ip)<=0 || m_port <=0)
@@ -135,7 +154,7 @@ bool TransSocket::open(int timeout_ms/*=2000*/)
 	m_socket_handle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if(m_socket_handle < 0)
 	{
-		SLOG_ERROR("create active socket error");
+		SLOG_ERROR("create active socket error, errno=%d(%s)", errno, strerror(errno));
 		m_socket_handle = SOCKET_INVALID;
 		return false;
 	}
@@ -170,7 +189,7 @@ bool TransSocket::open(int timeout_ms/*=2000*/)
 			int tmp = select(m_socket_handle+1, (fd_set*)&rset, (fd_set*)&wset, (fd_set*)NULL, &tval);
 			if (tmp <= 0)
 			{
-				SLOG_ERROR("select failed when connecting server:%s:%d. errno=%d", m_ip, m_port, errno);
+				SLOG_ERROR("select failed when connecting server[ip=%s,port=%d]. errno=%d(%s)", m_ip, m_port, errno, strerror(errno));
 				close(m_socket_handle);
 				m_socket_handle = SOCKET_INVALID;
 				return false;
@@ -182,7 +201,7 @@ bool TransSocket::open(int timeout_ms/*=2000*/)
 				tmp = getsockopt(m_socket_handle, SOL_SOCKET, SO_ERROR, (void*)&error, (socklen_t*)&len);
 				if(tmp<0 || (tmp==0&&error!=0))
 				{
-					SLOG_ERROR("other error when connecting server:%s:%d. errno=%d", m_ip, m_port, error);
+					SLOG_ERROR("other error when connecting server[ip=%s,port=%d]. errno=%d(%s)", m_ip, m_port, error, strerror(errno));
 					close(m_socket_handle);
 					m_socket_handle = SOCKET_INVALID;
 					return false;
@@ -191,7 +210,7 @@ bool TransSocket::open(int timeout_ms/*=2000*/)
 		}		
 		else
 		{
-			SLOG_ERROR("connect server:%s:%d. errno=%d", m_ip, m_port, errno);
+			SLOG_ERROR("connect server[ip=%s,port=%d]failed. errno=%d(%s)", m_ip, m_port, errno, strerror(errno));
 			close(m_socket_handle);
 			m_socket_handle = SOCKET_INVALID;
 			return false;
@@ -208,7 +227,7 @@ int TransSocket::init_active_socket()
 	int flags = fcntl(m_socket_handle, F_GETFL, 0);
 	if(flags == -1 )
 	{
-		SLOG_ERROR("fcntl<get> active socket faile. errno=%d", errno);
+		SLOG_ERROR("fcntl<get> active socket faile. errno=%d(%s)", errno, strerror(errno));
 		return -1;
 	}
 
@@ -219,182 +238,191 @@ int TransSocket::init_active_socket()
 
 	if (fcntl(m_socket_handle, F_SETFL, flags) == -1 )
 	{
-		SLOG_ERROR("fcntl<set> active socket faile. errno=%d", errno);
+		SLOG_ERROR("fcntl<set> active socket faile. errno=%d(%s)", errno, strerror(errno));
 		return -1;
 	}
 
 	return 0;
 }
 
+//尝试接收指定长度的数据(可能只接收部分数据).
 //返回值:
-//大于0:成功返回读取的字节数(可能是部分数据).
-//TRANS_CLOSE: 连接正常关闭
-//TRANS_NODATA: 没有数据
-//TRANS_ERROR: 失败
+//成功: 返回收到的字节数(大于等于0).
+//错误: 返回TRANS_ERROR
 int TransSocket::recv_data(char *buffer, int len)
 {
-	assert(len>0);
-	assert(buffer!=NULL);
+	assert(buffer!=NULL && len>0);
+	int ret = recv(m_socket_handle, buffer, len, 0);
+	if(ret > 0)
+		return ret;
+	if(ret == 0)
+	{
+		SLOG_ERROR("client close socket gracefully. fd=%d", m_socket_handle);
+		return TRANS_ERROR;
+	}
+	if(errno==EINTR || errno==EWOULDBLOCK || errno==EAGAIN)
+		return 0;
 
+	SLOG_ERROR("receive data error. errno=%d(%s)",errno, strerror(errno));
+	return TRANS_ERROR;
+}
+
+//接收指定长度的数据(全部接收).
+//返回值:
+//成功: 返回指定接收的数据大小len.
+//错误: 返回TRANS_ERROR
+int TransSocket::recv_data_all(char *buffer, int len)
+{
+	assert(buffer!=NULL && len>0);
 	int ret = 0;
 	int read_size = 0; //已读数据大小
 	int need_size = 0; //剩下未读数据大小
-
-	while(read_size<len)
+	while(read_size < len)
 	{
 		need_size = len-read_size;
-		ret = recv(m_socket_handle, buffer+read_size, need_size, 0);
-		if(ret > 0)
-			read_size += ret;
-		else if(ret == 0) //对端断开连接
-			return TRANS_CLOSE;
-		else
-		{
-			SLOG_TRACE("receive data return -1. errno=%d",errno);
-			if(errno==EINTR || errno==EWOULDBLOCK || errno==EAGAIN)
-				break;
-			return TRANS_ERROR; 	//失败
-		}
+		ret = recv_data(buffer+read_size, need_size);
+		if(ret == TRANS_ERROR)
+			return ret;
+		read_size += ret;
 	}
 
-	if(read_size > 0)
-	{
-		SLOG_TRACE("receive data succ. len=%d", read_size);
-		return read_size;
-	}
-	else
-		return TRANS_NODATA;
+	return read_size;
+}
+
+//尝试发送指定长度的数据(可能只发送部分数据)
+//返回值:
+//成功: 返回发送的字节数(大于等于0)
+//失败: 返回TRANS_ERROR
+int TransSocket::send_data(char *buffer, int len)
+{
+	assert(buffer!=NULL && len>0);
+	int ret = send(m_socket_handle, buffer, len, 0);
+	if(ret > 0)//非阻塞时可能只发送部分数据
+		return ret;
+	if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)  //中断,重试
+		return 0;
+
+	SLOG_ERROR("send_data return error. errno=%d(%s)", errno, strerror(errno));
+	return TRANS_ERROR;
 }
 
 //发送指定长度的数据(全部发送)
 //返回值:
-//大于0: 发送的字节数
-//TRANS_ERROR: 失败
-int TransSocket::send_data(char *buffer, int len)
+//成功:返回指定发送的数据大小len
+//失败: 返回TRANS_ERROR
+int TransSocket::send_data_all(char *buffer, int len)
 {
-	assert(len>0);
-	assert(buffer!=NULL);
-
+	assert(buffer!=NULL && len>0);
 	int ret = 0;
 	int send_size = 0;
 	int need_size = 0;
-
 	while(send_size < len)
 	{
 		need_size = len-send_size;
-		ret = send(m_socket_handle, buffer+send_size, need_size, 0);
-		if(ret > 0)
-			send_size += ret;
-		else
-		{
-			SLOG_TRACE("send_data return -1. errno=%d", errno);
-			if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)  //中断,重试
-				continue;
+		ret = send_data(buffer+send_size, need_size);
+		if(ret == TRANS_ERROR)
 			return TRANS_ERROR;
-		}
+		send_size += ret;
 	}
 
-	SLOG_TRACE("send data succ. len=%d", send_size);
 	return send_size;
 }
 
-
-//接收所有数据到输入缓冲区. !!!***仅用于非阻塞模式***!!!
-//返回值:
-//TRANS_OK:成功
-//TRANS_NOMEM: 没有内存
-//TRANS_ERROR: 错误
-//TRANS_CLOSE: 对端关闭链接
-//TRANS_BLOCK: 当前是阻塞模式
-TransStatus TransSocket::recv_buffer()
+//添加待发送的数据到等待队列
+bool TransSocket::push_send_buffer(IOBuffer *io_buffer)
 {
-	if(m_block_mode == BLOCK)
-		return TRANS_BLOCK;
+	if(io_buffer==NULL || io_buffer->get_size()<=0)
+		return false;
+	m_send_queue.push_back(io_buffer);
+	m_send_queue_size += io_buffer->get_size();
 
-	unsigned int read_size;
-	char * buffer;
-	while(true)
-	{
-		read_size = 1024;
-		buffer = m_recv_buffer.write_open(read_size);
-		if(buffer == NULL)
-		{
-			SLOG_ERROR("get write buffer error.");
-			return TRANS_NOMEM;
-		}
-
-		read_size = recv(m_socket_handle, buffer, read_size, 0);
-		if(read_size < 0)
-		{
-			if(errno == EINTR)  //被中断,继续读
-			{
-				SLOG_TRACE("recv data interupt,continue to read");
-				continue;
-			}
-			else if(errno==EWOULDBLOCK || errno==EAGAIN)  //暂无数据
-			{
-				SLOG_TRACE("recv data. no data now");
-				break;
-			}
-			else  //错误
-			{
-				SLOG_ERROR("recv data error. errno=%d",errno);
-				return TRANS_ERROR;
-			}
-		}
-		else if(read_size == 0) //对端断开连接
-		{
-			SLOG_ERROR("client closed the connect gracefully.fd=%d", m_socket_handle);
-			return TRANS_CLOSE;
-		}
-
-		m_recv_buffer.write_close(read_size);
-		if(read_size < 1024) //已经读完数据
-			break;
-	}
-
-	return TRANS_OK;
+	SLOG_DEBUG("total %s bytes data waiting to send on socket fd=%d", m_send_queue_size, m_socket_handle);
+	return true;
 }
 
-//尝试发送输出缓冲区中的所有数据,直到发送完成或者发送不出去.
+//尽量发送等待队列中的数据
 //返回值:
-//TRANS_OK:成功
-//TRANS_PENDING: 只发送部分数据,缓冲区还有数据待发送
+//大于等于0: 剩下未发送的数据大小
 //TRANS_ERROR: 错误
-TransStatus TransSocket::send_buffer()
+int TransSocket::send_buffer()
 {
-	unsigned int size;
-	const char *buffer = m_send_buffer.read_open(size);
-	if(buffer == NULL)
-		return TRANS_OK;
-	while(true)
+	SLOG_DEBUG("try to send %s bytes data of socket fd=%d", m_send_queue_size, m_socket_handle);
+
+	int ret = 0;
+	unsigned int size = 0;
+	char *buf = NULL;
+	while(!m_send_queue.empty())
 	{
-		unsigned int ret = send(m_socket_handle, buffer, size, 0);
-		if(ret > 0)
-		{
-			m_send_buffer.read_close(ret);
-			if(ret < size)
-				return TRANS_PENDING;  //只发送了一部分数据
-			else
-				return TRANS_OK;		//全部发送
-		}
-		else if(errno == EINTR) //中断重试
-		{
-			SLOG_TRACE("send buffer data interrupted,retry to send.");
-			continue;
-		}
-		else if(errno == EWOULDBLOCK || errno == EAGAIN) //暂时发送不出去
-		{
-			SLOG_DEBUG("send buffer data pending,return");
-			return TRANS_PENDING;
-		}
-		else
-		{
-			SLOG_ERROR("send buffer data error. errno=%d", errno);
-			return TRANS_ERROR;
-		}
+		IOBuffer *io_buffer = m_send_queue.front();
+		assert(io_buffer != NULL);
+		buf = io_buffer->read_open(size);
+		ret = send_data(buf, size);
+		if(ret == TRANS_ERROR)
+			return ret;
+		io_buffer->read_close(ret);
+
+		m_send_queue_size -= ret;
+		if(ret < size)
+			break;
+		m_send_queue.pop_front();
+		delete io_buffer;
 	}
 
-	return TRANS_OK;
+	SLOG_DEBUG("remain %d bytes data to send of socket fd=%d", m_send_queue_size, m_socket_handle);
+	return m_send_queue_size;
+}
+
+int TransSocket::recv_buffer(IOBuffer *io_buffer, int len, bool wait_all=true)
+{
+	assert(io_buffer!=NULL && len>0);
+
+	char *buf = io_buffer->write_open((unsigned int)len);
+	if(buf == NULL)
+	{
+		SLOG_ERROR("socket recv buffer error: no memory. fd=%d", m_socket_handle);
+		return TRANS_ERROR;
+	}
+
+	int ret = 0;
+	if(wait_all)
+	{
+		ret = recv_data_all(buf, len);
+		if(ret == TRANS_ERROR)
+			return ret;
+		assert(ret == len);
+	}
+	else
+	{
+		ret = recv_data(buf, len);
+		if(ret == TRANS_ERROR)
+			return ret;
+	}
+	io_buffer->write_close(ret);
+	return ret;
+}
+
+//将io_buffer保存到待接收队列末尾
+bool TransSocket::push_recv_buffer(IOBuffer *io_buffer)
+{
+	if(io_buffer == NULL || io_buffer->get_size() <=0)
+		return false;
+	m_recv_queue.push_back(io_buffer);
+	m_recv_queue_size += io_buffer->get_size();
+
+	SLOG_DEBUG("total %s bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
+	return true;
+}
+
+//从待接收队列头部获取一个io_buffer(该io_buffer从队列头移除)
+IOBuffer* TransSocket::pop_recv_buffer()
+{
+	if(m_recv_queue.empty())
+		return NULL;
+	IOBuffer *io_buffer = m_recv_queue.front();
+	m_recv_queue.pop_front();
+	m_recv_queue_size -= io_buffer->get_size();
+	
+	SLOG_DEBUG("total %s bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
+	return io_buffer;
 }
 

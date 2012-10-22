@@ -86,7 +86,7 @@ bool IOBuffer::write_close(unsigned int write_size)
 //打开缓冲区用于读
 //成功:返回缓冲区到指针,设置size为可读缓冲区中数据的大小
 //失败:返回NULL
-const char *IOBuffer::read_open(unsigned int &size)
+char *IOBuffer::read_open(unsigned int &size)
 {
 	size = m_data_size;
 	if(m_data_size>0)

@@ -28,12 +28,12 @@ public: //重写基类纯虚函数
 public:
 
 	//max_events: 最多监听的事件数
-	//et_mode:是否使用ET模式. 1使用ET模式. 0使用LT模式;
-	EpollDemuxer(unsigned int max_events=4096, unsigned int et_mode=1);
+	//et_mode:是否使用ET模式. true使用ET模式. false使用LT模式;
+	EpollDemuxer(unsigned int max_events=4096, bool et_mode=false);
 	~EpollDemuxer();
 private:
 	int m_epoll_fd;
-	int m_et_mode;
+	bool m_et_mode;
 	int m_max_events;
 	struct epoll_event *m_events;
 	EventInfo *m_event_info;
