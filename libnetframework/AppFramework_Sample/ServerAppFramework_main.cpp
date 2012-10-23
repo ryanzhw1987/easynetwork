@@ -5,7 +5,7 @@
 
 int main()
 {
-	SLOG_INIT(NULL);
+	SLOG_INIT("./config/slog.config");
 
 	ServerAppFramework app_server;
 	app_server.start_instance();

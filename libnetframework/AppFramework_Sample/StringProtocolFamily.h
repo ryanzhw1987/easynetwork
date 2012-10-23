@@ -6,6 +6,8 @@
  */
 #ifndef _STRING_PROTOCOL_FAMILY_H_
 #define _STRING_PROTOCOL_FAMILY_H_
+#include <string>
+using std::string;
 
 #include "DefaultProtocolFamily.h"
 #define PROTOCOL_STRING 1
@@ -22,9 +24,9 @@ class StringProtocol:public Protocol
 {
 public:
 	//协议的描述信息
-	const char* details(){return "Raw_string_protocol";}
+	const char* details(){return "raw_string_protocol";}
 	//编码协议体数据到io_buffer,成功返回true,失败返回false.
-	bool encode_body(IOBuffer *io_buffer){return true;}
+	bool encode_body(ByteBuffer *byte_buffer){return true;}
 	//解码协议体数据io_buffer.成功返回true,失败返回false.
 	bool decode_body(const char *buf, int size){return true;}
 };
