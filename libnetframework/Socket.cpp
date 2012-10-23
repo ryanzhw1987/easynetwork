@@ -130,17 +130,17 @@ TransSocket::~TransSocket()
 {
 	while(!m_send_queue.empty())
 	{
-		IOBuffer *io_buffer = m_send_queue.front();
+		ByteBuffer *byte_buffer = m_send_queue.front();
 		m_send_queue.pop_front();
-		delete io_buffer;
+		delete byte_buffer;
 	}
 	SLOG_DEBUG("~TransSocket().remain %d bytes data unsend", m_send_queue_size);
 
 	while(!m_recv_queue.empty())
 	{
-		IOBuffer *io_buffer = m_recv_queue.front();
+		ByteBuffer *byte_buffer = m_recv_queue.front();
 		m_recv_queue.pop_front();
-		delete io_buffer;
+		delete byte_buffer;
 	}
 	SLOG_DEBUG("~TransSocket().remain %d bytes data unrecv", m_recv_queue_size);
 }
@@ -329,18 +329,18 @@ int TransSocket::send_data_all(char *buffer, int len)
 }
 
 //添加待发送的数据到等待队列
-bool TransSocket::push_send_buffer(IOBuffer *io_buffer)
+bool TransSocket::push_send_buffer(ByteBuffer *byte_buffer)
 {
-	if(io_buffer==NULL || io_buffer->get_size()<=0)
+	if(byte_buffer==NULL)
 		return false;
-	m_send_queue.push_back(io_buffer);
-	m_send_queue_size += io_buffer->get_size();
+	m_send_queue.push_back(byte_buffer);
+	m_send_queue_size += byte_buffer->size();
 
 	SLOG_DEBUG("total %d bytes data waiting to send on socket fd=%d", m_send_queue_size, m_socket_handle);
 	return true;
 }
 
-//尽量发送等待队列中的数据
+//尝试发送等待队列中的数据
 //返回值:
 //大于等于0: 剩下未发送的数据大小
 //TRANS_ERROR: 错误
@@ -349,80 +349,79 @@ int TransSocket::send_buffer()
 	SLOG_DEBUG("try to send %d bytes data of socket fd=%d", m_send_queue_size, m_socket_handle);
 
 	int ret = 0;
-	unsigned int size = 0;
+	int size = 0;
 	char *buf = NULL;
 	while(!m_send_queue.empty())
 	{
-		IOBuffer *io_buffer = m_send_queue.front();
-		assert(io_buffer != NULL);
-		buf = io_buffer->read_open(size);
-		ret = send_data(buf, size);
+		ByteBuffer *byte_buffer = m_send_queue.front();
+		assert(byte_buffer != NULL);
+		size = byte_buffer->size();
+		if(size <= 0)
+			continue;
+		buf = byte_buffer->get_data();
+		ret = send_data(buf+m_send_size, size-m_send_size);
 		if(ret == TRANS_ERROR)
 			return ret;
-		io_buffer->read_close(ret);
-
 		m_send_queue_size -= ret;
-		if(ret < size)
+		if(ret < size-m_send_size)
+		{
+			m_send_size += ret;
 			break;
+		}
+		m_send_size = 0;
 		m_send_queue.pop_front();
-		delete io_buffer;
+		delete byte_buffer;
 	}
-
-	SLOG_DEBUG("remain %d bytes data to send of socket fd=%d", m_send_queue_size, m_socket_handle);
 	return m_send_queue_size;
 }
 
-int TransSocket::recv_buffer(IOBuffer *io_buffer, int len, bool wait_all=true)
+int TransSocket::recv_buffer(ByteBuffer *byte_buffer, int len, bool wait_all=true)
 {
-	assert(io_buffer!=NULL && len>0);
-
-	char *buf = io_buffer->write_open((unsigned int)len);
+	assert(byte_buffer!=NULL && len>0);
+	char *buf = byte_buffer->get_append_buffer(len);
 	if(buf == NULL)
 	{
-		SLOG_ERROR("socket recv buffer error: no memory. fd=%d", m_socket_handle);
-		return TRANS_ERROR;
+		SLOG_ERROR("recv buffer no momory");
+		return 0;
 	}
-
 	int ret = 0;
 	if(wait_all)
 	{
 		ret = recv_data_all(buf, len);
-		if(ret == TRANS_ERROR)
-			return ret;
 		assert(ret == len);
 	}
 	else
-	{
 		ret = recv_data(buf, len);
-		if(ret == TRANS_ERROR)
-			return ret;
-	}
-	io_buffer->write_close(ret);
+
+	if(ret == TRANS_ERROR)
+		return ret;
+	else
+		byte_buffer->set_append_size(ret);
 	return ret;
 }
 
 //将io_buffer保存到待接收队列末尾
-bool TransSocket::push_recv_buffer(IOBuffer *io_buffer)
+bool TransSocket::push_recv_buffer(ByteBuffer *byte_buffer)
 {
-	if(io_buffer == NULL)
+	if(byte_buffer == NULL)
 		return false;
-	m_recv_queue.push_back(io_buffer);
-	m_recv_queue_size += io_buffer->get_size();
+	m_recv_queue.push_back(byte_buffer);
+	m_recv_queue_size += byte_buffer->size();
 
 	SLOG_DEBUG("total %d bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
 	return true;
 }
 
 //从待接收队列头部获取一个io_buffer(该io_buffer从队列头移除)
-IOBuffer* TransSocket::pop_recv_buffer()
+ByteBuffer* TransSocket::pop_recv_buffer()
 {
 	if(m_recv_queue.empty())
 		return NULL;
-	IOBuffer *io_buffer = m_recv_queue.front();
+	ByteBuffer *byte_buffer = m_recv_queue.front();
 	m_recv_queue.pop_front();
-	m_recv_queue_size -= io_buffer->get_size();
+	m_recv_queue_size -= byte_buffer->size();
 
 	SLOG_DEBUG("total %d bytes data waiting to recv on socket fd=%d", m_recv_queue_size, m_socket_handle);
-	return io_buffer;
+	return byte_buffer;
 }
 

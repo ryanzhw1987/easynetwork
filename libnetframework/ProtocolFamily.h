@@ -8,7 +8,7 @@
 #ifndef _LIB_PROTOCOL_FAMILY_H_
 #define _LIB_PROTOCOL_FAMILY_H_
 
-#include "IOBuffer.h"
+#include "ByteBuffer.h"
 #include <stdio.h>
 #include <assert.h>
 
@@ -114,7 +114,7 @@ public:
 
 	//将raw_data依附到protocol.如果没有调用detach的话,protocol在析构的时候会自动delete掉raw_data
 	//成功返回true,失败返回false
-	bool attach_raw_data(IOBuffer *raw_data)
+	bool attach_raw_data(ByteBuffer *raw_data)
 	{
 		if(m_raw_data!=NULL)
 			return false;
@@ -122,29 +122,29 @@ public:
 		return true;
 	}
 	//将raw_data从protocol中分离开来,由调用者自行处理raw_data
-	IOBuffer* detach_raw_data()
+	ByteBuffer* detach_raw_data()
 	{
-		IOBuffer* temp = m_raw_data;
+		ByteBuffer* temp = m_raw_data;
 		m_raw_data = NULL;
 		return temp;
 	}
 	//简单获取raw_data
-	IOBuffer* get_raw_data(){return m_raw_data;}
+	ByteBuffer* get_raw_data(){return m_raw_data;}
 
 	//获取协议体的raw_data
-	char* get_body_raw_data(int &length);
+	char* get_body_raw_data(int &body_length);
 	//编码协议头和协议体(编码后数据保存在m_raw_data中).成功返回true,失败返回false.
 	bool encode();
 private:
 	ProtocolHeader *m_protocol_header;
 	ProtocolFamily *m_protocol_family;
-	IOBuffer *m_raw_data; //包含编码后的协议头和协议体数据
+	ByteBuffer *m_raw_data; //包含编码后的协议头和协议体数据
 
 public:
 	//协议的描述信息
 	virtual const char* details(){return "";}
 	//编码协议体数据到io_buffer,成功返回true,失败返回false.
-	virtual bool encode_body(IOBuffer *io_buffer)=0;
+	virtual bool encode_body(ByteBuffer *io_buffer)=0;
 	//解码大小为size的协议体数据buf.成功返回true,失败返回false.
 	virtual bool decode_body(const char *buf, int size)=0;
 };
@@ -152,17 +152,13 @@ public:
 ////  implementation  ////
 //////////////////////////
 inline
-char* Protocol::get_body_raw_data(int &length)
+char* Protocol::get_body_raw_data(int &body_length)
 {
 	if(m_raw_data==NULL || m_protocol_header==NULL)
 		return NULL;
 	int header_length = m_protocol_header->get_header_length();
-	unsigned int raw_data_size = 0;
-	char* body_data = m_raw_data->read_open(raw_data_size);
-	if(body_data==NULL || raw_data_size<=header_length)
-		return NULL;
-	length = raw_data_size-header_length;
-	return body_data+header_length;
+	body_length = m_raw_data->size()-header_length;
+	return m_raw_data->get_data(body_length, header_length);
 }
 
 inline
@@ -172,11 +168,10 @@ bool Protocol::encode()
 		return true;
 
 	assert(m_protocol_header != NULL);
-	unsigned int header_length = m_protocol_header->get_header_length();
-	m_raw_data = new IOBuffer;
-	//保留协议头长度
-	char *header_buffer = m_raw_data->write_open(header_length);
-	m_raw_data->write_close(header_length);
+	int header_length = m_protocol_header->get_header_length();
+	m_raw_data = new ByteBuffer;
+	char *header_buffer = m_raw_data->get_append_buffer(header_length);
+	m_raw_data->set_append_size(header_length);
 	//编码协议体
 	if(encode_body(m_raw_data) == false)
 	{
@@ -185,7 +180,7 @@ bool Protocol::encode()
 		return false;
 	}
 	//编码协议头
-	int body_length = m_raw_data->get_size()-header_length;
+	int body_length = m_raw_data->size()-header_length;
 	if(m_protocol_header->encode(header_buffer, body_length) == false)
 	{
 		delete m_raw_data;
