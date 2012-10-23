@@ -143,8 +143,8 @@ private:
 public:
 	//协议的描述信息
 	virtual const char* details(){return "";}
-	//编码协议体数据到io_buffer,成功返回true,失败返回false.
-	virtual bool encode_body(ByteBuffer *io_buffer)=0;
+	//编码协议体数据到byte_buffer,成功返回true,失败返回false.
+	virtual bool encode_body(ByteBuffer *byte_buffer)=0;
 	//解码大小为size的协议体数据buf.成功返回true,失败返回false.
 	virtual bool decode_body(const char *buf, int size)=0;
 };
