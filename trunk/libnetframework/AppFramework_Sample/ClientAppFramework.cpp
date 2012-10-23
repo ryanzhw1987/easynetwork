@@ -62,14 +62,14 @@ bool ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *
 
 bool ClientAppFramework::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_ERROR("client app on send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
+	SLOG_ERROR("client app on send protocol[details=%s] error. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
 
 bool ClientAppFramework::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_DEBUG("client app on send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
+	SLOG_DEBUG("client app on send protocol[details=%s] succ. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
@@ -102,15 +102,22 @@ HANDLE_RESULT PingHandler::on_timeout(int fd)
 	DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily *)m_app_framework->get_protocol_family();
 	Protocol* protocol = protocol_family->create_protocol(PROTOCOL_STRING);
 	DefaultProtocolHeader *header = (DefaultProtocolHeader*)protocol->get_protocol_header();
-	IOBuffer *send_buffer = new IOBuffer;
-	char *header_buffer = send_buffer->write_open(header->get_header_length());
-	send_buffer->write_close(header->get_header_length());
-	char *body_buffer = send_buffer->write_open(100);
-	sprintf(body_buffer, "client ping cmd");
-	int size = strlen(body_buffer)+1;
-	send_buffer->write_close(size);
-	header->encode(header_buffer, size);
+	int header_length = header->get_header_length();
+
+	ByteBuffer *send_buffer = new ByteBuffer;
+	//预留协议头空间
+	char *header_buffer = send_buffer->get_append_buffer(header_length);
+	send_buffer->set_append_size(header_length);
+	//编码协议体
+	char *body_buffer = send_buffer->get_append_buffer(100);
+	snprintf(body_buffer, 100, "client ping cmd");
+	int body_length = strlen(body_buffer)+1;
+	send_buffer->set_append_size(body_length);
+	//编码协议头
+	header->encode(header_buffer, body_length);
+	//attach编码后的数据
 	protocol->attach_raw_data(send_buffer);
+	//发送协议
 	m_app_framework->send_protocol(m_socket_handle, protocol);
 
 	return HANDLE_OK;
