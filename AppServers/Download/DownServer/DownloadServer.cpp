@@ -51,9 +51,11 @@ void DownloadServer::delete_protocol_family(ProtocolFamily* protocol_family)
 }
 
 /////////////////////////////////////  实现 NetInterface的接口  ///////////////////////
-int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
+bool DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
-	switch(((DefaultProtocol*)protocol)->get_type())
+	DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
+	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
+	switch(header->get_protocol_type())
 	{
 	case PROTOCOL_REQUEST_SIZE:
 	{
@@ -74,7 +76,7 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 			fseek(fp, 0, SEEK_SET);
 			fclose(fp);
 		}
-		DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
+
 		RespondSize* resp_protocol = (RespondSize*)protocol_family->create_protocol(PROTOCOL_RESPOND_SIZE);
 		if(resp_protocol)
 		{
@@ -99,23 +101,30 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 		FILE *fp = fopen(path.c_str(), "r");
 		if(fp != NULL)
 		{
-			IOBuffer io_buffer;
-			fseek(fp, start_pos, SEEK_SET);
-			char* buf = io_buffer.write_open(size);
-			fread(buf, 1, size, fp);
-			fclose(fp);
-			string data;
-			data.assign(buf, size);
-			io_buffer.write_close(size);
-
-			DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
 			RespondData* resp_protocol = (RespondData*)protocol_family->create_protocol(PROTOCOL_RESPOND_DATA);
-			if(resp_protocol)
-			{
-				resp_protocol->assign(file_name, start_pos, size);
-				resp_protocol->assign(data);
-				send_protocol(socket_handle, resp_protocol);
-			}
+			resp_protocol->assign(file_name, start_pos, size);
+
+			DefaultProtocolHeader *header = (DefaultProtocolHeader *)resp_protocol->get_protocol_header();
+			int header_length = header->get_header_length();
+			ByteBuffer *byte_buffer = new ByteBuffer;
+			//1. 预留协议头空间
+			byte_buffer->get_append_buffer(header_length);
+			byte_buffer->set_append_size(header_length);
+			//2. 编码协议体数据
+			resp_protocol->encode_body(byte_buffer);
+			//3. 添加数据
+			char *data_buffer = byte_buffer->get_append_buffer(size);
+			fseek(fp, start_pos, SEEK_SET);
+			fread(data_buffer, 1, size, fp);
+			fclose(fp);
+			byte_buffer->set_append_size(size);
+			//4. 编码协议头
+			int body_length = byte_buffer->size()-header_length;
+			char *header_buffer = byte_buffer->get_data(header_length);
+			header->encode(header_buffer, body_length);
+			//5. 发送协议
+			resp_protocol->attach_raw_data(byte_buffer);
+			send_protocol(socket_handle, resp_protocol);
 		}
 		else
 		{
@@ -125,36 +134,36 @@ int DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *proto
 	}
 	default:
 		SLOG_WARN("receive undefine protocol. ignore it.");
-		break;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
-int DownloadServer::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
+bool DownloadServer::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_ERROR("server app on send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
+	SLOG_ERROR("server app on send protocol[details=%s] error. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
 	get_protocol_family()->destroy_protocol(protocol);
-	return 0;
+	return true;
 }
 
-int DownloadServer::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
+bool DownloadServer::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_INFO("server app on send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
+	SLOG_INFO("server app on send protocol[details=%s] succ. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
 	get_protocol_family()->destroy_protocol(protocol);
-	return 0;
+	return true;
 }
 
-int DownloadServer::on_socket_handle_error(SocketHandle socket_handle)
+bool DownloadServer::on_socket_handle_error(SocketHandle socket_handle)
 {
 	SLOG_INFO("server app on socket handle error. fd=%d", socket_handle);
-	return 0;
+	return true;
 }
 
-int DownloadServer::on_socket_handle_timeout(SocketHandle socket_handle)
+bool DownloadServer::on_socket_handle_timeout(SocketHandle socket_handle)
 {
 	SLOG_INFO("server app on socket handle timeout. fd=%d", socket_handle);
-	return 0;
+	return true;
 }
 
 

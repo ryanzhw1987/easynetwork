@@ -69,9 +69,10 @@ void TaskManager::delete_protocol_family(ProtocolFamily* protocol_family)
 }
 
 /////////////////////////////////////  实现 NetInterface的接口  ///////////////////////
-int TaskManager::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)
+bool TaskManager::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
-	switch(((DefaultProtocol*)protocol)->get_type())
+	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
+	switch(header->get_protocol_type())
 	{
 	case PROTOCOL_RESPOND_SIZE:
 	{
@@ -90,33 +91,33 @@ int TaskManager::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol
 		break;
 	}
 
-	return 0;
+	return true;
 }
 
-int TaskManager::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
+bool TaskManager::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_ERROR("server app on send protocol error. fd=%d, protocol=%x", socket_handle, protocol);
+	SLOG_ERROR("server app on send protocol[details=%s] error. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
 	get_protocol_family()->destroy_protocol(protocol);
-	return 0;
+	return true;
 }
 
-int TaskManager::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
+bool TaskManager::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_INFO("server app on send protocol succ. fd=%d, protocol=%x", socket_handle, protocol);
+	SLOG_INFO("server app on send protocol[details=%s] succ. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
 	get_protocol_family()->destroy_protocol(protocol);
-	return 0;
+	return true;
 }
 
-int TaskManager::on_socket_handle_error(SocketHandle socket_handle)
+bool TaskManager::on_socket_handle_error(SocketHandle socket_handle)
 {
 	SLOG_INFO("server app on socket handle error. fd=%d", socket_handle);
-	return 0;
+	return true;
 }
 
-int TaskManager::on_socket_handle_timeout(SocketHandle socket_handle)
+bool TaskManager::on_socket_handle_timeout(SocketHandle socket_handle)
 {
 	SLOG_INFO("server app on socket handle timeout. fd=%d", socket_handle);
-	return 0;
+	return true;
 }
 
 
