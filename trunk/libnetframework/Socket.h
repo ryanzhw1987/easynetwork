@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "SocketType.h"
-#include "IOBuffer.h"
+#include "ByteBuffer.h"
 
 #include <deque>
 using std::deque;
@@ -58,12 +58,14 @@ public:
 		:Socket(SOCKET_INVALID, -1, NULL, BLOCK)
 		,m_send_queue_size(0)
 		,m_recv_queue_size(0)
+		,m_send_size(0)
 	{}
 
 	TransSocket(const char *ip, int port, BlockMode block_mode=BLOCK)
 		:Socket(SOCKET_INVALID, port, ip, block_mode)
 		,m_send_queue_size(0)
 		,m_recv_queue_size(0)
+		,m_send_size(0)
 	{}
 
 	virtual ~TransSocket();
@@ -97,9 +99,9 @@ public:
 	int send_data_all(char *buffer, int len);
 
 	//添加待发送的数据到等待队列
-	bool push_send_buffer(IOBuffer *io_buffer);
+	bool push_send_buffer(ByteBuffer *byte_buffer);
 
-	//尽量发送等待队列中的数据
+	//尝试发送等待队列中的数据
 	//返回值:
 	//大于等于0: 剩下未发送的数据大小
 	//TRANS_ERROR: 错误
@@ -112,20 +114,21 @@ public:
 	//返回值:
 	//大于等于0: 返回接收的字节数
 	//TRANS_ERROR: 错误
-	int recv_buffer(IOBuffer *io_buffer, int len, bool wait_all);
+	int recv_buffer(ByteBuffer *byte_buffer, int len, bool wait_all);
 
 	//将io_buffer保存到待接收队列末尾
-	bool push_recv_buffer(IOBuffer *io_buffer);
+	bool push_recv_buffer(ByteBuffer *byte_buffer);
 
 	//从待接收队列头部获取一个io_buffer(该io_buffer从队列头移除)
-	IOBuffer* pop_recv_buffer();
+	ByteBuffer* pop_recv_buffer();
 protected:
 	virtual int init_active_socket(); //初始化主动连接, 成功返回0, 失败返回-1
 private:
-	deque<IOBuffer*> m_send_queue; //待发送队列
+	deque<ByteBuffer*> m_send_queue; //待发送队列
 	int m_send_queue_size; //待发送队列中数据大小
+	int m_send_size;	//当前待发送到ByteBuffer中,已经发送出去的数据大小
 
-	deque<IOBuffer*> m_recv_queue; //待接收队列,保存不完整的数据包(队列里面的数据按其在包中的顺序存放)
+	deque<ByteBuffer*> m_recv_queue; //待接收队列,保存不完整的数据包(队列里面的数据按其在包中的顺序存放)
 	int m_recv_queue_size;
 };
 

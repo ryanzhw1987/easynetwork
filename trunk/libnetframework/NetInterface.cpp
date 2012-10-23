@@ -83,114 +83,6 @@ bool NetInterface::accept(SocketHandle trans_fd)
 	return true;
 }
 
-/*
-//重写EventHandler:实现trans socket的读写
-HANDLE_RESULT NetInterface::on_readable(int fd)
-{
-	SLOG_TRACE("socket on_readable. fd=%d", fd);
-
-	TransSocket* trans_socket = (TransSocket*)m_socket_manager->find_trans_socket(fd);
-	if(trans_socket == NULL)
-	{
-		SLOG_ERROR("can't find trans socket in socket manager. fd=%d", fd);
-		return HANDLE_ERROR;
-	}
-
-	//读取所有数据
-	TransStatus trans_status = trans_socket->recv_buffer();
-	if(trans_status != TRANS_OK)
-	{
-		SLOG_ERROR("socket recv all error. fd=%d", fd);
-		return HANDLE_ERROR;
-	}
-	IOBuffer *recv_buffer = trans_socket->get_recv_buffer(); //获取socket的recv buffer
-
-	int body_size = 0;
-	int header_size = 0;
-	ProtocolHeader* protocol_header = NULL;
-	Protocol* protocol = NULL;
-
-	while(true)
-	{
-		unsigned int size = 0;
-		const char *buffer = recv_buffer->read_open(size);
-		if(buffer == NULL)  //无数据可读
-			break;
-
-		if(header_size == 0) //创建protocol_header,获取头部大小(头部大小固定,只获取一次;只提前生成一次protocol_header)
-		{
-			protocol_header = m_protocol_family->create_header();
-			if(protocol_header == NULL)
-			{
-				SLOG_ERROR("protocol family create protocol header failed");
-				return HANDLE_ERROR;
-			}
-			header_size = protocol_header->get_header_size();
-			if(header_size <= 0)
-			{
-				SLOG_ERROR("header size error");
-				m_protocol_family->destroy_header(protocol_header);
-				return HANDLE_ERROR;
-			}
-		}
-
-		if(header_size > size) //头部数据不够
-		{
-			if(protocol_header != NULL)  //第一次生成的protocol header
-				m_protocol_family->destroy_header(protocol_header);
-			break;
-		}
-
-		if(protocol_header == NULL)
-		{
-			protocol_header = m_protocol_family->create_header();
-			if(protocol_header == NULL)
-			{
-				SLOG_ERROR("protocol family create protocol header failed");
-				return HANDLE_ERROR;
-			}
-		}
-
-		//1. decode header
-		if(protocol_header->decode(buffer, header_size) != 0)
-		{
-			SLOG_ERROR("decode header error.");
-			m_protocol_family->destroy_header(protocol_header);
-			return HANDLE_ERROR;
-		}
-
-		//2. decode body
-		body_size = protocol_header->get_body_size();
-		if(header_size + body_size > size) //数据不够
-		{
-			SLOG_DEBUG("no enougth data now, return and wait for more data.");
-			m_protocol_family->destroy_header(protocol_header);
-			return HANDLE_OK;
-		}
-		if((protocol=m_protocol_family->create_protocol(protocol_header)) == NULL)
-		{
-			SLOG_ERROR("protocol family create protocol failed");
-			m_protocol_family->destroy_header(protocol_header);
-			return HANDLE_ERROR;
-		}
-		if(protocol->decode_body(buffer+header_size, body_size) != 0)
-		{
-			SLOG_ERROR("decode body error.");
-			m_protocol_family->destroy_protocol(protocol);
-			return HANDLE_ERROR;
-		}
-		recv_buffer->read_close(header_size+body_size);  //清空已经读取的数据
-
-		//3. 调用回调函数向应用层发协议
-		on_recv_protocol(fd, protocol);
-		m_protocol_family->destroy_protocol(protocol);
-		protocol_header = NULL;
-	}
-
-	return HANDLE_OK;
-}
-*/
-
 //要求fd是非阻塞的
 HANDLE_RESULT NetInterface::on_readable(int fd)
 {
@@ -203,7 +95,7 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 		return HANDLE_ERROR;
 	}
 
-	IOBuffer *raw_data_buffer = NULL;
+	ByteBuffer *raw_data_buffer = NULL;
 
 	unsigned int header_length = 0;
 	ProtocolHeader *header = m_protocol_family->create_protocol_header();
@@ -214,16 +106,16 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	//1. 检查是否有未处理数据
 	raw_data_buffer = trans_socket->pop_recv_buffer();
 	if(raw_data_buffer == NULL) //新的协议包
-		raw_data_buffer = new IOBuffer();
-	unsigned int raw_data_size = raw_data_buffer->get_size();
+		raw_data_buffer = new ByteBuffer();
 
+	unsigned int raw_data_size = raw_data_buffer->size();
 	if(raw_data_size < header_length)	//读协议头数据
 	{
 		int need_size = header_length-raw_data_size;
 		int recv_size = trans_socket->recv_buffer(raw_data_buffer, need_size, false);
 		if(recv_size == TRANS_ERROR)
 		{
-			SLOG_ERROR("receive protocol header error");
+			SLOG_ERROR("receive protocol header error. fd=%d", fd);
 			delete raw_data_buffer;
 			m_protocol_family->destroy_protocol_header(header);
 			return HANDLE_ERROR;
@@ -239,11 +131,11 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	}
 	//2. 解码协议头
 	int body_length = 0;
-	char *header_buffer = raw_data_buffer->read_open(header_length);
+	char *header_buffer = raw_data_buffer->get_data(header_length);
 	assert(header_buffer != NULL);
 	if(header->decode(header_buffer, body_length) == false)
 	{
-		SLOG_ERROR("decode protocol header error.");
+		SLOG_ERROR("decode protocol header error. fd=%d", fd);
 		delete raw_data_buffer;
 		m_protocol_family->destroy_protocol_header(header);
 		return HANDLE_ERROR;
@@ -252,11 +144,11 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	//3. 接收协议体数据
 	if(body_length > 0) //允许空协议体
 	{
-		int need_size = body_length-(raw_data_size-header_length);
+		int need_size = body_length+header_length-raw_data_size;
 		int recv_size = trans_socket->recv_buffer(raw_data_buffer, need_size, false);
 		if(recv_size == TRANS_ERROR)
 		{
-			SLOG_ERROR("receive protocol body error");
+			SLOG_ERROR("receive protocol body error. fd=%d", fd);
 			delete raw_data_buffer;
 			m_protocol_family->destroy_protocol_header(header);
 			return HANDLE_ERROR;
@@ -274,21 +166,17 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	Protocol *protocol = m_protocol_family->create_protocol_by_header(header);
 	if(protocol == NULL)
 	{
-		SLOG_ERROR("create protocol error.");
+		SLOG_ERROR("create protocol error. fd=%d", fd);
 		delete raw_data_buffer;
 		m_protocol_family->destroy_protocol_header(header);
 		return HANDLE_ERROR;
 	}
 	char *body_buffer = NULL;
 	if(body_length > 0)
-	{
-		unsigned int size = 0;
-		body_buffer = raw_data_buffer->read_open(size);
-		body_buffer += header_length;
-	}
+		body_buffer = raw_data_buffer->get_data(body_length, header_length);
 	if(protocol->decode_body(body_buffer, body_length) == false)
 	{
-		SLOG_ERROR("decode protocol body error.");
+		SLOG_ERROR("decode protocol body error. fd=%d", fd);
 		delete raw_data_buffer;
 		m_protocol_family->destroy_protocol_header(header);
 		m_protocol_family->destroy_protocol(protocol);
@@ -306,63 +194,6 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	return HANDLE_OK;
 }
 
-/*
-HANDLE_RESULT NetInterface::on_writeabble(int fd)
-{
-	SLOG_TRACE("socket on_writeabble. fd=%d", fd);
-
-	TransSocket* trans_socket = (TransSocket*)m_socket_manager->find_trans_socket(fd);
-	if(trans_socket == NULL)
-	{
-		SLOG_ERROR("can't find trans socket in socket manager. fd=%d", fd);
-		return HANDLE_ERROR;
-	}
-
-	//移出一个待发送的协议
-	Protocol* protocol = get_wait_to_send_protocol(fd);
-	if(protocol != NULL)
-	{
-		if(protocol->encode(trans_socket->get_send_buffer()) != 0)
-		{
-			SLOG_ERROR("encode protocol error.");
-			on_protocol_send_error(fd, protocol); //通知应用层发送协议失败, 由应用层处理protocol. 不用返回Handle_ERROR, 因为是数据的问题而不是连接问题
-		}
-	}
-
-	//发送缓冲区数据
-	TransStatus trans_status = trans_socket->send_buffer();
-	if(protocol != NULL)
-	{
-		if(trans_status == TRANS_OK)
-			on_protocol_send_succ(fd, protocol);
-		else if(trans_status == TRANS_PENDING)
-		{
-			SLOG_WARN("copy protocol data to send buffer and send pending.");
-			on_protocol_send_succ(fd, protocol);
-		}
-		else
-		{
-			SLOG_ERROR("send protocol error");
-			on_protocol_send_error(fd, protocol);
-		}
-	}
-
-	if(trans_status == TRANS_ERROR)
-		return HANDLE_ERROR;
-
-	//发送剩下的协议(如果有的话,注册可写事件)
-	if(trans_status==TRANS_PENDING || get_wait_to_send_protocol_number(fd)>0)
-	{
-		if(m_io_demuxer->register_event(fd, EVENT_WRITE, -1, this) != 0)
-		{
-			SLOG_ERROR("register write event error");
-			return HANDLE_ERROR;
-		}
-	}
-
-	return HANDLE_OK;
-}
-*/
 HANDLE_RESULT NetInterface::on_writeable(int fd)
 {
 	SLOG_TRACE("socket on_writeabble. fd=%d", fd);
@@ -378,25 +209,24 @@ HANDLE_RESULT NetInterface::on_writeable(int fd)
 		return HANDLE_ERROR;
 	else if(ret > 0)
 	{
-		SLOG_DEBUG("remain %d bytes data wait for sending on socket fd=%d",ret, fd);
+		SLOG_INFO("remain %d bytes data wait for sending on socket fd=%d",ret, fd);
 		if(m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this) != 0)
 		{
-			SLOG_ERROR("register write event error");
+			SLOG_ERROR("register write event error. fd=%d", fd);
 			return HANDLE_ERROR;
 		}
 		return HANDLE_OK;
 	}
-
 	//移出一个待发送的协议
 	Protocol* protocol = get_wait_to_send_protocol(fd);
 	if(protocol != NULL)
 	{
 		if(protocol->encode() == false)
 		{
-			SLOG_ERROR("protocol encode error");
+			SLOG_ERROR("protocol encode error. fd=%d", fd);
 			return HANDLE_ERROR;
 		}
-		IOBuffer *raw_data = protocol->detach_raw_data();	//脱离raw_data
+		ByteBuffer *raw_data = protocol->detach_raw_data();	//脱离raw_data
 		trans_socket->push_send_buffer(raw_data);
 		trans_socket->send_buffer();
 		if(ret == TRANS_ERROR)
@@ -406,7 +236,7 @@ HANDLE_RESULT NetInterface::on_writeable(int fd)
 			SLOG_INFO("send %s. remain %d bytes data wait for sending on socket fd=%d", protocol->details(), ret, fd);
 			if(m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this) != 0)
 			{
-				SLOG_ERROR("register write event error");
+				SLOG_ERROR("register write event error. fd=%d", fd);
 				return HANDLE_ERROR;
 			}
 			return HANDLE_OK;
@@ -417,7 +247,7 @@ HANDLE_RESULT NetInterface::on_writeable(int fd)
 		{
 			if(m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this) != 0)
 			{
-				SLOG_ERROR("register write event error");
+				SLOG_ERROR("register write event error. fd=%d", fd);
 				return HANDLE_ERROR;
 			}
 		}
