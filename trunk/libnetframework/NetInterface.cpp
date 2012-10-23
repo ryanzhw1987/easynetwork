@@ -171,6 +171,10 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 		m_protocol_family->destroy_protocol_header(header);
 		return HANDLE_ERROR;
 	}
+	protocol->set_protocol_family(m_protocol_family);
+	/*****由protocol托管header到释放******/
+	protocol->attach_protocol_header(header);
+
 	char *body_buffer = NULL;
 	if(body_length > 0)
 		body_buffer = raw_data_buffer->get_data(body_length, header_length);
@@ -178,13 +182,11 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	{
 		SLOG_ERROR("decode protocol body error. fd=%d", fd);
 		delete raw_data_buffer;
-		m_protocol_family->destroy_protocol_header(header);
 		m_protocol_family->destroy_protocol(protocol);
 		return HANDLE_ERROR;
 	}
-	protocol->attach_protocol_header(header);
+	/***** 由protocol托管raw_data的释放 ******/
 	protocol->attach_raw_data(raw_data_buffer);
-	protocol->set_protocol_family(m_protocol_family);	
 
 	//6. 调用回调函数向应用层发协议
 	bool detach_protocol = false;
@@ -228,7 +230,7 @@ HANDLE_RESULT NetInterface::on_writeable(int fd)
 		}
 		ByteBuffer *raw_data = protocol->detach_raw_data();	//脱离raw_data
 		trans_socket->push_send_buffer(raw_data);
-		trans_socket->send_buffer();
+		ret = trans_socket->send_buffer();
 		if(ret == TRANS_ERROR)
 			return HANDLE_ERROR;
 		else if(ret > 0)
