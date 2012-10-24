@@ -29,19 +29,17 @@ ByteBuffer::~ByteBuffer()
 	m_size = 0;
 }
 
-//获取从偏移offset开始的大小为size的有效数据(默认获取所有的数据)
+//获取从偏移offset开始的大小为size的有效数据(size=-1时表示offset后所有的有效数据)
 char* ByteBuffer::get_data(int size/*=-1*/, int offset/*=0*/)
 {
 	if(m_size <= 0)
 		return NULL;
-	if(size < 0)
-		size = m_size;
 	if(offset < 0)
 		offset = 0;
 
-	if(offset+size > m_size)
-		return NULL;
-	return m_buffer+offset;
+	if((size<0 && offset<m_size) || offset+size <= m_size)
+		return m_buffer+offset;
+	return NULL;
 }
 
 //从有效数据缓冲区结尾开始获取一个大小为size的buffer(供调用者直接使用)
@@ -90,8 +88,17 @@ bool ByteBuffer::append_buffer(char *buf, int size)
 	return true;
 }
 
+//添加以'\0\为结尾的字符串string到buffer的末尾(不包括string的'\0')
+bool ByteBuffer::append_string(char *string)
+{
+	int size = strlen(string);
+	if(len > 0)
+		return append_buffer(string , size);
+	return true;
+}
+
 //在结尾添加count个字符c
-bool ByteBuffer::append_char(char c, int count)
+bool ByteBuffer::append_char(char c, int count/*=1*/)
 {
 	char *append_buf = get_append_buffer(count);
 	if(append_buf == NULL)
