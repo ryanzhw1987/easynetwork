@@ -106,14 +106,18 @@ HANDLE_RESULT PingHandler::on_timeout(int fd)
 
 	ByteBuffer *send_buffer = new ByteBuffer;
 	//预留协议头空间
-	char *header_buffer = send_buffer->get_append_buffer(header_length);
+	send_buffer->get_append_buffer(header_length);
 	send_buffer->set_append_size(header_length);
 	//编码协议体
 	char *body_buffer = send_buffer->get_append_buffer(100);
 	snprintf(body_buffer, 100, "client ping cmd");
 	int body_length = strlen(body_buffer)+1;
 	send_buffer->set_append_size(body_length);
+	//send_buffer << "client ping cmd"<<'\0';
+
+
 	//编码协议头
+	char *header_buffer = send_buffer.get_data();
 	header->encode(header_buffer, body_length);
 	//attach编码后的数据
 	protocol->attach_raw_data(send_buffer);
