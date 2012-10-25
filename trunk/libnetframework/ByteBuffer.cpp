@@ -30,7 +30,7 @@ ByteBuffer::~ByteBuffer()
 }
 
 //获取从偏移offset开始的大小为size的有效数据(size=-1时表示offset后所有的有效数据)
-char* ByteBuffer::get_data(int size/*=-1*/, int offset/*=0*/)
+char* ByteBuffer::get_data(int offset/*=0*/, int size/*=-1*/)
 {
 	if(m_size <= 0)
 		return NULL;

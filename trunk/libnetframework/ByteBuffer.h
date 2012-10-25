@@ -30,7 +30,7 @@ public:
 	//返回buffer中数据的大小
 	int size(){return m_size;}
 	//获取从偏移offset开始的大小为size的有效数据(size=-1时表示offset后所有的有效数据)
-	char* get_data(int size=-1, int offset=0);
+	char* get_data(int offset=0, int size=-1);
 
 	//从有效数据缓冲区结尾开始获取一个大小为size的buffer(供调用者直接使用)
 	//对获取到的buffer,最多只能写入size个字节的数据;
@@ -53,7 +53,7 @@ public:
 	void clean(){m_size = 0;}
 	//清空末尾大小为size的有效数据(size超过数据长度的话, 等效于clean)
 	void truncate(int size){size>m_size?m_size=0:m_size-=size;}
-public://以下四个运算符功能与append方法一样
+public://以下四个运算符功能与append方法一样(对str操作都不包括'\0')
 	ByteBuffer& operator +=(const char *str);
 	ByteBuffer& operator +=(const char c);
 	ByteBuffer& operator <<(const char *str);
