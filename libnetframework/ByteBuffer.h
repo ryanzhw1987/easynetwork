@@ -50,8 +50,8 @@ public:
 	//容量增加size个字节(默认扩展为原来的2倍),成功返回true,失败返回false.
 	bool expand(int size=-1);
 	//清空全部有效数据
-	void clean(){m_size = 0;}
-	//清空末尾大小为size的有效数据(size超过数据长度的话, 等效于clean)
+	void clear(){m_size = 0;}
+	//清空末尾大小为size的有效数据(size超过数据长度的话, 等效于clear)
 	void truncate(int size){size>m_size?m_size=0:m_size-=size;}
 public://以下四个运算符功能与append方法一样(对str操作都不包括'\0')
 	ByteBuffer& operator +=(const char *str);
