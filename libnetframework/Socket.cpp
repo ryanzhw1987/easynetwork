@@ -257,7 +257,7 @@ int TransSocket::recv_data(char *buffer, int len)
 		return ret;
 	if(ret == 0)
 	{
-		SLOG_ERROR("client close socket gracefully. fd=%d", m_socket_handle);
+		SLOG_ERROR("peer close socket gracefully. fd=%d", m_socket_handle);
 		return TRANS_ERROR;
 	}
 	if(errno==EINTR || errno==EWOULDBLOCK || errno==EAGAIN)

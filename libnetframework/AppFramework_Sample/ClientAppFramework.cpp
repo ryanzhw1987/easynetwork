@@ -117,7 +117,7 @@ HANDLE_RESULT PingHandler::on_timeout(int fd)
 
 
 	//编码协议头
-	char *header_buffer = send_buffer.get_data();
+	char *header_buffer = send_buffer->get_data();
 	header->encode(header_buffer, body_length);
 	//attach编码后的数据
 	protocol->attach_raw_data(send_buffer);

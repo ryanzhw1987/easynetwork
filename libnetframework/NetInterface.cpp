@@ -131,7 +131,7 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 	}
 	//2. 解码协议头
 	int body_length = 0;
-	char *header_buffer = raw_data_buffer->get_data(header_length);
+	char *header_buffer = raw_data_buffer->get_data(0, header_length);
 	assert(header_buffer != NULL);
 	if(header->decode(header_buffer, body_length) == false)
 	{
@@ -177,7 +177,7 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 
 	char *body_buffer = NULL;
 	if(body_length > 0)
-		body_buffer = raw_data_buffer->get_data(body_length, header_length);
+		body_buffer = raw_data_buffer->get_data(header_length, body_length);
 	if(protocol->decode_body(body_buffer, body_length) == false)
 	{
 		SLOG_ERROR("decode protocol body error. fd=%d", fd);
