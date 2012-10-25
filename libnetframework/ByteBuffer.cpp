@@ -75,7 +75,7 @@ void ByteBuffer::set_append_size(int append_size)
 }
 
 //将长度为size的buf添加到有效数据缓冲区的末尾.成功返回true,失败返回false
-bool ByteBuffer::append_buffer(char *buf, int size)
+bool ByteBuffer::append(const char *buf, int size)
 {
 	char *append_buf = NULL;
 	if(buf == NULL)
@@ -89,16 +89,16 @@ bool ByteBuffer::append_buffer(char *buf, int size)
 }
 
 //添加以'\0\为结尾的字符串string到buffer的末尾(不包括string的'\0')
-bool ByteBuffer::append_string(char *string)
+bool ByteBuffer::append(const char *str)
 {
-	int size = strlen(string);
-	if(len > 0)
-		return append_buffer(string , size);
+	int size = strlen(str);
+	if(size > 0)
+		return append(str , size);
 	return true;
 }
 
 //在结尾添加count个字符c
-bool ByteBuffer::append_char(char c, int count/*=1*/)
+bool ByteBuffer::append(const char c, int count/*=1*/)
 {
 	char *append_buf = get_append_buffer(count);
 	if(append_buf == NULL)
@@ -128,4 +128,28 @@ bool ByteBuffer::expand(int size/*-=-1*/)
 	m_buffer = temp;
 	m_capacity = new_size;
 	return true;
+}
+
+ByteBuffer& ByteBuffer::operator +=(const char *str)
+{
+	append(str);
+	return *this;
+}
+
+ByteBuffer& ByteBuffer::operator +=(const char c)
+{
+	append(c);
+	return *this;
+}
+
+ByteBuffer& ByteBuffer::operator <<(const char *str)
+{
+	append(str);
+	return *this;
+}
+
+ByteBuffer& ByteBuffer::operator <<(const char c)
+{
+	append(c);
+	return *this;
 }
