@@ -77,10 +77,9 @@ bool ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *
 			Protocol* resp_protocol = ((DefaultProtocolFamily*)get_protocol_family())->create_protocol(PROTOCOL_STRING);
 			header = (DefaultProtocolHeader*)resp_protocol->get_protocol_header();
 			int header_length = header->get_header_length();
-
 			ByteBuffer *send_buffer = new ByteBuffer;
 			//预留协议头空间
-			char *header_buffer = send_buffer->get_append_buffer(header_length);
+			send_buffer->get_append_buffer(header_length);
 			send_buffer->set_append_size(header->get_header_length());
 			//编码协议体
 			char *body_buffer = send_buffer->get_append_buffer(recv_length+100);
@@ -88,6 +87,7 @@ bool ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *
 			int body_length = strlen(body_buffer)+1;
 			send_buffer->set_append_size(body_length);
 			//编码协议头
+			char *header_buffer = send_buffer->get_data();
 			header->encode(header_buffer, body_length);
 			//attach编码后的数据
 			resp_protocol->attach_raw_data(send_buffer);
