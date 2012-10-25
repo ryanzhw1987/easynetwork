@@ -158,7 +158,7 @@ char* Protocol::get_body_raw_data(int &body_length)
 		return NULL;
 	int header_length = m_protocol_header->get_header_length();
 	body_length = m_raw_data->size()-header_length;
-	return m_raw_data->get_data(body_length, header_length);
+	return m_raw_data->get_data(header_length, body_length);
 }
 
 inline
@@ -170,7 +170,7 @@ bool Protocol::encode()
 	assert(m_protocol_header != NULL);
 	int header_length = m_protocol_header->get_header_length();
 	m_raw_data = new ByteBuffer;
-	char *header_buffer = m_raw_data->get_append_buffer(header_length);
+	m_raw_data->get_append_buffer(header_length);
 	m_raw_data->set_append_size(header_length);
 	//编码协议体
 	if(encode_body(m_raw_data) == false)
@@ -181,6 +181,7 @@ bool Protocol::encode()
 	}
 	//编码协议头
 	int body_length = m_raw_data->size()-header_length;
+	char *header_buffer = m_raw_data->get_data();
 	if(m_protocol_header->encode(header_buffer, body_length) == false)
 	{
 		delete m_raw_data;
