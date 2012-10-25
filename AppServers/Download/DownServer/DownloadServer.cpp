@@ -120,7 +120,7 @@ bool DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *prot
 			byte_buffer->set_append_size(size);
 			//4. 编码协议头
 			int body_length = byte_buffer->size()-header_length;
-			char *header_buffer = byte_buffer->get_data(header_length);
+			char *header_buffer = byte_buffer->get_data(0, header_length);
 			header->encode(header_buffer, body_length);
 			//5. 发送协议
 			resp_protocol->attach_raw_data(byte_buffer);
