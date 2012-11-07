@@ -130,7 +130,7 @@ const char* RespondData::get_data()
 	int size = sizeof(m_start_pos)+sizeof(m_size)+sizeof(name_len);
 
 	ByteBuffer *raw_data = get_raw_data();
-	return raw_data->get_data(m_size, header_length+size);
+	return raw_data->get_data(header_length+size, m_size);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
