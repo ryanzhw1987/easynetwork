@@ -74,6 +74,16 @@ void ByteBuffer::set_append_size(int append_size)
 	m_size += append_size;
 }
 
+//从数据结尾开始占据size字节的空间,返回该空间的偏移位置
+int ByteBuffer::reserve(int size)
+{
+	int offset = m_size;
+	if(get_append_buffer(size) == NULL)
+		return -1;
+	set_append_size(size);
+	return offset;
+}
+
 //将长度为size的buf添加到有效数据缓冲区的末尾.成功返回true,失败返回false
 bool ByteBuffer::append(const char *buf, int size)
 {
