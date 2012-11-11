@@ -83,7 +83,11 @@ bool MasterServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protoc
 			chunkinfo.port = 3013;
 			protocol_fileinfo_resp->add_chunkinfo(chunkinfo);
 
-			send_protocol(socket_handle, protocol_fileinfo_resp);
+			if(!send_protocol(socket_handle, protocol_fileinfo_resp))
+			{
+				SLOG_ERROR("send FileInfoResp Protocol failed.");
+				protocol_family->destroy_protocol(protocol_fileinfo_resp);
+			}
 			break;
 		}
 	case PROTOCOL_CHUNK_PING:    //响应chunk的ping包

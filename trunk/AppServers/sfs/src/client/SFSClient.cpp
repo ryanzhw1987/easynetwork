@@ -13,13 +13,14 @@ int main(int agrc, char* argv[])
 {
 	SLOG_INIT(NULL);
 	//get gapth
-	string fid="AAACCCDDD";
 	string master_addr="127.0.0.1";
 	int master_port = 3012;
 	SFS::File sfs_file(master_addr, master_port, 2);
 
+	//file info
+	string fid="AAACCCDDD";
 	SFS::FileInfo file_info;
-	if(sfs_file.file_info(fid, file_info))
+	if(sfs_file.file_info(&file_info, fid))
 	{
 		printf("result:%d\nFID:%s\nFileSize:%lld\n", file_info.result, file_info.fid.c_str(), file_info.size);
 		vector<ChunkInfo>::iterator it;

@@ -191,6 +191,5 @@ bool Protocol::encode()
 	return true;
 }
 
-
 #endif //_LIB_PROTOCOL_FAMILY_H_
 

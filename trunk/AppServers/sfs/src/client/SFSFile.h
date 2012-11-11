@@ -33,7 +33,7 @@ class File
 public:
 	File(string &master_addr, int master_port, int n_replica);
 
-	bool file_info(string &fid, FileInfo &file_info);
+	bool file_info(FileInfo *file_info, string &fid, bool query_chunkinfo=false);
 	//从sfs读取fid文件的数据保存到out_buf中
 	bool retrieve(string &fid, ByteBuffer *out_buf);
 	//从sfs读取fid文件的数据保存到out_file文件中
@@ -47,6 +47,7 @@ private:
 	SFSProtocolFamily m_protocol_family;
 private:
 	Protocol* query_master(Protocol *protocol);
+	bool query_chunk_store(string &local_file, string &fid, string &chunk_addr, int chunk_port);
 };
 
 }
