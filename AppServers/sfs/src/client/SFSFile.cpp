@@ -9,6 +9,7 @@
 #include "Socket.h"
 #include "slog.h"
 #include "SFSProtocolFamily.h"
+#include "TransProtocol.h"
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -108,90 +109,18 @@ Protocol* File::query_master(Protocol *protocol)
 		return NULL;
 	}
 
-	//编码
-	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
-	int header_length = header->get_header_length();
-
-	ByteBuffer *byte_buffer = new ByteBuffer;
-	//1. 预留协议头空间
-	byte_buffer->reserve(header_length);
-	//2. 编码协议体数据
-	if(!protocol->encode_body(byte_buffer))
-	{
-		SLOG_ERROR("encode body failed.");
-		delete byte_buffer;
-		return false;
-	}
-	//3. 编码协议头
-	int body_length = byte_buffer->size()-header_length;
-	char *header_buffer = byte_buffer->get_data();
-	if(!header->encode(header_buffer, body_length))
-	{
-		SLOG_ERROR("encode header failed.");
-		delete byte_buffer;
+	//发送协议
+	if(!TransProtocol::send_protocol(&trans_socket, protocol))
 		return NULL;
-	}
-
-	//发送数据
-	if(trans_socket.send_data_all(byte_buffer->get_data(), byte_buffer->size()) == TRANS_ERROR)
+	//接收协议
+	ProtocolFileInfoResp *protocol_fileinfo_resp = (ProtocolFileInfoResp *)m_protocol_family.create_protocol(PROTOCOL_FILE_INFO_RESP);
+	assert(protocol_fileinfo_resp != NULL);
+	if(!TransProtocol::recv_protocol(&trans_socket, protocol_fileinfo_resp))
 	{
-		SLOG_ERROR("send data error");
-		delete byte_buffer;
-		return NULL;
+		m_protocol_family.destroy_protocol(protocol_fileinfo_resp);
+		protocol_fileinfo_resp = NULL;
 	}
-
-	//接收数据
-	byte_buffer->clear();
-
-	header = (DefaultProtocolHeader *)m_protocol_family.create_protocol_header();
-	header_length = header->get_header_length();
-	char *buff = byte_buffer->get_append_buffer(header_length);
-	if(trans_socket.recv_data_all(buff, header_length) == TRANS_ERROR)
-	{
-		SLOG_ERROR("receive header data error");
-		delete byte_buffer;
-		m_protocol_family.destroy_protocol_header(header);
-		return NULL;
-	}
-	byte_buffer->set_append_size(header_length);
-
-	body_length = 0;
-	if(header->decode(buff, body_length) == false)
-	{
-		SLOG_ERROR("decode header error");
-		delete byte_buffer;
-		m_protocol_family.destroy_protocol_header(header);
-		return NULL;
-	}
-	buff = byte_buffer->get_append_buffer(body_length);
-	if(trans_socket.recv_data_all(buff, body_length) == TRANS_ERROR)
-	{
-		SLOG_ERROR("receive body data error");
-		delete byte_buffer;
-		m_protocol_family.destroy_protocol_header(header);
-		return NULL;
-	}
-
-	Protocol *resp_protocol = m_protocol_family.create_protocol_by_header(header);
-	if(resp_protocol == NULL)
-	{
-		SLOG_ERROR("create protocol error");
-		delete byte_buffer;
-		m_protocol_family.destroy_protocol_header(header);
-		return NULL;
-	}
-	resp_protocol->set_protocol_family(&m_protocol_family);
-	resp_protocol->attach_protocol_header(header);
-
-	if(resp_protocol->decode_body(buff, body_length) == false)
-	{
-		SLOG_ERROR("decode protocol error");
-		delete byte_buffer;
-		m_protocol_family.destroy_protocol(resp_protocol);
-		return NULL;
-	}
-	resp_protocol->attach_raw_data(byte_buffer);
-	return resp_protocol;
+	return protocol_fileinfo_resp;
 }
 
 bool File::query_chunk_store(string &local_file, string &fid, string &chunk_addr, int chunk_port)
@@ -213,7 +142,7 @@ bool File::query_chunk_store(string &local_file, string &fid, string &chunk_addr
 	if(fstat(fp, &file_stat) == -1)
 	{
 		SLOG_ERROR("stat file error. errno=%d(%s)", errno, strerror(errno));
-		close(fd);
+		close(fp);
 		return false;
 	}
 
@@ -248,9 +177,9 @@ bool File::query_chunk_store(string &local_file, string &fid, string &chunk_addr
 
 
 		//1 预留头部空间
-		int header_length, body_length;
+		int header_length;
 		ProtocolHeader *header = protocol_store->get_protocol_header();
-		header_length=header->get_header_length()
+		header_length=header->get_header_length();
 		byte_buffer.reserve(header_length);
 		//2 编码协议体
 		protocol_store->encode_body(&byte_buffer);
@@ -280,20 +209,11 @@ bool File::query_chunk_store(string &local_file, string &fid, string &chunk_addr
 		m_protocol_family.destroy_protocol(protocol_store);
 
 		//接收数据
-		byte_buffer.clear();
 		ProtocolStoreResp *protocol_store_resp = (ProtocolStoreResp *)m_protocol_family.create_protocol(PROTOCOL_STORE_RESP);
-		assert(protocol_store_resp != NULL);
-		header = protocol_store_resp->get_protocol_header();
-		header_length = header->get_header_length();
-		char *buff = byte_buffer.get_append_buffer(header_length);
-		if(trans_socket.recv_data_all(buff, header_length) == TRANS_ERROR)
+		if(TransProtocol::recv_protocol(&trans_socket, protocol_store_resp))
 		{
-			SLOG_ERROR("receive header errror");
-			m_protocol_family.destroy_protocol(protocol_store_resp);
-			close(fp);
-			return false;
-		}
 
+		}
 		m_protocol_family.destroy_protocol(protocol_store_resp);
 	}
 	close(fp);
