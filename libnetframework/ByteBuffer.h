@@ -40,6 +40,9 @@ public:
 	//必须先调用get_append_buffer
 	void set_append_size(int append_size);
 
+	//从数据结尾开始占用size字节的空间.成功返回该空间的偏移位置,失败返回-1
+	int reserve(int size);
+
 	//将长度为size的buf添加到有效数据缓冲区的末尾.成功返回true,失败返回false
 	bool append(const char *buf, int size);
 	//添加以'\0\为结尾的字符串string到buffer的末尾(不包括string的'\0')
