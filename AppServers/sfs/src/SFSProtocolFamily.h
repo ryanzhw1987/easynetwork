@@ -245,6 +245,7 @@ public://实现protocol的接口
 public:
 	ProtocolStore()
 		:m_filesize(0)
+		,m_segoffset(0)
 		,m_segindex(-1)
 		,m_segsize(0)
 		,m_segfinished(0)
@@ -260,6 +261,9 @@ public:
 	//file size
 	void set_file_size(uint64_t filesize){m_filesize = filesize;}
 	uint64_t get_file_size(){return m_filesize;}
+	//file offset
+	void set_seg_offset(uint64_t offset){m_segoffset = offset;}
+	uint64_t get_seg_offset(){return m_segoffset;}
 	//seg index
 	void set_seg_index(int segindex){m_segindex = segindex;}
 	uint64_t get_seg_index(){return m_segindex;}
@@ -276,6 +280,7 @@ private:
 	string m_fid;
 	string m_filename;
 	uint64_t m_filesize;
+	uint64_t m_segoffset;
 	int m_segindex;
 	int m_segsize;
 	char m_segfinished;

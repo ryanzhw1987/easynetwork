@@ -304,6 +304,8 @@ bool ProtocolStore::encode_body(ByteBuffer *byte_buffer)
 	ENCODE_STRING(m_filename);
 	////file size
 	ENCODE_INT64(m_filesize);
+	////seg offset
+	ENCODE_INT64(m_segoffset);
 	////seg index
 	ENCODE_INT(m_segindex);
 	////seg size
@@ -323,6 +325,8 @@ bool ProtocolStore::decode_body(const char *buf, int size)
 	DECODE_STRING(m_filename);
 	//file size
 	DECODE_INT64(m_filesize);
+	////seg offset
+	DECODE_INT64(m_segoffset);
 	//seg index
 	DECODE_INT(m_segindex);
 	//seg size
