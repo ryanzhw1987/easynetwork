@@ -6,6 +6,7 @@
  */
 
 #include "NetInterface.h"
+#include "IODemuxerEpoll.h"
 #include "slog.h"
 #include <assert.h>
 
@@ -19,26 +20,54 @@ NetInterface::NetInterface()
 				,m_socket_idle_timeout_ms(12000)
 {}
 
-bool NetInterface::start_instance()
+IODemuxer* NetInterface::create_io_demuxer()
 {
-	m_io_demuxer = create_io_demuxer();
-	m_socket_manager = create_socket_manager();
-	m_protocol_family = create_protocol_family();
+	return new EpollDemuxer();
+}
+void NetInterface::delete_io_demuxer(IODemuxer* io_demuxer)
+{
+	delete io_demuxer;
+}
 
-	on_start_instance();
+SocketManager* NetInterface::create_socket_manager()
+{
+	return new SocketManager;
+}
+
+void NetInterface::delete_socket_manager(SocketManager* socket_manager)
+{
+	delete socket_manager;
+}
+
+bool NetInterface::init()
+{
+	if(m_io_demuxer == NULL)
+		m_io_demuxer = create_io_demuxer();
+	if(m_socket_manager == NULL)
+		m_socket_manager = create_socket_manager();
+	if(m_protocol_family == NULL)
+		m_protocol_family = create_protocol_family();
 	return true;
 }
 
-bool NetInterface::stop_instance()
+bool NetInterface::uninit()
 {
-	delete_io_demuxer(m_io_demuxer);
-	m_io_demuxer = NULL;
-	delete_socket_manager(m_socket_manager);
-	m_socket_manager = NULL;
-	delete_protocol_family(m_protocol_family);
-	m_protocol_family = NULL;
+	if(m_io_demuxer != NULL)
+	{
+		delete_io_demuxer(m_io_demuxer);
+		m_io_demuxer = NULL;
+	}
+	if(m_socket_manager != NULL)
+	{
+		delete_socket_manager(m_socket_manager);
+		m_socket_manager = NULL;
+	}
+	if(m_protocol_family != NULL)
+	{
+		delete_protocol_family(m_protocol_family);
+		m_protocol_family = NULL;
+	}
 
-	on_stop_instance();
 	return true;
 }
 
@@ -47,17 +76,18 @@ NetInterface::~NetInterface()
 	ProtocolMap::iterator it;
 	for(it=m_protocol_map.begin(); it!=m_protocol_map.end(); ++it)
 	{
+		assert(m_protocol_family != NULL);
 		queue<Protocol*> &protocol_queue = it->second;
-		queue <Protocol*>::size_type size =  protocol_queue.size();
-		while(size>0)
+		while(protocol_queue.size() > 0)
 		{
 			Protocol *protocol = (Protocol *)protocol_queue.front();
-			delete protocol;
+			m_protocol_family->destroy_protocol(protocol);
 			protocol_queue.pop();
-			size = protocol_queue.size();
 		}
 	}
 	m_protocol_map.clear();
+
+	uninit();
 }
 
 //实现ConnectAccepter:接收一个新的连接请求
@@ -122,7 +152,7 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 		}
 		else if(recv_size < need_size) //还有部分协议头数据未接收
 		{
-			SLOG_DEBUG("protocol header incompleted[need=%d,recv=%d]. waiting for the remaining data.", need_size, recv_size);
+			SLOG_DEBUG("protocol header incomplete[need=%d,recv=%d]. waiting for the remaining data.", need_size, recv_size);
 			trans_socket->push_recv_buffer(raw_data_buffer);
 			m_protocol_family->destroy_protocol_header(header);
 			return HANDLE_OK;
@@ -155,7 +185,7 @@ HANDLE_RESULT NetInterface::on_readable(int fd)
 		}
 		else if(recv_size < need_size) //还有部分协议体数据未接收
 		{
-			SLOG_DEBUG("protocol body incompleted[need=%d,recv=%d]. waiting for the remaining data.", need_size, recv_size);
+			SLOG_DEBUG("protocol body incomplete[need=%d,recv=%d]. waiting for the remaining data.", need_size, recv_size);
 			trans_socket->push_recv_buffer(raw_data_buffer);
 			m_protocol_family->destroy_protocol_header(header);
 			return HANDLE_OK;
