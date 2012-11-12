@@ -2,6 +2,8 @@ INCS=-I/usr/local/include/libnetframework -I../
 LIBS=-lslog -lnetframework -lpthread -lssl
 FLAGS=-g
 
+all:lib sfs
+
 lib:SFSFile.h SFSFile.cpp ../SFSProtocolFamily.h ../SFSProtocolFamily.cpp
 	g++ -c ${INCS} $^ ${FLAGS}
 	ar rc libsfsfile.a *.o

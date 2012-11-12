@@ -8,14 +8,16 @@
 #ifndef _LIB_SFS_CLIENT_H_20121108
 #define _LIB_SFS_CLIENT_H_20121108
 
+#include "Socket.h"
 #include "ByteBuffer.h"
+#include "SFSProtocolFamily.h"
+
 #include <stdint.h>
 #include <string>
 #include <vector>
 using std::string;
 using std::vector;
 
-#include "SFSProtocolFamily.h"
 namespace SFS
 {
 
@@ -48,6 +50,7 @@ private:
 private:
 	Protocol* query_master(Protocol *protocol);
 	bool query_chunk_store(string &local_file, string &fid, string &chunk_addr, int chunk_port);
+	bool send_store_protocol(TransSocket* trans_socket, ProtocolStore *protocol_store, ByteBuffer *byte_buffer, int fd);
 };
 
 }

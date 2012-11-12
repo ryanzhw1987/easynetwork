@@ -306,18 +306,18 @@ bool NetInterface::release_trans_socket(SocketHandle socket_handle)
 	return true;
 }
 
-//添加协议到发送队列.成功返回0.失败返回-1,需要自行处理protocol.
-int NetInterface::send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp/*=false*/)
+//添加协议到发送队列.成功返回true.失败返回false,需要自行处理protocol.
+bool NetInterface::send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp/*=false*/)
 {
 	if(socket_handle==SOCKET_INVALID || protocol==NULL)
-		return -1;
+		return false;
 
 	//检查对应的socket是否存在
 	Socket* trans_socket = m_socket_manager->find_trans_socket(socket_handle);
 	if(trans_socket == NULL)
 	{
 		SLOG_WARN("can't find socket of fd:%d", socket_handle);
-		return -1;
+		return false;
 	}
 
 	//添加到fd对应任务队列
@@ -329,7 +329,7 @@ int NetInterface::send_protocol(SocketHandle socket_handle, Protocol *protocol, 
 		if(ret_pair.second == false)
 		{
 			SLOG_ERROR("insert protocol queue to map failed. fd:%d", socket_handle);
-			return -1;
+			return false;
 		}
 		it = ret_pair.first;
 	}
@@ -342,7 +342,7 @@ int NetInterface::send_protocol(SocketHandle socket_handle, Protocol *protocol, 
 	//if(has_resp)  //如果有回复,注册(一次)可读事件
 	//	events |= EVENT_READ;
 
-	return m_io_demuxer->register_event(socket_handle, events, 12000, this);
+	return m_io_demuxer->register_event(socket_handle, events, 12000, this)==0?true:false;
 }
 
 //获取等待队列中待发送的协议
