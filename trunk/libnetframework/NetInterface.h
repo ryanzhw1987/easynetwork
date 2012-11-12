@@ -66,8 +66,8 @@ public:
 	//释放链接
 	virtual bool release_trans_socket(SocketHandle socket_handle);
 
-	//添加协议到发送队列.成功返回0.失败返回-1,需要自行处理protocol.
-	virtual int send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp=false);
+	//添加协议到发送队列.成功返回true.失败返回false,需要自行处理protocol.
+	virtual bool send_protocol(SocketHandle socket_handle, Protocol *protocol, bool has_resp=false);
 	//获取等待队列中待发送的协议
 	virtual Protocol* get_wait_to_send_protocol(SocketHandle socket_handle);
 	//获取等待队列中待发送的协议个数

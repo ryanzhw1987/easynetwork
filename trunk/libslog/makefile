@@ -7,7 +7,7 @@ FULL_LOG=#-D__SLOG_FULL__
 all:lib test
 
 lib:slog.h slog.c
-	gcc -c slog.h slog.c
+	gcc -g -c slog.h slog.c
 	ar rc libslog.a slog.o
 
 test:slog_test.c slog.c slog.h

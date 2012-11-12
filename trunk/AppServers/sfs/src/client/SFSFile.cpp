@@ -6,9 +6,7 @@
  */
 
 #include "SFSFile.h"
-#include "Socket.h"
 #include "slog.h"
-#include "SFSProtocolFamily.h"
 #include "TransProtocol.h"
 
 #include <fcntl.h>
@@ -27,26 +25,26 @@ File::File(string &master_addr, int master_port, int n_replica)
 
 bool File::file_info(FileInfo *fileinfo, string &fid, bool query_chunkinfo/*=false*/)
 {
+	if(fileinfo == NULL)
+		return false;
+
 	//协议数据
 	ProtocolFileInfo* protocol_fileinfo = (ProtocolFileInfo*)m_protocol_family.create_protocol(PROTOCOL_FILE_INFO);
+	assert(protocol_fileinfo != NULL);
 	protocol_fileinfo->set_fid(fid);
 	protocol_fileinfo->set_query_chunkinfo(query_chunkinfo);
-
-	ProtocolFileInfoResp *protocol_fileinfo_resp =NULL;
-	protocol_fileinfo_resp = (ProtocolFileInfoResp *)query_master(protocol_fileinfo);
-	fileinfo->result = 0;
-	if(protocol_fileinfo_resp != NULL)
-	{
-		fileinfo->result = protocol_fileinfo_resp->get_result();
-		fileinfo->fid = protocol_fileinfo_resp->get_fid();
-		fileinfo->size = protocol_fileinfo_resp->get_fielsize();
-		fileinfo->chunkinfo = protocol_fileinfo_resp->get_chunkinfo();
-	}
-
+	//回复
+	ProtocolFileInfoResp *protocol_fileinfo_resp = (ProtocolFileInfoResp *)query_master(protocol_fileinfo);
 	m_protocol_family.destroy_protocol(protocol_fileinfo);
+	if(protocol_fileinfo_resp == NULL)
+		return false;
+	fileinfo->result = protocol_fileinfo_resp->get_result();
+	fileinfo->fid = protocol_fileinfo_resp->get_fid();
+	fileinfo->size = protocol_fileinfo_resp->get_fielsize();
+	fileinfo->chunkinfo = protocol_fileinfo_resp->get_chunkinfo();
 	m_protocol_family.destroy_protocol(protocol_fileinfo_resp);
 
-	return fileinfo->result == 0?false:true;
+	return true;
 }
 
 bool File::store(string &local_file)
@@ -55,10 +53,10 @@ bool File::store(string &local_file)
 	FileInfo fileinfo;
 	if(file_info(&fileinfo, fid, true))
 	{
-		printf("result:%d\nFID:%s\nFileSize:%lld\n", fileinfo.result, fileinfo.fid.c_str(), fileinfo.size);
+		SLOG_DEBUG("result:%d FID:%s FileSize:%lld.", fileinfo.result, fileinfo.fid.c_str(), fileinfo.size);
 		vector<ChunkInfo>::iterator it;
 		for(it=fileinfo.chunkinfo.begin(); it!=fileinfo.chunkinfo.end(); ++it)
-			printf("ChunkInfo:\n\tChunkPath:%s\n\tChunkAdd:%s\n\tChunkPort:%d\n",it->path.c_str(), it->chunk_addr.c_str(), it->port);
+			SLOG_DEBUG("ChunkInfo:ChunkPath:%s ChunkAdd:%s ChunkPort:%d.",it->path.c_str(), it->chunk_addr.c_str(), it->port);
 	}
 
 	switch(fileinfo.result)
@@ -70,15 +68,15 @@ bool File::store(string &local_file)
 	}
 	case 1:
 	{
-		printf("file already exist. FID:%s\nFileSize:%lld\n", fileinfo.fid.c_str(), fileinfo.size);
+		SLOG_DEBUG("file already exist. FID:%s FileSize:%lld.", fileinfo.fid.c_str(), fileinfo.size);
 		vector<ChunkInfo>::iterator it;
 		for(it=fileinfo.chunkinfo.begin(); it!=fileinfo.chunkinfo.end(); ++it)
-			printf("ChunkInfo:\n\tChunkPath:%s\n\tChunkAdd:%s\n\tChunkPort:%d\n",it->path.c_str(), it->chunk_addr.c_str(), it->port);
+			SLOG_DEBUG("ChunkInfo:ChunkPath:%s ChunkAdd:%s ChunkPort:%d.",it->path.c_str(), it->chunk_addr.c_str(), it->port);
 		break;
 	}
 	case 2:
 	{
-		printf("request chunk to store file. fid=%s.", fid.c_str());
+		SLOG_DEBUG("request chunk to store file. fid=%s.", fid.c_str());
 		vector<ChunkInfo>::iterator it;
 		for(it=fileinfo.chunkinfo.begin(); it!=fileinfo.chunkinfo.end(); ++it)
 			query_chunk_store(local_file, fid, it->chunk_addr, it->port);
@@ -86,7 +84,7 @@ bool File::store(string &local_file)
 	}
 	default:
 	{
-		printf("unknow result value. result=%d", fileinfo.result);
+		SLOG_WARN("unknow result value. result=%d.", fileinfo.result);
 		return false;
 	}
 	}
@@ -123,26 +121,68 @@ Protocol* File::query_master(Protocol *protocol)
 	return protocol_fileinfo_resp;
 }
 
+bool File::send_store_protocol(TransSocket* trans_socket, ProtocolStore *protocol_store, ByteBuffer *byte_buffer, int fd)
+{
+	byte_buffer->clear();
+
+	//1 预留头部空间
+	int header_length;
+	ProtocolHeader *header = protocol_store->get_protocol_header();
+	header_length = header->get_header_length();
+	byte_buffer->reserve(header_length);
+	//2 编码协议体
+	if(!protocol_store->encode_body(byte_buffer))
+	{
+		SLOG_ERROR("encode body error");
+		return false;
+	}
+	//3 添加数据
+	int seg_size = protocol_store->get_seg_size();
+	char *data_buffer = byte_buffer->get_append_buffer(seg_size);
+	if(read(fd, data_buffer, seg_size) != seg_size)
+	{
+		SLOG_ERROR("read file error. errno=%d(%s).", errno, strerror(errno));
+		return false;
+	}
+	byte_buffer->set_append_size(seg_size);
+	//4. 编码协议头
+	int body_length = byte_buffer->size()-header_length;
+	char *header_buffer = byte_buffer->get_data(0, header_length);
+	if(!header->encode(header_buffer, body_length))
+	{
+		SLOG_ERROR("encode header error");
+		return false;
+	}
+	//5. 发送数据
+	if(trans_socket->send_data_all(byte_buffer->get_data(), byte_buffer->size()) == TRANS_ERROR)
+	{
+		SLOG_ERROR("send data error");
+		return false;
+	}
+
+	return true;
+}
+
 bool File::query_chunk_store(string &local_file, string &fid, string &chunk_addr, int chunk_port)
 {
-	TransSocket trans_socket(m_master_addr.c_str(), m_master_port);
+	TransSocket trans_socket(chunk_addr.c_str(), chunk_port);
 	if(!trans_socket.open(1000))
 	{
 		SLOG_ERROR("connect sfs failed.");
 		return false;
 	}
 
-	int fp = open(local_file.c_str(), O_RDONLY);
-	if(fp == -1)
+	int fd = open(local_file.c_str(), O_RDONLY);
+	if(fd == -1)
 	{
 		SLOG_ERROR("open file error.");
 		return false;
 	}
 	struct stat file_stat;
-	if(fstat(fp, &file_stat) == -1)
+	if(fstat(fd, &file_stat) == -1)
 	{
 		SLOG_ERROR("stat file error. errno=%d(%s)", errno, strerror(errno));
-		close(fp);
+		close(fd);
 		return false;
 	}
 
@@ -153,18 +193,20 @@ bool File::query_chunk_store(string &local_file, string &fid, string &chunk_addr
 	int seg_index=0;
 	int seg_size = 0;
 	bool seg_finished = false;
+	bool result = true;
 
+	string chunk_path;
+	ByteBuffer byte_buffer(2048);
+	ProtocolStore *protocol_store = (ProtocolStore *)m_protocol_family.create_protocol(PROTOCOL_STORE);
+	assert(protocol_store != NULL);
 	while(seg_offset < filesize)
 	{
+		byte_buffer.clear();
 		seg_size = filesize-seg_offset;
 		if(seg_size > READ_SIZE)
 			seg_size = READ_SIZE;
 		else
 			seg_finished = true;
-
-		ByteBuffer byte_buffer(seg_size+200);
-		ProtocolStore *protocol_store = (ProtocolStore *)m_protocol_family.create_protocol(PROTOCOL_STORE);
-		assert(protocol_store != NULL);
 
 		//设置协议字段
 		protocol_store->set_fid(fid);
@@ -174,48 +216,37 @@ bool File::query_chunk_store(string &local_file, string &fid, string &chunk_addr
 		protocol_store->set_seg_index(seg_index++);
 		protocol_store->set_seg_size(seg_size);
 		protocol_store->set_seg_finished(seg_finished);
-
-
-		//1 预留头部空间
-		int header_length;
-		ProtocolHeader *header = protocol_store->get_protocol_header();
-		header_length=header->get_header_length();
-		byte_buffer.reserve(header_length);
-		//2 编码协议体
-		protocol_store->encode_body(&byte_buffer);
-		//3 添加数据
-		char *data_buffer = byte_buffer.get_append_buffer(seg_size);
-		if(read(fp, data_buffer, seg_size) != seg_size)
-		{
-			SLOG_ERROR("read file error. errno=%d(%s).", errno, strerror(errno));
-			m_protocol_family.destroy_protocol(protocol_store);
-			close(fp);
-			return false;
-		}
 		seg_offset += seg_size;
-		byte_buffer.set_append_size(seg_size);
-		//4. 编码协议头
-		int body_length = byte_buffer.size()-header_length;
-		char *header_buffer = byte_buffer.get_data(0, header_length);
-		header->encode(header_buffer, body_length);
-		//5. 发送数据
-		if(trans_socket.send_data_all(byte_buffer.get_data(), byte_buffer.size()) == TRANS_ERROR)
+
+		if(!send_store_protocol(&trans_socket, protocol_store, &byte_buffer, fd))
 		{
-			SLOG_ERROR("send data error");
-			m_protocol_family.destroy_protocol(protocol_store);
-			close(fp);
-			return false;
+			result = false;
+			break;
 		}
-		m_protocol_family.destroy_protocol(protocol_store);
 
 		//接收数据
 		ProtocolStoreResp *protocol_store_resp = (ProtocolStoreResp *)m_protocol_family.create_protocol(PROTOCOL_STORE_RESP);
-		if(TransProtocol::recv_protocol(&trans_socket, protocol_store_resp))
+		if(!TransProtocol::recv_protocol(&trans_socket, protocol_store_resp))
 		{
-
+			result = false;
+			m_protocol_family.destroy_protocol(protocol_store_resp);
+			break;
 		}
+
+		int resp_result = protocol_store_resp->get_result();
+		chunk_path = protocol_store_resp->get_chunk_path();
 		m_protocol_family.destroy_protocol(protocol_store_resp);
+		if(resp_result == 0) //存储失败
+		{
+			result = false;
+			break;
+		}
 	}
-	close(fp);
-	return true;
+
+	if(result == true)
+		SLOG_INFO("Store succ. ChunkPath=%s.", chunk_path.c_str());
+
+	m_protocol_family.destroy_protocol(protocol_store);
+	close(fd);
+	return result;
 }

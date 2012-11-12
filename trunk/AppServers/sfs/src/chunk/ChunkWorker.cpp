@@ -54,12 +54,13 @@ bool ChunkWorker::on_recv_protocol(SocketHandle socket_handle, Protocol *protoco
 		const string &fid = protocol_store->get_fid();
 		const string &filename = protocol_store->get_file_name();
 		uint64_t filesize = protocol_store->get_file_size();
+		uint64_t segoffset = protocol_store->get_seg_offset();
 		int segindex = protocol_store->get_seg_index();
 		int segsize = protocol_store->get_seg_size();
 		bool segfinished = protocol_store->get_seg_finished();
 
-		SLOG_INFO("receive Store Protocol. FID=%s, Filename=%s, Filesize=%lld, SegIndex=%d, SegSize=%d, SegFinished=%d"
-					,fid.c_str(), filename.c_str(), filesize, segindex, segsize, segfinished?1:0);
+		SLOG_INFO("receive Store Protocol. FID=%s, Filename=%s, Filesize=%lld, SegOffset=%lld, SegIndex=%d, SegSize=%d, SegFinished=%d"
+					,fid.c_str(), filename.c_str(), filesize, segoffset, segindex, segsize, segfinished?1:0);
 
 		ProtocolStoreResp* protocol_store_resp = (ProtocolStoreResp*)protocol_family->create_protocol(PROTOCOL_STORE_RESP);
 		assert(protocol_store_resp != NULL);

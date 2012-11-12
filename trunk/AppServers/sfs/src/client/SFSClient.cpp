@@ -17,16 +17,21 @@ int main(int agrc, char* argv[])
 	int master_port = 3012;
 	SFS::File sfs_file(master_addr, master_port, 2);
 
+	/*
 	//file info
 	string fid="AAACCCDDD";
-	SFS::FileInfo file_info;
-	if(sfs_file.file_info(&file_info, fid))
+	SFS::FileInfo fileinfo;
+	if(sfs_file.file_info(&fileinfo, fid))
 	{
-		printf("result:%d\nFID:%s\nFileSize:%lld\n", file_info.result, file_info.fid.c_str(), file_info.size);
+		SLOG_INFO("result:%d FID:%s FileSize:%lld.", fileinfo.result, fileinfo.fid.c_str(), fileinfo.size);
 		vector<ChunkInfo>::iterator it;
-		for(it=file_info.chunkinfo.begin(); it!=file_info.chunkinfo.end(); ++it)
-			printf("ChunkInfo:\n\tChunkPath:%s\n\tChunkAdd:%s\n\tChunkPort:%d\n",it->path.c_str(), it->chunk_addr.c_str(), it->port);
+		for(it=fileinfo.chunkinfo.begin(); it!=fileinfo.chunkinfo.end(); ++it)
+			SLOG_INFO("ChunkInfo:ChunkPath:%s ChunkAdd:%s ChunkPort:%d.",it->path.c_str(), it->chunk_addr.c_str(), it->port);
 	}
+	*/
+
+	string filename="/data/test.txt";
+	sfs_file.store(filename);
 
 	SLOG_UNINIT();
 	return 0;

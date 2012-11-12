@@ -470,6 +470,7 @@ void flush_buffer_to_file()
 		if(g_slog_setting.log_size >= log_size) //重新创建新的log文件
 			rename_log_file();
 	}
+	fflush(g_slog_setting.log_file);
 }
 
 void rename_log_file()
