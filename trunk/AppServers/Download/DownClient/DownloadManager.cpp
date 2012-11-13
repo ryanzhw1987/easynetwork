@@ -15,14 +15,14 @@ using namespace::std;
 
 void DownloadThread::run_thread()
 {
-	SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
-	get_io_demuxer()->run_loop();
+	SLOG_INFO("ConnectThread[ID=%d] is running...", get_thread_id());
+	start_server();
 	SLOG_INFO("ConnectThread end...");
 }
 
 bool DownloadThread::on_notify_add_task()
 {
-	SLOG_INFO("Thread[ID=%d,Addr=%x] on_notify_add_task", get_id(), this);
+	SLOG_INFO("Thread[ID=%d,Addr=%x] on_notify_add_task", get_thread_id(), this);
 	return send_download_task();
 }
 
@@ -32,38 +32,31 @@ bool DownloadThread::register_notify_handler(int read_pipe, EVENT_TYPE event_typ
 	return io_demuxer->register_event(read_pipe,event_type,-1,event_handler)==0?true:false;
 }
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* DownloadThread::create_io_demuxer()
+/////////////////////////////////// NetInterface 方法 ////////////////////////////
+bool DownloadThread::start_server()
 {
-	return new EpollDemuxer;
+	//Init NetInterface
+	init_net_interface();
+
+	//// Add Your Codes Here
+	////////////////////////
+
+	SLOG_INFO("Start download server.");
+	get_io_demuxer()->run_loop();
+
+	return true;
 }
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void DownloadThread::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* DownloadThread::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void DownloadThread::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
+
 ProtocolFamily* DownloadThread::create_protocol_family()
 {
 	return new DownloadProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void DownloadThread::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-////////////////// NetInterface的接口 由应用层重写 接收协议函数//////////////////
 bool DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
@@ -87,7 +80,7 @@ bool DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *prot
 		else
 		{
 			DownloadTask* task = it->second;
-			SLOG_INFO("receive RespondData[ID=%d, fd=%d, file=%s, index=%d, start_pos=%ld, size=%d]", get_id(), socket_handle, file_name.c_str(), task->task_index, task->start_pos, task->size);
+			SLOG_INFO("receive RespondData[ID=%d, fd=%d, file=%s, index=%d, start_pos=%ld, size=%d]", get_thread_id(), socket_handle, file_name.c_str(), task->task_index, task->start_pos, task->size);
 			if(task->fp == NULL)
 			{
 				char buf[128];
@@ -99,7 +92,7 @@ bool DownloadThread::on_recv_protocol(SocketHandle socket_handle, Protocol *prot
 			task->down_size += size;
 			if(task->down_size == task->size)
 			{
-				SLOG_INFO("finish download[ID=%d, fd=%d, file=%s, index=%d]", get_id(), socket_handle, file_name.c_str(), task->task_index);
+				SLOG_INFO("finish download[ID=%d, fd=%d, file=%s, index=%d]", get_thread_id(), socket_handle, file_name.c_str(), task->task_index);
 				fclose(task->fp);
 				delete task;
 				m_downloading_task.erase(it);
@@ -143,6 +136,13 @@ bool DownloadThread::on_socket_handle_timeout(SocketHandle socket_handle)
 	return true;
 }
 
+bool DownloadThread::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("server app on socket handle accpet. fd=%d", socket_handle);
+	return true;
+}
+
+/////////////////////////////////////////   业务逻辑   ///////////////////////////////////////
 bool DownloadThread::send_download_task(SocketHandle socket_handle)
 {
 	if(m_is_downloading)  //一次只执行一个下载任务
@@ -166,10 +166,10 @@ bool DownloadThread::send_download_task(SocketHandle socket_handle, DownloadTask
 	if(temp_protocol == NULL)
 		return false;
 	temp_protocol->assign(download_task->file_name, download_task->start_pos, download_task->size);
-	if(send_protocol(socket_handle, temp_protocol) == 0) //发送请求文件大小的协议
+	if(send_protocol(socket_handle, temp_protocol)) //发送请求文件大小的协议
 	{
 		SLOG_DEBUG("Thread[ID=%d,Addr=%x] send download task[file=%s, start_pos=%ld, size=%d, index=%d]"
-					,get_id()
+					,get_thread_id()
 					,this
 					,download_task->file_name.c_str()
 					,download_task->start_pos
@@ -185,10 +185,9 @@ bool DownloadThread::send_download_task(SocketHandle socket_handle, DownloadTask
 }
 
 ///////////////////////////////  thread pool  //////////////////////////////////
-Thread<DownloadTask*>* DownloadThreadPool::create_thread()
+Thread<DownloadTask*>* DownloadWorkerPool::create_thread()
 {
 	DownloadThread* temp = new DownloadThread;
-	temp->start_instance();
 	temp->set_idle_timeout(30000);
 	return (Thread<DownloadTask*>*)temp;
 }

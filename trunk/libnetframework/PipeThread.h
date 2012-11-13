@@ -47,7 +47,7 @@ private:
 		PipeHandler(PipeThread<T> *thread):m_thread(thread){}
 		HANDLE_RESULT on_readable(int fd) //实现EventHandler的接口
 		{
-			SLOG_DEBUG("Thread[ID=%d, Addr=%x] pipe fd=%d readable", m_thread->get_id(), m_thread, fd);
+			SLOG_DEBUG("Thread[ID=%d, Addr=%x] pipe fd=%d readable", m_thread->get_thread_id(), m_thread, fd);
 			//接收消息,把管道到数据全部读取出来,很快,一般只循环一次;
 			//如果链接发得太快,导致很多消息堵塞呢?...
 			char buf[100];

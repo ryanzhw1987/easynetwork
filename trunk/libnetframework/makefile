@@ -6,13 +6,21 @@ SO_NAME=libnetframework.so
 
 LIB_INC=/usr/local/include/libnetframework
 LIB_PATH=/usr/local/lib
-	
+
+BIN_PATH=/usr/local/bin
+
 lib:static share
+
 install:
 	mkdir ${LIB_INC} -p
 	cp *.h ${LIB_INC}
-	cp  ${LIB_NAME} ${LIB_PATH}
+	cp ${LIB_NAME} ${LIB_PATH}
 	cp ${SO_NAME} ${LIB_PATH}
+	mkdir ${LIB_INC}/AppTemplate -p
+	cp AppTemplate/*.h ${LIB_INC}/AppTemplate
+	cp AppTemplate/*.cpp ${LIB_INC}/AppTemplate
+	cp AppTemplate/enetlib ${BIN_PATH}
+
 uninstall:
 	rm ${LIB_INC} -r
 	rm ${LIB_PATH}/${LIB_NAME}

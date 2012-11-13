@@ -34,8 +34,8 @@ public:
 	virtual ~Thread(){}
 	bool set_detatchable(bool detachable){return m_running?false:(m_detachable=detachable,true);}
 	bool set_stack_size(unsigned int stack_size){return m_running?false:(m_stack_size=stack_size,true);}
-	bool set_id(unsigned int id){return m_running?false:(m_id=id,true);}
-	unsigned int get_id(){return m_id;}
+	bool set_thread_id(unsigned int id){return m_running?false:(m_id=id,true);}
+	unsigned int get_thread_id(){return m_id;}
 	void wait_terminate(){if(m_running && !m_detachable)pthread_join(m_thread_id, NULL);}
 	//启动线程
 	bool start();
@@ -45,6 +45,12 @@ public:
 	bool get_task(T &task){return m_task_queue.pop(task);}
 	//获取待处理任务数
 	unsigned int get_task_count(){return m_task_queue.count();}
+
+	//线程是否已经启动
+	bool is_thread_ready(){return m_running;}
+	//设置线程已经准备好
+	void set_thread_ready(){m_running = true;}
+
 private:
 	bool m_detachable;
 	unsigned int m_stack_size;
@@ -74,7 +80,7 @@ bool Thread<T>::start()
 {
 	if(m_running)
 		return true;
-	m_running = true;
+
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	if(m_stack_size > 0)// set stack size
@@ -88,16 +94,16 @@ bool Thread<T>::start()
 	}
 	if(m_detachable)
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	if(pthread_create(&m_thread_id, &attr, thread_proc, (void*)this) != 0)
-		m_running = false;
+	int result = pthread_create(&m_thread_id, &attr, thread_proc, (void*)this);
 	pthread_attr_destroy(&attr);
-	return m_running;
+
+	return result==0?true:false;
 }
 
 template <class T>
 bool Thread<T>::add_task(T &task)
 {
-	SLOG_DEBUG("Thread[ID=%d, Addr=%x] add task", get_id(), this);
+	SLOG_DEBUG("Thread[ID=%d, Addr=%x] add task", get_thread_id(), this);
 	if(m_task_queue.push(task) == false)
 		return false;
 	if(notify_add_task() == false)
