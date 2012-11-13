@@ -1,0 +1,71 @@
+#!/bin/bash
+SRC="/usr/local/include/libnetframework/AppTemplate"
+
+DAY=`date +"%Y-%m-%d"`
+USER=`users|awk '{print $1}'`
+
+function usage()
+{
+	echo
+	echo "Usage: enetlib -[s|m] ServerClass [-main]"
+	echo -e "\t-s : Generate a SINGLE thread server class"
+	echo -e "\t-m : Generate a MULTIPLE thread server class"
+	echo -e "\t-main : Generate a Main-cpp file for the ServerClass"
+	echo
+}
+
+##########################
+if [ $# -lt 1 ];then
+	usage;
+	exit
+fi
+
+if [ "$1" != "-s" ] && [ "$1" != "-m" ];then
+	echo "error: unknow option: $1"
+	usage;
+	exit
+fi
+MODE=$1
+
+if [ $# -lt 2 ];then
+	echo "error: ServerClass needed"
+	usage;
+	exit
+fi
+
+#echo "ServerClass Name: $2"
+
+SC=$2
+SC_H=$2.h
+SC_CPP=$2.cpp
+CAP_SC=`echo $SC|awk '{print toupper($1)}'`
+
+if [ -f "${SC_H}" ] || [ -f "${SC_CPP}" ];then
+	echo "error: file '${SC_H}' or '${SC_CPP}' exist !!!"
+elif [ "$MODE" = "-s" ];then
+	echo "Generate SINGLE thread Class: ${SC_H},${SC_CPP}"
+	###h file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_STAppTemplate_H_/_${CAP_SC}_H_/" -e "s/STAppTemplate/$SC/" ${SRC}/STAppTemplate.h >${SC_H}
+	###cpp file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/STAppTemplate/$SC/" ${SRC}/STAppTemplate.cpp >${SC_CPP}
+else
+	echo "Generate MULTIPLE thread class: ${SC_H},${SC_CPP}"
+	###h file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_MTAppTemplate_H_/_${CAP_SC}_H_/" -e "s/MTAppTemplate/$SC/" ${SRC}/MTAppTemplate.h >${SC_H}
+	###cpp file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/MTAppTemplate/$SC/" ${SRC}/MTAppTemplate.cpp >${SC_CPP}
+fi
+
+if [ $# -eq 3 ] && [ "$3" = "-main" ];then
+	MAINCPP="${SC}Main.cpp"
+
+	if [ -f "${MAINCPP}" ];then
+		echo "error: file '${MAINCPP}' exist!!!"
+	else
+		echo "Generate Main cpp file: ${MAINCPP}"
+		sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/AppTemplate/$SC/" ${SRC}/AppTemplateMain.cpp >${MAINCPP}
+	fi
+fi
+
+echo "finished..."
+echo
