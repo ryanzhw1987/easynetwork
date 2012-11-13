@@ -9,38 +9,27 @@
 #include "slog.h"
 #include "IODemuxerEpoll.h"
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* MTServerAppFramework::create_io_demuxer()
+bool MTServerAppFramework::start_server()
 {
-	return new EpollDemuxer;
+	//初始化NetInterface
+	init_net_interface();
+
+	//// Add Your Codes From Here
+	SLOG_INFO("Start server.");
+	get_io_demuxer()->run_loop();
+	return true;
 }
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void MTServerAppFramework::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* MTServerAppFramework::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void MTServerAppFramework::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
+
 ProtocolFamily* MTServerAppFramework::create_protocol_family()
 {
 	return new StringProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void MTServerAppFramework::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-//////////////////由应用层重写 接收协议函数//////////////////
 bool MTServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
@@ -93,11 +82,16 @@ bool MTServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 	return true;
 }
 
+bool MTServerAppFramework::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("server app on socket handle accpet. fd=%d", socket_handle);
+	return true;
+}
+
 ///////////////////////////////  thread pool  //////////////////////////////////
 Thread<SocketHandle>* MTServerAppFrameworkPool::create_thread()
 {
 	MTServerAppFramework *app = new MTServerAppFramework;
-	app->start_instance();
 	return app;
 }
 

@@ -12,7 +12,9 @@
 void ConnectThread::run_thread()
 {
 	SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
-	get_io_demuxer()->run_loop();
+	//Start App Server(NetInterface)
+	start_server();
+
 	SLOG_INFO("ConnectThread end...");
 }
 
