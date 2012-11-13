@@ -43,31 +43,26 @@ protected:
 	//实现接口:注册管道事件
 	bool register_notify_handler(int write_pipe, EVENT_TYPE event_type, EventHandler* event_handler);
 protected:
-	//////////////////由应用层重写 创建IODemuxer//////////////////
-	virtual IODemuxer* create_io_demuxer();
-	//////////////////由应用层重写 销毁IODemuxer//////////////////
-	virtual void delete_io_demuxer(IODemuxer* io_demuxer);
-	//////////////////由应用层重写 创建SocketManager//////////////
-	virtual SocketManager* create_socket_manager();
-	//////////////////由应用层重写 销毁SocketManager//////////////
-	virtual void delete_socket_manager(SocketManager* socket_manager);
-	//////////////////由应用层重写 创建具体的协议族//////////////
+	////由应用层实现----创建具体的协议族
 	virtual ProtocolFamily* create_protocol_family();
-	//////////////////由应用层重写 销毁协议族////////////////////
+	////由应用层实现----销毁协议族
 	virtual void delete_protocol_family(ProtocolFamily* protocol_family);
 
-	//////////////////由应用层重写 接收协议函数//////////////////
+	////由应用层实现----接收协议函数
 	bool on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol);
-	//////////////////由应用层重写 协议发送错误处理函数//////////
+	////由应用层实现----协议发送错误处理函数
 	bool on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol);
-	//////////////////由应用层重写 协议发送成功处理函数//////////
+	////由应用层实现----协议发送成功处理函数
 	bool on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol);
-	//////////////////由应用层重写 连接错误处理函数//////////////
+	////由应用层实现----连接错误处理函数
 	bool on_socket_handle_error(SocketHandle socket_handle);
-	//////////////////由应用层重写 连接超时处理函数//////////////
+	////由应用层实现----连接超时处理函数
 	bool on_socket_handle_timeout(SocketHandle socket_handle);
-	//////////////////由应用层重写 收到一个新的连接请求////////
-	bool on_socket_handler_accpet(SocketHandle socket_handle){return 0;}
+	////由应用层实现----已经收到一个新的连接请求
+	virtual bool on_socket_handler_accpet(SocketHandle socket_handle);
+public:
+	////由应用层实现----net interface实例启动入口
+	bool start_server();
 
 public:
 	DownloadThread():m_is_downloading(false){}
@@ -80,13 +75,13 @@ private:
 	bool m_is_downloading;	//是否正在下载
 };
 
-class DownloadThreadPool:public ThreadPool<DownloadTask *>
+class DownloadWorkerPool:public ThreadPool<DownloadTask *>
 {
 protected://实现基类接口
 	//创建一个线程
 	Thread<DownloadTask*>* create_thread();
 public:
-	DownloadThreadPool(unsigned int thread_num):ThreadPool<DownloadTask *>(thread_num){}
+	DownloadWorkerPool(unsigned int thread_num):ThreadPool<DownloadTask *>(thread_num){}
 };
 
 

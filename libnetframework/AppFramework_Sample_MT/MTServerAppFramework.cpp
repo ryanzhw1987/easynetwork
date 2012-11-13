@@ -39,7 +39,7 @@ bool MTServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol
 		{
 			StringProtocol* string_protocol = (StringProtocol*)protocol;
 			string &recv_string = string_protocol->get_string();
-			SLOG_INFO("thread[ID=%d] receive string protocol from fd=%d. receive data:[%s], length=%d", get_id(), socket_handle, recv_string.c_str(), recv_string.size());
+			SLOG_INFO("thread[ID=%d] receive string protocol from fd=%d. receive data:[%s], length=%d", get_thread_id(), socket_handle, recv_string.c_str(), recv_string.size());
 
 			StringProtocol* resp_protocol = (StringProtocol*)((DefaultProtocolFamily*)get_protocol_family())->create_protocol(PROTOCOL_STRING);
 			string send_string = "server receive data:";

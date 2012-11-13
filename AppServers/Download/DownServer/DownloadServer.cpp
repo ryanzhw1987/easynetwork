@@ -11,46 +11,30 @@
 
 #include <stdio.h>
 
-//////////////////由应用层重写 接收协议函数//////////////////
-void DownloadServer::run_thread()
+bool DownloadServer::start_server()
 {
-	SLOG_INFO("MTServerAppFramework[ID=%d] is running...", get_id());
+	//Init NetInterface
+	init_net_interface();
+
+	//// Add Your Codes Here
+	////////////////////////
+
+	SLOG_INFO("Start server.");
 	get_io_demuxer()->run_loop();
-	SLOG_INFO("MTServerAppFramework end...");
+
+	return true;
 }
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* DownloadServer::create_io_demuxer()
-{
-	return new EpollDemuxer;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void DownloadServer::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* DownloadServer::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void DownloadServer::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
 ProtocolFamily* DownloadServer::create_protocol_family()
 {
 	return new DownloadProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void DownloadServer::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-/////////////////////////////////////  实现 NetInterface的接口  ///////////////////////
 bool DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	DownloadProtocolFamily* protocol_family = (DownloadProtocolFamily*)get_protocol_family();
@@ -166,12 +150,15 @@ bool DownloadServer::on_socket_handle_timeout(SocketHandle socket_handle)
 	return true;
 }
 
-
+bool DownloadServer::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("server app on socket handle accpet. fd=%d", socket_handle);
+	return true;
+}
 ///////////////////////////////  thread pool  //////////////////////////////////
 Thread<SocketHandle>* DownloadThreadPool::create_thread()
 {
 	DownloadServer* temp = new DownloadServer();
-	temp->start_instance();
 	temp->set_idle_timeout(30000);
 	return (Thread<SocketHandle>*)temp;
 }

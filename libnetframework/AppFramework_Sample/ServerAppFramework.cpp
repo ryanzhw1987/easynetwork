@@ -9,10 +9,10 @@
 
 bool ServerAppFramework::start_server()
 {
-	//初始化NetInterface
+	////Init NetInterface
 	init_net_interface();
 
-	//// Add Your Codes From Here
+	////Add Your Codes From Here
 	ListenSocket linsten_socket(3010);
 	if(!linsten_socket.open())
 	{

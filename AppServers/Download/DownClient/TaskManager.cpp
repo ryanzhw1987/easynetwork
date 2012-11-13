@@ -12,18 +12,20 @@
 
 void TaskManager::run_thread()
 {
-	SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
-	get_io_demuxer()->run_loop();
-	SLOG_INFO("ConnectThread end...");
+	SLOG_INFO("TaskManager[ID=%d] is running...", get_thread_id());
+
+	start_server();
+
+	SLOG_INFO("TaskManager end...");
 }
 
 bool TaskManager::on_notify_add_task()
 {
-	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_id(), this);
+	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_thread_id(), this);
 	string file_name;
 	while(get_task(file_name))
 	{
-		SLOG_DEBUG("Thread[ID=%d, Addr=%x] receive task=%s", get_id(), this, file_name.c_str());
+		SLOG_DEBUG("Thread[ID=%d, Addr=%x] receive task=%s", get_thread_id(), this, file_name.c_str());
 		if(send_get_filesize_task(file_name) == false)
 			SLOG_ERROR("sent get_file_size protocol failed. file_name=%s", file_name.c_str());
 	}
@@ -37,38 +39,31 @@ bool TaskManager::register_notify_handler(int read_pipe, EVENT_TYPE event_type, 
 	return io_demuxer->register_event(read_pipe,event_type,-1,event_handler)==0?true:false;
 }
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* TaskManager::create_io_demuxer()
+
+bool TaskManager::start_server()
 {
-	return new EpollDemuxer;
+	//Init NetInterface
+	init_net_interface();
+	set_thread_ready();
+
+	//// Add Your Codes Here
+	////////////////////////
+	SLOG_INFO("Start download server.");
+	get_io_demuxer()->run_loop();
+
+	return true;
 }
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void TaskManager::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* TaskManager::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void TaskManager::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
+
 ProtocolFamily* TaskManager::create_protocol_family()
 {
 	return new DownloadProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void TaskManager::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-/////////////////////////////////////  实现 NetInterface的接口  ///////////////////////
 bool TaskManager::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
@@ -120,6 +115,11 @@ bool TaskManager::on_socket_handle_timeout(SocketHandle socket_handle)
 	return true;
 }
 
+bool TaskManager::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("server app on socket handle accpet. fd=%d", socket_handle);
+	return true;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////
 bool TaskManager::send_get_filesize_task(string &file_name)
@@ -133,10 +133,7 @@ bool TaskManager::send_get_filesize_task(string &file_name)
 		return false;
 	temp_protocol->assign(file_name);
 
-	if(send_protocol(socket_handle, temp_protocol)==0) //发送请求文件大小的协议
-		return true;
-	else
-		return false;
+	return send_protocol(socket_handle, temp_protocol); //发送请求文件大小的协议
 }
 
 bool TaskManager::download_task(const string &file_name, unsigned long long file_size)

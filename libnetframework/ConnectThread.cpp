@@ -11,7 +11,7 @@
 //实现接口:线程实际运行的入口
 void ConnectThread::run_thread()
 {
-	SLOG_INFO("ConnectThread[ID=%d] is running...", get_id());
+	SLOG_INFO("ConnectThread[ID=%d] is running...", get_thread_id());
 	//Start App Server(NetInterface)
 	start_server();
 
@@ -21,7 +21,7 @@ void ConnectThread::run_thread()
 //实现接口:响应添加任务事件
 bool ConnectThread::on_notify_add_task()
 {
-	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task",get_id(), this);
+	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task", get_thread_id(), this);
 	SocketHandle trans_fd;
 	while(get_task(trans_fd))
 	{

@@ -7,10 +7,10 @@
 
 bool ClientAppFramework::start_server()
 {
-	//初始化NetInterface
+	////Init NetInterface
 	init_net_interface();
 
-	//// Add Your Codes From Here
+	////Add Your Codes From Here
 	SocketHandle socket_handle = get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
 	if(socket_handle == SOCKET_INVALID)
 		return false;
