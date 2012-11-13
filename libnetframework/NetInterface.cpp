@@ -39,7 +39,7 @@ void NetInterface::delete_socket_manager(SocketManager* socket_manager)
 	delete socket_manager;
 }
 
-bool NetInterface::init()
+bool NetInterface::init_net_interface()
 {
 	if(m_io_demuxer == NULL)
 		m_io_demuxer = create_io_demuxer();
@@ -50,7 +50,7 @@ bool NetInterface::init()
 	return true;
 }
 
-bool NetInterface::uninit()
+bool NetInterface::uninit_net_interface()
 {
 	if(m_io_demuxer != NULL)
 	{
@@ -87,7 +87,7 @@ NetInterface::~NetInterface()
 	}
 	m_protocol_map.clear();
 
-	uninit();
+	uninit_net_interface();
 }
 
 //实现ConnectAccepter:接收一个新的连接请求

@@ -3,41 +3,36 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "IODemuxerEpoll.h"
 #include "slog.h"
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* ClientAppFramework::create_io_demuxer()
+bool ClientAppFramework::start_server()
 {
-	return new EpollDemuxer;
+	//初始化NetInterface
+	init_net_interface();
+
+	//// Add Your Codes From Here
+	SocketHandle socket_handle = get_active_trans_socket("127.0.0.1", 3010);  //创建主动连接
+	if(socket_handle == SOCKET_INVALID)
+		return false;
+
+	PingHandler ping_handler(this, socket_handle);
+	ping_handler.register_handler();
+
+	get_io_demuxer()->run_loop();
+
+	return true;
 }
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ClientAppFramework::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* ClientAppFramework::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ClientAppFramework::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
+
 ProtocolFamily* ClientAppFramework::create_protocol_family()
 {
 	return new StringProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void ClientAppFramework::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-//////////////////由应用层重写 接收协议函数//////////////////
 bool ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	DefaultProtocolHeader *header = (DefaultProtocolHeader*)protocol->get_protocol_header();
@@ -84,6 +79,12 @@ bool ClientAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 {
 	SLOG_DEBUG("client app on socket handle timeout. fd=%d", socket_handle);
 	get_io_demuxer()->exit();
+	return true;
+}
+
+bool ClientAppFramework::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("client app on socket handle accpet. fd=%d", socket_handle);
 	return true;
 }
 

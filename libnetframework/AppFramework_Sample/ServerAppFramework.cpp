@@ -6,10 +6,13 @@
 #include "Socket.h"
 #include "ListenHandler.h"
 #include "StringProtocolFamily.h"
-#include "IODemuxerEpoll.h"
 
-bool ServerAppFramework::run_server()
+bool ServerAppFramework::start_server()
 {
+	//初始化NetInterface
+	init_net_interface();
+
+	//// Add Your Codes From Here
 	ListenSocket linsten_socket(3010);
 	if(!linsten_socket.open())
 	{
@@ -30,38 +33,16 @@ bool ServerAppFramework::run_server()
 	return true;
 }
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* ServerAppFramework::create_io_demuxer()
-{
-	return new EpollDemuxer;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ServerAppFramework::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* ServerAppFramework::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ServerAppFramework::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
 ProtocolFamily* ServerAppFramework::create_protocol_family()
 {
 	return new StringProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void ServerAppFramework::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-//////////////////由应用层重写 接收协议函数//////////////////
 bool ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	DefaultProtocolHeader *header = (DefaultProtocolHeader*)protocol->get_protocol_header();
@@ -126,6 +107,12 @@ bool ServerAppFramework::on_socket_handle_error(SocketHandle socket_handle)
 bool ServerAppFramework::on_socket_handle_timeout(SocketHandle socket_handle)
 {
 	SLOG_DEBUG("server app on socket handle timeout. fd=%d", socket_handle);
+	return true;
+}
+
+bool ServerAppFramework::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("server app on socket handle accpet. fd=%d", socket_handle);
 	return true;
 }
 
