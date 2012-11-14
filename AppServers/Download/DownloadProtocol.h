@@ -119,12 +119,13 @@ public://实现protocol的接口
 	//解码大小为size的协议体数据buf.成功返回true,失败返回false.
 	bool decode_body(const char *buf, int size);
 public:
-	RespondData():m_start_pos(0), m_size(0){}
+	RespondData():m_start_pos(0), m_size(0), m_data(NULL){}
 	RespondData(string &filename, uint64_t start_pos, unsigned int size)
 	{
 		m_start_pos = start_pos;
 		m_size = size;
 		m_file_name = filename;
+		m_data = NULL;
 	}
 
 	void assign(const string &file_name, uint64_t start_pos, unsigned int size)
