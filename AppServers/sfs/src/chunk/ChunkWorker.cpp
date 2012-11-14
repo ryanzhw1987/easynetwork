@@ -10,38 +10,29 @@
 #include "SFSProtocolFamily.h"
 #include "slog.h"
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* ChunkWorker::create_io_demuxer()
+///////////////////////////////  ChunkWorker  //////////////////////////////////
+bool ChunkWorker::start_server()
 {
-	return new EpollDemuxer;
+	//Init NetInterface
+	init_net_interface();
+	set_thread_ready();
+
+	////Add your codes here
+	///////////////////////
+	get_io_demuxer()->run_loop();
+	return true;
 }
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ChunkWorker::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* ChunkWorker::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ChunkWorker::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
+
 ProtocolFamily* ChunkWorker::create_protocol_family()
 {
 	return new SFSProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void ChunkWorker::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-//////////////////由应用层重写 接收协议函数//////////////////
 bool ChunkWorker::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	SFSProtocolFamily* protocol_family = (SFSProtocolFamily*)get_protocol_family();
@@ -90,35 +81,55 @@ bool ChunkWorker::on_recv_protocol(SocketHandle socket_handle, Protocol *protoco
 
 bool ChunkWorker::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_ERROR("on send protocol[details=%s] error. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	SLOG_ERROR("Thread[ID=%d] send protocol[details=%s] error. fd=%d, protocol=%x", get_thread_id(), protocol->details(), socket_handle, protocol);
+	//Add your code to handle the protocol
+	//////////////////////////////////////
+
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
 
 bool ChunkWorker::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_INFO("on send protocol[details=%s] succ. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	SLOG_INFO("Thread[ID=%d] send protocol[details=%s] succ. fd=%d, protocol=%x", get_thread_id(), protocol->details(), socket_handle, protocol);
+	//Add your code to handle the protocol
+	//////////////////////////////////////
+
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
 
 bool ChunkWorker::on_socket_handle_error(SocketHandle socket_handle)
 {
-	SLOG_INFO("on socket handle error. fd=%d", socket_handle);
+	SLOG_INFO("Thread[ID=%d] handle socket error. fd=%d", get_thread_id(), socket_handle);
+	//Add your code to handle the socket error
+	//////////////////////////////////////////
+
 	return true;
 }
 
 bool ChunkWorker::on_socket_handle_timeout(SocketHandle socket_handle)
 {
-	SLOG_INFO("on socket handle timeout. fd=%d", socket_handle);
+	SLOG_INFO("Thread[ID=%d] handle socket timeout. fd=%d", get_thread_id(), socket_handle);
+	//Add your code to handle the socket timeout
+	////////////////////////////////////////////
+
 	return true;
 }
 
-///////////////////////////////  thread pool  //////////////////////////////////
+bool ChunkWorker::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("Thread[ID=%d] handle new socket. fd=%d", get_thread_id(), socket_handle);
+	//Add your code to handle new socket
+	////////////////////////////////////
+
+	return true;
+}
+
+///////////////////////////////  ChunkWorkerPool  //////////////////////////////////
 Thread<SocketHandle>* ChunkWorkerPool::create_thread()
 {
 	ChunkWorker *chunk_worker = new ChunkWorker;
-	chunk_worker->start_instance();
 	return chunk_worker;
 }
 

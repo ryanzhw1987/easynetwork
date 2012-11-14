@@ -8,21 +8,71 @@
 #include "DownloadProtocol.h"
 #include <string.h>
 
+/////////////////////////////////////////////////////////////
+//编码字符
+#define ENCODE_CHAR(c) do{ \
+	if(!byte_buffer->append(c)) \
+		return false; \
+}while(0)
+//解码字符
+#define DECODE_CHAR(c) do{ \
+	if(size < sizeof(c)) return false; \
+	c = buf[0]; ++buf; --size; \
+}while(0)
+
+//编码整数
+#define ENCODE_INT(i) do{ \
+	if(!byte_buffer->append((const char*)&i, sizeof(i))) \
+		return false; \
+}while(0)
+//解码整数
+#define DECODE_INT(i) do{ \
+	if(size < sizeof(i)) return false; \
+	i = *(int*)buf; buf+=sizeof(i); size-=sizeof(i); \
+}while(0)
+
+//编码64位整数
+#define ENCODE_INT64(i) ENCODE_INT(i)
+//解码整数
+#define DECODE_INT64(i) do{ \
+	if(size < sizeof(i)) return false; \
+	i = *(int64_t*)buf; buf+=sizeof(i); size-=sizeof(i); \
+}while(0)
+
+//编码字符串
+#define ENCODE_STRING(str) do{\
+	len = str.size(); \
+	if(!byte_buffer->append((const char*)&len, sizeof(len))) \
+		return false; \
+	if(len > 0 && !byte_buffer->append(str.c_str())) \
+		return false; \
+}while(0)
+//解码字符串
+#define DECODE_STRING(str) do{\
+	DECODE_INT(len); \
+	if(len<0 || size<len) return false; \
+	if(len > 0) \
+		str.assign(buf, len); buf+=len; size-=len; \
+}while(0)
+
 ////////////////  请求文件大小  ///////////////////
 //编码协议体数据到byte_buffer,成功返回true,失败返回false.
 bool RequestSize::encode_body(ByteBuffer *byte_buffer)
 {
-	int size = m_file_name.size();
-	char *buffer = byte_buffer->get_append_buffer(size);
-	memcpy((void*)buffer, (void*)m_file_name.c_str(), size);
-	byte_buffer->set_append_size(size);
+	int len = 0;
+	//file name
+	ENCODE_STRING(m_file_name);
+
 	return true;
 }
 
 //解码大小为size的协议体数据buf.成功返回true,失败返回false.
-bool RequestSize::decode_body(const char* buf, int buf_size)
+bool RequestSize::decode_body(const char* buf, int size)
 {
-	m_file_name.assign(buf, buf_size);
+	int len = 0;
+	//file name
+	DECODE_STRING(m_file_name);
+
 	return true;
 }
 
@@ -30,24 +80,24 @@ bool RequestSize::decode_body(const char* buf, int buf_size)
 //编码协议体数据到byte_buffer,成功返回true,失败返回false.
 bool RespondSize::encode_body(ByteBuffer *byte_buffer)
 {
-	int size = sizeof(m_file_size)+m_file_name.size();
-	char *buffer = byte_buffer->get_append_buffer(size);
-	memcpy((void*)buffer, (void*)&m_file_size, sizeof(m_file_size));
-	buffer += sizeof(m_file_size);
-	memcpy((void*)buffer, (void*)m_file_name.c_str(), m_file_name.size());
-	byte_buffer->set_append_size(size);
+	int len = 0;
+	//file size
+	ENCODE_INT64(m_file_size);
+	//file name
+	ENCODE_STRING(m_file_name);
+
 	return true;
 }
 
 //解码大小为size的协议体数据buf.成功返回true,失败返回false.
-bool RespondSize::decode_body(const char* buf, int buf_size)
+bool RespondSize::decode_body(const char* buf, int size)
 {
-	int size = sizeof(m_file_size);
-	if(buf_size < size)
-		return false;
-	memcpy((void*)&m_file_size, buf, size);
-	buf += size;
-	m_file_name.assign(buf, buf_size-size);
+	int len = 0;
+	//file size
+	DECODE_INT64(m_file_size);
+	//file name
+	DECODE_STRING(m_file_name);
+
 	return true;
 }
 
@@ -55,30 +105,28 @@ bool RespondSize::decode_body(const char* buf, int buf_size)
 //编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
 bool RequestData::encode_body(ByteBuffer *byte_buffer)
 {
-	int size = sizeof(m_start_pos)+sizeof(m_size)+m_file_name.size();
-	char *buffer = byte_buffer->get_append_buffer(size);
-	if(buffer == NULL)
-		return false;
-	memcpy((void*)buffer, (void*)&m_start_pos, sizeof(m_start_pos));
-	buffer += sizeof(m_start_pos);
-	memcpy((void*)buffer, (void*)&m_size, sizeof(m_size));
-	buffer += sizeof(m_size);
-	memcpy((void*)buffer, (void*)m_file_name.c_str(), m_file_name.size());
-	byte_buffer->set_append_size(size);
+	int len = 0;
+	//file name
+	ENCODE_STRING(m_file_name);
+	//start pos
+	ENCODE_INT64(m_start_pos);
+	//size
+	ENCODE_INT(m_size);
+
 	return true;
 }
 
 //解码包体.成功返回0,否则返回-1;
-bool RequestData::decode_body(const char* buf, int buf_size)
+bool RequestData::decode_body(const char* buf, int size)
 {
-	int size = sizeof(m_start_pos)+sizeof(m_size);
-	if(buf_size < size)
-		return false;
-	memcpy((void*)&m_start_pos, buf, sizeof(m_start_pos));
-	buf += sizeof(m_start_pos);
-	memcpy((void*)&m_size, buf, sizeof(m_size));
-	buf += sizeof(m_size);
-	m_file_name.assign(buf, buf_size-size);
+	int len = 0;
+	//file name
+	DECODE_STRING(m_file_name);
+	//start pos
+	DECODE_INT64(m_start_pos);
+	//size
+	DECODE_INT(m_size);
+
 	return true;
 }
 
@@ -86,51 +134,31 @@ bool RequestData::decode_body(const char* buf, int buf_size)
 //编码协议体数据到io_buffer.成功返回编码后协议体长度(大于0),失败返回-1;
 bool RespondData::encode_body(ByteBuffer *byte_buffer)
 {
-	int name_len = m_file_name.size();
-	int size  = sizeof(m_start_pos)+sizeof(m_size)+sizeof(name_len)+m_file_name.size();
+	int len = 0;
+	//file name
+	ENCODE_STRING(m_file_name);
+	//start pos
+	ENCODE_INT64(m_start_pos);
+	//size
+	ENCODE_INT(m_size);
 
-	char *buffer = byte_buffer->get_append_buffer(size);
-	if(buffer == NULL)
-		return false;
-
-	memcpy((void*)buffer, (void*)&m_start_pos, sizeof(m_start_pos)); //start pos
-	buffer += sizeof(m_start_pos);
-	memcpy((void*)buffer, (void*)&m_size, sizeof(m_size));  //request size
-	buffer += sizeof(m_size);
-	memcpy((void*)buffer, (void*)&name_len, sizeof(name_len));	//length of name
-	buffer += sizeof(name_len);
-	memcpy((void*)buffer, (void*)m_file_name.c_str(), m_file_name.size()); //filename
-	byte_buffer->set_append_size(size);
 	return true;
 }
 
 //解码包体.成功返回0,否则返回-1;
-bool RespondData::decode_body(const char* buf, int buf_size)
+bool RespondData::decode_body(const char* buf, int size)
 {
-	int name_len = 0;
-	int size = sizeof(m_start_pos)+sizeof(m_size)+sizeof(name_len);
-	if(buf_size < size)
-		return false;
-	memcpy((void*)&m_start_pos, buf, sizeof(m_start_pos));
-	buf += sizeof(m_start_pos);
-	memcpy((void*)&m_size, buf, sizeof(m_size));
-	buf += sizeof(m_size);
-	memcpy((void*)&name_len, buf, sizeof(name_len));
-	buf += sizeof(name_len);
-	m_file_name.assign(buf, name_len);
+	int len = 0;
+	//file name
+	DECODE_STRING(m_file_name);
+	//start pos
+	DECODE_INT64(m_start_pos);
+	//size
+	DECODE_INT(m_size);
+	//data
+	m_data = buf;
 
 	return true;
-}
-
-const char* RespondData::get_data()
-{
-	DefaultProtocolHeader *header = (DefaultProtocolHeader *)get_protocol_header();
-	int header_length = header->get_header_length();
-	int name_len = 0;
-	int size = sizeof(m_start_pos)+sizeof(m_size)+sizeof(name_len);
-
-	ByteBuffer *raw_data = get_raw_data();
-	return raw_data->get_data(header_length+size, m_size);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
