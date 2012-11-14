@@ -82,9 +82,9 @@ protected:
 //////////////////////////   应用层实现工厂方法函数   //////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 protected:
-	////由应用层实现----创建具体的协议族
+	////由应用层实现 -- 创建具体的协议族
 	virtual ProtocolFamily* create_protocol_family()=0;
-	////由应用层实现----销毁协议族
+	////由应用层实现 -- 销毁协议族
 	virtual void delete_protocol_family(ProtocolFamily* protocol_family)=0;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,20 +92,20 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////
 protected:
 	//返回值:true:成功, false:失败
-	////由应用层实现----接收协议函数
+	////由应用层实现 -- 接收协议函数
 	virtual bool on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)=0; //应用层设置detatch_protocol为true时,由应用层负责销毁protocol
-	////由应用层实现----协议发送错误处理函数
+	////由应用层实现 -- 协议发送错误处理函数
 	virtual bool on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)=0;
-	////由应用层实现----协议发送成功处理函数
+	////由应用层实现 -- 协议发送成功处理函数
 	virtual bool on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)=0;
-	////由应用层实现----连接错误处理函数
+	////由应用层实现 -- 连接错误处理函数
 	virtual bool on_socket_handle_error(SocketHandle socket_handle)=0;
-	////由应用层实现----连接超时处理函数
+	////由应用层实现 -- 连接超时处理函数
 	virtual bool on_socket_handle_timeout(SocketHandle socket_handle)=0;
-	////由应用层实现----已经收到一个新的连接请求
+	////由应用层实现 -- 已经收到一个新的连接请求
 	virtual bool on_socket_handler_accpet(SocketHandle socket_handle)=0;
 public:
-	////由应用层实现----net interface实例启动入口
+	////由应用层实现 -- net interface实例启动入口
 	virtual bool start_server()=0;
 };
 
