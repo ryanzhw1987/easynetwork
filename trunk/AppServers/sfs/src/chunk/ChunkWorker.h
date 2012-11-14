@@ -14,7 +14,6 @@
 class ChunkWorker:public ConnectThread
 {
 protected:
-protected:
 	////由应用层实现 -- 创建具体的协议族
 	virtual ProtocolFamily* create_protocol_family();
 	////由应用层实现 -- 销毁协议族
