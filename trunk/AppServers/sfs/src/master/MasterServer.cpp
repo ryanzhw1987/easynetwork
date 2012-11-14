@@ -9,49 +9,31 @@
 #include "IODemuxerEpoll.h"
 #include "SFSProtocolFamily.h"
 #include "slog.h"
-
 #include <stdio.h>
 
-//////////////////由应用层重写 接收协议函数//////////////////
-void MasterServer::run_thread()
+/////////////////////////////////////// MasterServer ///////////////////////////////////////
+bool MasterServer::start_server()
 {
-	SLOG_INFO("MTServerAppFramework[ID=%d] is running...", get_id());
+	//Init NetInterface
+	init_net_interface();
+	set_thread_ready();
+
+	////Add your codes here
+	///////////////////////
 	get_io_demuxer()->run_loop();
-	SLOG_INFO("MTServerAppFramework end...");
+	return true;
 }
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* MasterServer::create_io_demuxer()
-{
-	return new EpollDemuxer;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void MasterServer::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* MasterServer::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void MasterServer::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
 ProtocolFamily* MasterServer::create_protocol_family()
 {
 	return new SFSProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void MasterServer::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
 }
 
-/////////////////////////////////////  实现 NetInterface的接口  ///////////////////////
 bool MasterServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	SFSProtocolFamily* protocol_family = (SFSProtocolFamily*)get_protocol_family();
@@ -63,7 +45,7 @@ bool MasterServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protoc
 			ProtocolFileInfo *protocol_fileinfo = (ProtocolFileInfo *)protocol;
 			const string& fid = protocol_fileinfo->get_fid();
 			bool query_chunkinfo = protocol_fileinfo->get_query_chunkinfo();
-			SLOG_INFO("Thread[id=%d] receive FileInfo protocol.FID=%s, query=%d", get_id(), fid.c_str(), query_chunkinfo?1:0);
+			SLOG_INFO("Thread[id=%d] receive FileInfo protocol.FID=%s, query=%d", get_thread_id(), fid.c_str(), query_chunkinfo?1:0);
 
 			ProtocolFileInfoResp *protocol_fileinfo_resp = (ProtocolFileInfoResp *)protocol_family->create_protocol(PROTOCOL_FILE_INFO_RESP);
 			assert(protocol_fileinfo_resp != NULL);
@@ -94,7 +76,7 @@ bool MasterServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protoc
 		{
 			ProtocolChunkPing *protocol_chunkping = (ProtocolChunkPing *)protocol;
 			SLOG_INFO("Thread[id=%d] receive ChunkPing protocol.ChunkId=%s, ChunkPort=%d, DiskSpace=%lld, DiskUsed=%lld"
-						,get_id()
+						,get_thread_id()
 						,protocol_chunkping->get_chunk_id().c_str()
 						,protocol_chunkping->get_chunk_port()
 						,protocol_chunkping->get_disk_space()
@@ -122,36 +104,55 @@ bool MasterServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protoc
 
 bool MasterServer::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_ERROR("server app on send protocol[details=%s] error. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	SLOG_ERROR("Thread[ID=%d] send protocol[details=%s] error. fd=%d, protocol=%x", get_thread_id(), protocol->details(), socket_handle, protocol);
+	//Add your code to handle the protocol
+	//////////////////////////////////////
+
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
 
 bool MasterServer::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_INFO("server app on send protocol[details=%s] succ. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	SLOG_INFO("Thread[ID=%d] send protocol[details=%s] succ. fd=%d, protocol=%x", get_thread_id(), protocol->details(), socket_handle, protocol);
+	//Add your code to handle the protocol
+	//////////////////////////////////////
+
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
 
 bool MasterServer::on_socket_handle_error(SocketHandle socket_handle)
 {
-	SLOG_INFO("server app on socket handle error. fd=%d", socket_handle);
+	SLOG_INFO("Thread[ID=%d] handle socket error. fd=%d", get_thread_id(), socket_handle);
+	//Add your code to handle the socket error
+	//////////////////////////////////////////
+
 	return true;
 }
 
 bool MasterServer::on_socket_handle_timeout(SocketHandle socket_handle)
 {
-	SLOG_INFO("server app on socket handle timeout. fd=%d", socket_handle);
+	SLOG_INFO("Thread[ID=%d] handle socket timeout. fd=%d", get_thread_id(), socket_handle);
+	//Add your code to handle the socket timeout
+	////////////////////////////////////////////
+
 	return true;
 }
 
+bool MasterServer::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("Thread[ID=%d] handle new socket. fd=%d", get_thread_id(), socket_handle);
+	//Add your code to handle new socket
+	////////////////////////////////////
 
-///////////////////////////////  thread pool  //////////////////////////////////
+	return true;
+}
+
+/////////////////////////////////////// MasterThreadPool ///////////////////////////////////////
 Thread<SocketHandle>* MasterThreadPool::create_thread()
 {
 	MasterServer* temp = new MasterServer();
-	temp->start_instance();
 	temp->set_idle_timeout(30000);
 	return (Thread<SocketHandle>*)temp;
 }

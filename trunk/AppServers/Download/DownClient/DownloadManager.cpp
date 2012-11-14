@@ -37,6 +37,7 @@ bool DownloadThread::start_server()
 {
 	//Init NetInterface
 	init_net_interface();
+	set_thread_ready();
 
 	//// Add Your Codes Here
 	////////////////////////

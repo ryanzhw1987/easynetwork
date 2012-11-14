@@ -36,10 +36,10 @@ public:
 	bool start_server();
 };
 
-class DownloadThreadPool:public ConnectThreadPool
+class DownloadServerThreadPool:public ConnectThreadPool
 {
 public:
-	DownloadThreadPool(unsigned int thread_num):ConnectThreadPool(thread_num){}
+	DownloadServerThreadPool(unsigned int thread_num):ConnectThreadPool(thread_num){}
 protected:
 	//实现创建一个线程
 	Thread<SocketHandle>* create_thread();

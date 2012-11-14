@@ -15,6 +15,7 @@ bool DownloadServer::start_server()
 {
 	//Init NetInterface
 	init_net_interface();
+	set_thread_ready();
 
 	//// Add Your Codes Here
 	////////////////////////
@@ -156,7 +157,7 @@ bool DownloadServer::on_socket_handler_accpet(SocketHandle socket_handle)
 	return true;
 }
 ///////////////////////////////  thread pool  //////////////////////////////////
-Thread<SocketHandle>* DownloadThreadPool::create_thread()
+Thread<SocketHandle>* DownloadServerThreadPool::create_thread()
 {
 	DownloadServer* temp = new DownloadServer();
 	temp->set_idle_timeout(30000);

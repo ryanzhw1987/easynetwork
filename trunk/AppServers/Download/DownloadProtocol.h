@@ -10,6 +10,7 @@
 
 #include "DefaultProtocolFamily.h"
 #include "MemManager.h"
+#include <stdint.h>
 
 #include <string>
 using std::string;
@@ -53,22 +54,22 @@ public://实现protocol的接口
 	bool decode_body(const char *buf, int size);
 public:
 	RespondSize():m_file_size(0){}
-	RespondSize(string &filename, unsigned long long file_size)
+	RespondSize(string &filename, uint64_t file_size)
 	{
 		m_file_size = file_size;
 		m_file_name = filename;
 	}
 
-	void assign(const string &file_name, unsigned long long file_size)
+	void assign(const string &file_name, uint64_t file_size)
 	{
 		m_file_name = file_name;
 		m_file_size = file_size;
 	}
 
 	const string& get_file_name(){return m_file_name;}
-	unsigned long long get_file_size(){return m_file_size;}
+	uint64_t get_file_size(){return m_file_size;}
 private:
-	unsigned long long m_file_size;
+	uint64_t m_file_size;
 	string m_file_name;
 };
 
@@ -84,25 +85,25 @@ public://实现protocol的接口
 	bool decode_body(const char *buf, int size);
 public:
 	RequestData():m_start_pos(0), m_size(0){}
-	RequestData(string &filename, unsigned long long start_pos, unsigned int size)
+	RequestData(string &filename, uint64_t start_pos, unsigned int size)
 	{
 		m_start_pos = start_pos;
 		m_size = size;
 		m_file_name = filename;
 	}
 
-	void assign(const string &file_name, unsigned long long start_pos, unsigned int size)
+	void assign(const string &file_name, uint64_t start_pos, unsigned int size)
 	{
 		m_file_name = file_name;
 		m_start_pos = start_pos;
 		m_size = size;
 	}
 
-	unsigned long long get_start_pos(){return m_start_pos;}
+	uint64_t get_start_pos(){return m_start_pos;}
 	unsigned int get_size(){return m_size;}
 	const string& get_file_name(){return m_file_name;}
 private:
-	unsigned long long m_start_pos;
+	uint64_t m_start_pos;
 	unsigned int m_size;
 	string m_file_name;
 };
@@ -119,14 +120,14 @@ public://实现protocol的接口
 	bool decode_body(const char *buf, int size);
 public:
 	RespondData():m_start_pos(0), m_size(0){}
-	RespondData(string &filename, unsigned long long start_pos, unsigned int size)
+	RespondData(string &filename, uint64_t start_pos, unsigned int size)
 	{
 		m_start_pos = start_pos;
 		m_size = size;
 		m_file_name = filename;
 	}
 
-	void assign(const string &file_name, unsigned long long start_pos, unsigned int size)
+	void assign(const string &file_name, uint64_t start_pos, unsigned int size)
 	{
 		m_file_name = file_name;
 		m_start_pos = start_pos;
@@ -134,13 +135,14 @@ public:
 	}
 
 	const string& get_file_name(){return m_file_name;}
-	unsigned long long get_start_pos(){return m_start_pos;}
+	uint64_t get_start_pos(){return m_start_pos;}
 	unsigned int get_size(){return m_size;}
-	const char* get_data();
+	const char* get_data(){return m_data;}
 private:
 	string m_file_name;
-	unsigned long long m_start_pos;
+	uint64_t m_start_pos;
 	unsigned int m_size;
+	const char *m_data;
 };
 
 class DownloadProtocolFamily:public DefaultProtocolFamily

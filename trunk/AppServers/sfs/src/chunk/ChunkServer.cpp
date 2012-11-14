@@ -1,6 +1,9 @@
 #include "ChunkServer.h"
 #include "IODemuxerEpoll.h"
 #include "slog.h"
+#include "ChunkWorker.h"
+#include "ListenHandler.h"
+#include "Socket.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -13,10 +16,29 @@ ChunkServer::ChunkServer()
 ChunkServer::~ChunkServer()
 {}
 
-bool ChunkServer::run_server()
+bool ChunkServer::start_server()
 {
-	//注册定时器
+	//Init NetInterface
+	init_net_interface();
+
+	////Add your codes here
+	///////////////////////
 	IODemuxer *io_demuxer = get_io_demuxer();
+	//监听端口
+	ListenSocket linsten_socket(3013);
+	if(!linsten_socket.open())
+	{
+		SLOG_ERROR("listen on port:3010 error.");
+		return false;
+	}
+
+	//chunk worker pool
+	ChunkWorkerPool server_pool(3);
+	server_pool.start();
+	ListenHandler listen_handler(&server_pool);
+	io_demuxer->register_event(linsten_socket.get_handle(), EVENT_READ|EVENT_PERSIST, -1, &listen_handler);
+
+	//注册定时器
 	if(io_demuxer->register_event(-1, EVENT_PERSIST, 3000, this) == -1)
 	{
 		SLOG_ERROR("register timer handler failed.");
@@ -31,36 +53,15 @@ bool ChunkServer::run_server()
 		return false;
 	}
 
-	io_demuxer->run_loop();
+	get_io_demuxer()->run_loop();
 	return true;
 }
 
-//////////////////由应用层重写 创建IODemuxer//////////////////
-IODemuxer* ChunkServer::create_io_demuxer()
-{
-	return new EpollDemuxer;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ChunkServer::delete_io_demuxer(IODemuxer* io_demuxer)
-{
-	delete io_demuxer;
-}
-//////////////////由应用层重写 创建SocketManager//////////////
-SocketManager* ChunkServer::create_socket_manager()
-{
-	return new SocketManager;
-}
-//////////////////由应用层重写 销毁IODemuxer//////////////////
-void ChunkServer::delete_socket_manager(SocketManager* socket_manager)
-{
-	delete socket_manager;
-}
-///////////////////  由应用层实现 创建协议族  //////////////////////////
 ProtocolFamily* ChunkServer::create_protocol_family()
 {
 	return new SFSProtocolFamily;
 }
-///////////////////  由应用层实现 销毁协议族  //////////////////////////
+
 void ChunkServer::delete_protocol_family(ProtocolFamily* protocol_family)
 {
 	delete protocol_family;
@@ -115,28 +116,48 @@ bool ChunkServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protoco
 
 bool ChunkServer::on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_ERROR("on send protocol[details=%s] error. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	SLOG_ERROR("Send protocol[details=%s] error. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	//Add your code to handle the protocol
+	//////////////////////////////////////
+
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
 
 bool ChunkServer::on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)
 {
-	SLOG_DEBUG("on send protocol[details=%s] succ. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	SLOG_INFO("Send protocol[details=%s] succ. fd=%d, protocol=%x", protocol->details(), socket_handle, protocol);
+	//Add your code to handle the protocol
+	//////////////////////////////////////
+
 	get_protocol_family()->destroy_protocol(protocol);
 	return true;
 }
 
 bool ChunkServer::on_socket_handle_error(SocketHandle socket_handle)
 {
-	SLOG_DEBUG("on socket handle error. fd=%d", socket_handle);
+	SLOG_INFO("Handle socket error. fd=%d", socket_handle);
+	//Add your code to handle the socket error
+	//////////////////////////////////////////
+
 	return true;
 }
 
 bool ChunkServer::on_socket_handle_timeout(SocketHandle socket_handle)
 {
-	SLOG_DEBUG("on socket handle timeout. fd=%d", socket_handle);
+	SLOG_INFO("Handle socket timeout. fd=%d", socket_handle);
+	//Add your code to handle the socket timeout
+	////////////////////////////////////////////
+
 	return true;
 }
 
+bool ChunkServer::on_socket_handler_accpet(SocketHandle socket_handle)
+{
+	SLOG_DEBUG("Handle new socket. fd=%d", socket_handle);
+	//Add your code to handle new socket
+	////////////////////////////////////
+
+	return true;
+}
 
