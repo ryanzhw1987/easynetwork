@@ -9,9 +9,6 @@
 #define _LIB_WORK_THREAD_H_20121114
 
 #include "Thread.h"
-#include "slog.h"
-
-#include <pthread.h>
 
 /////////////////////////////////////////////////////
 ////                  WorkThread                 ////
