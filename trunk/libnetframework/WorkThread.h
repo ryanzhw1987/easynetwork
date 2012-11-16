@@ -74,7 +74,7 @@ bool WorkThread<T>::on_notify_add_task()
 template <class T>
 void WorkThread<T>::run_thread()
 {
-	set_thread_ready();
+	this->set_thread_ready();
 
 	while(true)
 	{
