@@ -1,6 +1,6 @@
 *一、enetlib工具的使用*
  
- enetlib工具可以帮你快速生成框架类代码.其使用非常简单, 安装之后,在命令行输入enetlib可以获取如下帮助信息:
+ enetlib随!EasyNetwork库一起安装。enetlib工具可以帮你快速生成框架类代码。其使用非常简单，安装之后,在命令行输入enetlib可以获取如下帮助信息：
    
  
  Usage: enetlib -[s|m] ServerClass [-main]
