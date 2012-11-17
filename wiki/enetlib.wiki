@@ -43,6 +43,6 @@
  
   
 *四、其他*
-    通过创建自己的协议族(ProtocolFamily)类,并在SingleServer.cpp或者MultipleServer.cpp中实现相应的接口方法来就可以完成自己的应用层业务逻辑.
+    enetlib生成的类代表!NetInterface的一个实例。开发者通过创建自己的协议族类(ProtocolFamily),并在生成的框架类代码中实现相应的接口方法就可以完成自己的应用层业务逻辑.
  
  
