@@ -1,6 +1,6 @@
 <h2>libslog</h2>
 
- libslog是一个高性能的开源C/C++多线程安全日志库。源码可从这里[download 下载]
+ libslog是一个高性能的开源C/C++多线程安全日志库。libslog的源码可从这里[download 下载]。
 
 *一、 特性*
  a. 多线程安全
