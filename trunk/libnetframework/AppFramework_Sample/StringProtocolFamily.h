@@ -15,7 +15,7 @@ using std::string;
 class StringProtocolFamily: public DefaultProtocolFamily
 {
 public:
-	Protocol* create_protocol(ProtocolHeader *header);
+	Protocol* create_protocol_by_header(ProtocolHeader *header);
 	void destroy_protocol(Protocol *protocol);
 };
 

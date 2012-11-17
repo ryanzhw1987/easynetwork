@@ -41,9 +41,8 @@ bool ClientAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *
 	{
 	case PROTOCOL_STRING:
 		{
-			int length = 0;
-			char *recv_buffer = protocol->get_body_raw_data(length);
-			SLOG_INFO("client recv resp:[%s], length=%d", recv_buffer, length);
+			StringProtocol *str_protocol = (StringProtocol *)protocol;
+			SLOG_INFO("client recv resp:[%s].", str_protocol->get_string().c_str());
 		}
 		break;
 	default:
@@ -101,29 +100,17 @@ HANDLE_RESULT PingHandler::on_timeout(int fd)
 	SLOG_DEBUG("ping handler timeout. count=%d", ++count);
 
 	DefaultProtocolFamily *protocol_family = (DefaultProtocolFamily *)m_app_framework->get_protocol_family();
-	Protocol* protocol = protocol_family->create_protocol(PROTOCOL_STRING);
-	DefaultProtocolHeader *header = (DefaultProtocolHeader*)protocol->get_protocol_header();
-	int header_length = header->get_header_length();
+	StringProtocol *str_protocol = (StringProtocol *)protocol_family->create_protocol(PROTOCOL_STRING);
+	assert(str_protocol != NULL);
 
-	ByteBuffer *send_buffer = new ByteBuffer;
-	//预留协议头空间
-	send_buffer->get_append_buffer(header_length);
-	send_buffer->set_append_size(header_length);
-	//编码协议体
-	char *body_buffer = send_buffer->get_append_buffer(100);
-	snprintf(body_buffer, 100, "client ping cmd");
-	int body_length = strlen(body_buffer)+1;
-	send_buffer->set_append_size(body_length);
-	//send_buffer << "client ping cmd"<<'\0';
-
-
-	//编码协议头
-	char *header_buffer = send_buffer->get_data();
-	header->encode(header_buffer, body_length);
-	//attach编码后的数据
-	protocol->attach_raw_data(send_buffer);
+	string str = "client ping protocol";
+	str_protocol->set_string(str);
 	//发送协议
-	m_app_framework->send_protocol(m_socket_handle, protocol);
+	if(!m_app_framework->send_protocol(m_socket_handle, str_protocol))
+	{
+		SLOG_ERROR("send ping protocol failed.");
+		protocol_family->destroy_protocol(str_protocol);
+	}
 
 	return HANDLE_OK;
 }
