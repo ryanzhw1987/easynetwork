@@ -1,15 +1,25 @@
 <h2>libslog</h2>
 
- libslog是一个高性能的c/c++多线程安全日志库.
+ libslog是一个高性能的c/c++多线程安全日志库。
 
 *一、 特性*
  a. 多线程安全
 
  b. 简单的配置参数
 
- c. 支持热更新log参数,如从INFO级别更改为DEBUG不需要重启服务器
+ c. 支持热更新log参数，如从INFO级别更改为DEBUG不需要重启服务器
 
-*二、 性能*
+*二、使用*
+ libslog使用简单，可配置5个log级别：TRACE、DEBUG、INFO、WARN、ERROR。TRACE级别最高，将打印所有级别的log。DEBUG次之，可以打印TRACE除外的其他log。ERROR最低，只打印本级别的log。slog的使用非常简单，与C语言的printf格式一致：
+{{{
+SLOG_TRACE("hello slog. %d", 1);
+SLOG_DEBUG("hello slog. %d", 2);
+SLOG_INFO("hello slog. %d", 3);
+SLOG_WARN("hello slog. %d", 4);
+SLOG_ERROR("hello slog. %d", 5);
+}}}
+
+*三、 性能*
  a. 测试条件
 {{{
 每次写入100w条数据,测试10次. 每条数据的格式如下:
@@ -49,7 +59,7 @@ avg |  1.8058   | 10.17309
 }}}
  性能比log4cpp高5倍:)
 
-*三、 slog的配置参数*
+*四、 slog的配置参数*
 {{{
 ### log级别
 slog_level=DEBUG
@@ -68,7 +78,7 @@ slog_flush_interval=2
 config_update_interval=30
 }}}
 
-*四、 测试代码(见源码)*
+*五、 测试代码(见源码)*
  a. slog_test.c
 {{{
 char buf[100];
