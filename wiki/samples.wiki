@@ -34,7 +34,7 @@
 }}}
 
 2. StringProtocol协议
- StringProtocol从Protocol继承：
+ StringProtocol从Protocol继承，需要实现encode_body和decode_body等接口方法：
 {{{
 class StringProtocol:public Protocol
   {
