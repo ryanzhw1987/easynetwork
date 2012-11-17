@@ -1,0 +1,48 @@
+*一、enetlib工具的使用*
+ 
+ enetlib工具可以帮你快速生成框架类代码.其使用非常简单, 安装之后,在命令行输入enetlib可以获取如下帮助信息:
+   
+ 
+ Usage: enetlib -[s|m] ServerClass [-main]
+ 
+        -s : Generate a SINGLE thread server class
+ 
+        -m : Generate a MULTIPLE thread server class
+ 
+        -main : Generate a Main-cpp file for the ServerClass
+ 
+
+*二、生成单线程框架*
+ 
+        enetlib –s SingleServer [-main]
+   
+ 
+ 将在当前目录生成如下文件: ls
+ 
+ SingleServer.cpp
+ 
+ SingleServer.h
+ 
+ SingleServerMain.cpp  [使用-main参数]
+ 
+  
+ 
+*三、生成多线程框架*
+ 
+          enetlib –m MultipleServer [-main]
+ 
+  
+ 
+ 将在当前目录生成如下文件: ls
+ 
+ MultipleServer.cpp
+ 
+ MultipleServer.h
+ 
+ MultipleServerMain.cpp  [使用-main参数]
+ 
+  
+*四、其他*
+    通过创建自己的协议族(ProtocolFamily)类,并在SingleServer.cpp或者MultipleServer.cpp中实现相应的接口方法来就可以完成自己的应用层业务逻辑.
+ 
+ 
