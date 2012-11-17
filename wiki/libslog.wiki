@@ -1,33 +1,34 @@
-#summary One-sentence summary of this page.
+<h2>libslog</h2>
 
-= Introduction =
+ libslog是一个高性能的c/c++多线程安全日志库.
 
-libslog:一个高性能的c/c++多线程安全日志库.
-svn地址: https://easynetwork.googlecode.com/svn/trunk/libslog
 
-= Details =
- * *特性*
+*一、 特性*
  # 多线程安全
  # 支持不重启服务更新log参数(比如从INFO级别更改为DEBUG,方便在线跟踪)
  # 简单的配置参数
  # 使用简单, 跟printf类似
 
- * *性能*
-和log4cpp对比测试;
+*二、 性能*
 
- * 每次写入100w条数据,测试10次
- * 每条数据的格式
+ a. 测试条件
 {{{
-   1) slog:  2012-09-24 17:55:52[WARN]ccccccc...  (99个'C'字符)
-   2) log4cpp:  2012-09-24 18:03:58 [INFO]: [sub1] ccccccc...  (99个'C'字符)
+每次写入100w条数据,测试10次. 每条数据的格式如下:
+slog:  2012-09-24 17:55:52[WARN]ccccccc...  (99个'C'字符)
+log4cpp:  2012-09-24 18:03:58 [INFO]: [sub1] ccccccc...  (99个'C'字符)
 }}}
- * 机器负载
+
+ b. 机器负载
 {{{
-   1) slog:  load average: 0.25, 0.32, 0.60
-   2) log4cpp:  load average: 0.29, 0.37, 0.51
+slog:  load average: 0.25, 0.32, 0.60
+log4cpp:  load average: 0.29, 0.37, 0.51
 }}}
- * log4cpp版本: log4cpp-1.1rc1.tar.gz
- * 测试结果
+
+ c. log4cpp版本
+{{{
+log4cpp-1.1rc1.tar.gz
+}}}
+ d. 测试结果
 {{{
 ----------------------------
  \  |  slog     |  log4cpp  
@@ -45,11 +46,11 @@ svn地址: https://easynetwork.googlecode.com/svn/trunk/libslog
 ----|-----------------------
 avg |  1.8058   | 10.17309
 ----------------------------
-                    (单位:s)
+                   (单位:s)
 }}}
-性能比log4cpp高5倍:)
+ 性能比log4cpp高5倍:)
 
- * *配置参数*
+*三、 slog的配置参数*
 {{{
 ### log级别
 slog_level=DEBUG
@@ -68,49 +69,49 @@ slog_flush_interval=2
 config_update_interval=30
 }}}
 
- * *测试代码(见源码)*
- * slog_test.c
+*四、 测试代码(见源码)*
+ a. slog_test.c
 {{{
-	char buf[100];
-	memset(buf, 'c', 100);
-	buf[99]=0;
+char buf[100];
+memset(buf, 'c', 100);
+buf[99]=0;
 
-	int i,j;
-	struct timeval start, end;
+int i,j;
+struct timeval start, end;
 
-	printf("start...\n");
-	gettimeofday(&start, NULL);
-	for(i=0; i<100; ++i)
-	{
-		for(j=0;j<10000; ++j)
-			SLOG_WARN("%s", buf);
-	}
-	gettimeofday(&end, NULL);
-	printf("end...\n");
+printf("start...\n");
+gettimeofday(&start, NULL);
+for(i=0; i<100; ++i)
+{
+	for(j=0;j<10000; ++j)
+		SLOG_WARN("%s", buf);
+}
+gettimeofday(&end, NULL);
+printf("end...\n");
 
-	int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
-	printf("use time:%0.4f(s)\n", us/1000000.0);
+int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
+printf("use time:%0.4f(s)\n", us/1000000.0);
 }}}
 
- * log4cpp_test.cpp
+ b. log4cpp_test.cpp
 {{{
-	char buf[100];
-	memset(buf, 'C', 100);
-	buf[99] = '\0';
+char buf[100];
+memset(buf, 'C', 100);
+buf[99] = '\0';
 
-	int i, j;
-	struct timeval start, end;
+int i, j;
+struct timeval start, end;
 
-	printf("start...\n");
-	gettimeofday(&start, NULL);
-	for(i=0; i<100; ++i)
-	{
-		for(j=0; j<10000; ++j)
-			sub1.info(buf);
-	}
-	gettimeofday(&end, NULL);
-	printf("end...\n");
+printf("start...\n");
+gettimeofday(&start, NULL);
+for(i=0; i<100; ++i)
+{
+	for(j=0; j<10000; ++j)
+		sub1.info(buf);
+}
+gettimeofday(&end, NULL);
+printf("end...\n");
 
-	int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
-	printf("use time:%0.4f(s)\n", us/1000000.0);
+int us = (end.tv_sec-start.tv_sec)*1000000+(end.tv_usec-start.tv_usec);
+printf("use time:%0.4f(s)\n", us/1000000.0);
 }}}
