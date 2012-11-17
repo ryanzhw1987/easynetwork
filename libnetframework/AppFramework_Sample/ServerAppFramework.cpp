@@ -46,34 +46,23 @@ void ServerAppFramework::delete_protocol_family(ProtocolFamily* protocol_family)
 bool ServerAppFramework::on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)
 {
 	DefaultProtocolHeader *header = (DefaultProtocolHeader*)protocol->get_protocol_header();
+	DefaultProtocolFamily* protocol_family = (DefaultProtocolFamily *)get_protocol_family();
 	switch(header->get_protocol_type())
 	{
 	case PROTOCOL_STRING:
 		{
 			StringProtocol* string_protocol = (StringProtocol*)protocol;
-			int recv_length = 0;
-			char *recv_data = protocol->get_body_raw_data(recv_length);
-			SLOG_INFO("receive string protocol from fd=%d. receive data:[%s], length=%d", socket_handle, recv_data, recv_length);
+			SLOG_INFO("receive string protocol from fd=%d. receive data:[%s].", socket_handle, string_protocol->get_string().c_str());
 
-			Protocol* resp_protocol = ((DefaultProtocolFamily*)get_protocol_family())->create_protocol(PROTOCOL_STRING);
-			header = (DefaultProtocolHeader*)resp_protocol->get_protocol_header();
-			int header_length = header->get_header_length();
-			ByteBuffer *send_buffer = new ByteBuffer;
-			//预留协议头空间
-			send_buffer->get_append_buffer(header_length);
-			send_buffer->set_append_size(header->get_header_length());
-			//编码协议体
-			char *body_buffer = send_buffer->get_append_buffer(recv_length+100);
-			snprintf(body_buffer, recv_length+100, "server receive data:[%s]", recv_data);
-			int body_length = strlen(body_buffer)+1;
-			send_buffer->set_append_size(body_length);
-			//编码协议头
-			char *header_buffer = send_buffer->get_data();
-			header->encode(header_buffer, body_length);
-			//attach编码后的数据
-			resp_protocol->attach_raw_data(send_buffer);
+			StringProtocol *resp_protocol = (StringProtocol *)protocol_family->create_protocol(PROTOCOL_STRING);
+			string str = "server respond";
+			resp_protocol->set_string(str);
 			//发送协议
-			send_protocol(socket_handle, resp_protocol);
+			if(!send_protocol(socket_handle, resp_protocol))
+			{
+				SLOG_ERROR("send protocol failed.");
+				protocol_family->destroy_protocol(resp_protocol);
+			}
 		}
 		break;
 	default:
