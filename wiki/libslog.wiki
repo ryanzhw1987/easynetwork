@@ -1,6 +1,6 @@
 <h1>libslog</h1>
 
- libslog是一个高性能的开源C/C++多线程安全日志库。libslog的源码可从这里[download 下载]。
+ libslog是一个基于linux的高性能开源C/C++多线程安全日志库。libslog的源码可从这里[download 下载]。
 
 *一、 特性*
  a. 多线程安全
@@ -9,15 +9,57 @@
 
  c. 支持热更新log参数，如从INFO级别更改为DEBUG不需要重启服务器
 
-*二、使用*
- libslog使用简单，可配置5个log级别：TRACE、DEBUG、INFO、WARN、ERROR。TRACE级别最高，将打印所有级别的log。DEBUG次之，可以打印TRACE除外的其他log。ERROR最低，只打印本级别的log。slog的使用非常简单，与C语言的printf格式一致：
+*二、安装与使用*
+ a. 编译
 {{{
-SLOG_TRACE("hello slog. %d", 1);
-SLOG_DEBUG("hello slog. %d", 2);
-SLOG_INFO("hello slog. %d", 3);
-SLOG_WARN("hello slog. %d", 4);
-SLOG_ERROR("hello slog. %d", 5);
+make
 }}}
+
+ b. 安装
+{{{
+sudo make install
+}}}
+
+ c. 使用
+
+ libslog使用非常简单，在自己的源文件中包含头文件slog.h：
+{{{
+#include "slog.h"
+}}}
+
+ 使用libslog时需要先进行初始化：
+{{{
+SLOG_INIT(SLOG_CONFIG_PATH);
+//SLOG_INIT(NULL);
+}}}
+   其中SLOG_CONFIG_PATH是slog的配置文件路径，如果为NULL的话将使用默认的配置参数，并且log将打印到屏幕。
+
+ libslog有5个log级别：TRACE、DEBUG、INFO、WARN、ERROR。TRACE级别最高，将打印所有级别的log。DEBUG次之，可以打印TRACE除外的其他log。ERROR最低，只打印本级别的log。slog的使用非常简单，与C语言的printf格式一致：
+{{{
+#include "slog.h"
+
+int main()
+{
+  SLOG_INIT(NULL);
+
+  SLOG_TRACE("hello slog. %d", 1);
+  SLOG_DEBUG("hello slog. %d", 2);
+  SLOG_INFO("hello slog. %d", 3);
+  SLOG_WARN("hello slog. %d", 4);
+  SLOG_ERROR("hello slog. %d", 5);
+
+  SLOG_UNINIT();
+
+  return;
+}
+}}}
+  其中SLOG_UNINIT()是对slog的反初始化。
+
+ 最后链接slog库：
+{{{
+g++ a.cpp -lslog -o test_slog
+}}}
+
 
 *三、 性能*
  a. 测试条件
