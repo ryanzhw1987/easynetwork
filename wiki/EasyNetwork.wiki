@@ -10,4 +10,4 @@
 
 另外，框架使用[libslog]日志文件系统。
 
-联系作者:xmulyj@gmail.com
+联系作者：xmulyj@gmail.com
