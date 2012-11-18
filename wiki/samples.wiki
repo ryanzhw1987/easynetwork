@@ -35,8 +35,8 @@
  这两个接口允许开发者自己控制协议的创建和销毁方式，比如开发者可以提供自己的内存管理模块，并从内存管理模块中分配和销毁自己的协议对象。[Download 多任务多线程下载]展示了利用内存管理模块分配协议对象的例子。
 
 <br><br>
-2. StringProtocol协议
- StringProtocol从Protocol继承，需要实现encode_body和decode_body等接口方法：
+2. !StringProtocol协议
+ !StringProtocol从Protocol继承，需要实现encode_body和decode_body等接口方法：
 {{{
 class StringProtocol:public Protocol
   {
