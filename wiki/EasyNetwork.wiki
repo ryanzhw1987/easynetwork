@@ -8,4 +8,6 @@
 
 框架的使用可以参考[enetlib 利用enetlib生成框架类代码]和[samples 其他例子]。
 
-注:框架使用[libslog]日志文件系统。
+另外，框架使用[libslog]日志文件系统。
+
+联系作者:xmulyj@gmail.com
