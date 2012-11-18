@@ -108,7 +108,9 @@ bool StringProtocol::decode_body(const char *buf, int size)
  1. 利用enetlib工具生产框架代码
 {{{
 enetlib -s ServerAppFramework -main
+enetlib -s ClientAppFramework -main
 }}}
+
 
 <br><br>
 *四、多线程开发范式*
