@@ -8,53 +8,6 @@
 #include "DownloadProtocol.h"
 #include <string.h>
 
-/////////////////////////////////////////////////////////////
-//编码字符
-#define ENCODE_CHAR(c) do{ \
-	if(!byte_buffer->append(c)) \
-		return false; \
-}while(0)
-//解码字符
-#define DECODE_CHAR(c) do{ \
-	if(size < sizeof(c)) return false; \
-	c = buf[0]; ++buf; --size; \
-}while(0)
-
-//编码整数
-#define ENCODE_INT(i) do{ \
-	if(!byte_buffer->append((const char*)&i, sizeof(i))) \
-		return false; \
-}while(0)
-//解码整数
-#define DECODE_INT(i) do{ \
-	if(size < sizeof(i)) return false; \
-	i = *(int*)buf; buf+=sizeof(i); size-=sizeof(i); \
-}while(0)
-
-//编码64位整数
-#define ENCODE_INT64(i) ENCODE_INT(i)
-//解码整数
-#define DECODE_INT64(i) do{ \
-	if(size < sizeof(i)) return false; \
-	i = *(int64_t*)buf; buf+=sizeof(i); size-=sizeof(i); \
-}while(0)
-
-//编码字符串
-#define ENCODE_STRING(str) do{\
-	len = str.size(); \
-	if(!byte_buffer->append((const char*)&len, sizeof(len))) \
-		return false; \
-	if(len > 0 && !byte_buffer->append(str.c_str())) \
-		return false; \
-}while(0)
-//解码字符串
-#define DECODE_STRING(str) do{\
-	DECODE_INT(len); \
-	if(len<0 || size<len) return false; \
-	if(len > 0) \
-		str.assign(buf, len); buf+=len; size-=len; \
-}while(0)
-
 ////////////////  请求文件大小  ///////////////////
 //编码协议体数据到byte_buffer,成功返回true,失败返回false.
 bool RequestSize::encode_body(ByteBuffer *byte_buffer)

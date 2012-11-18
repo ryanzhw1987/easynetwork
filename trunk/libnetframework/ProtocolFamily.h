@@ -11,6 +11,7 @@
 #include "ByteBuffer.h"
 #include <stdio.h>
 #include <assert.h>
+#include <stdint.h>
 
 class Protocol;
 class ProtocolHeader;
@@ -190,6 +191,70 @@ bool Protocol::encode()
 	}
 	return true;
 }
+
+////////////////////////////////// 编码/解码宏定义 ////////////////////////////////
+////编码字符
+#define ENCODE_CHAR(c) do{ \
+	if(!byte_buffer->append(c)) return false; \
+}while(0)
+////解码字符
+#define DECODE_CHAR(c) do{ \
+	if(size < sizeof(c)) return false; \
+	c = buf[0]; ++buf; --size; \
+}while(0)
+
+////编码整数
+#define ENCODE_INT(i) do{ \
+	if(!byte_buffer->append((const char*)&i, sizeof(i))) return false; \
+}while(0)
+
+////解码整数
+#define DECODE_INT(i) do{ \
+	if(size < sizeof(i)) return false; \
+	i = *(int*)buf; buf+=sizeof(i); size-=sizeof(i); \
+}while(0)
+
+////编码64位整数
+#define ENCODE_INT64(i) do{ \
+	if(!byte_buffer->append((const char*)&i, sizeof(i))) return false; \
+}while(0)
+
+////解码整数
+#define DECODE_INT64(i) do{ \
+	if(size < sizeof(i)) return false; \
+	i = *(int64_t*)buf; buf+=sizeof(i); size-=sizeof(i); \
+}while(0)
+
+////编码字符串
+#define ENCODE_STRING(str) do{ \
+	int len = str.size(); \
+	if(!byte_buffer->append((const char*)&len, sizeof(len))) return false; \
+	if(len>0 && !byte_buffer->append(str.c_str())) return false; \
+}while(0)
+
+////解码字符串
+#define DECODE_STRING(str) do{ \
+	int len = 0; \
+	DECODE_INT(len); \
+	if(len<0 || size<len) return false; \
+	if(len > 0) {str.assign(buf, len); buf+=len; size-=len;}\
+}while(0)
+
+////编码C风格字符串
+#define ENCODE_STRING_C(c_str) do{ \
+	int len = strlen(c_str); \
+	if(!byte_buffer->append((const char*)&len, sizeof(len))) return false; \
+	if(len>0 && !byte_buffer->append(c_str)) return false; \
+}while(0)
+
+////解码C风格字符串
+#define DECODE_STRING_C(c_str) do{ \
+	int len = 0; \
+	DECODE_INT(len); \
+	if(len<0 || size<len) return false; \
+	if(len > 0) {c_str=buf; buf+=len; size-=len;} \
+	else c_str = NULL; \
+}while(0)
 
 #endif //_LIB_PROTOCOL_FAMILY_H_
 
