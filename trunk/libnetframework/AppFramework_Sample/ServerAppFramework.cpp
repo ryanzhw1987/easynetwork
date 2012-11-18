@@ -24,8 +24,8 @@ bool ServerAppFramework::start_server()
 	ListenHandler listen_handler(this);
 	get_io_demuxer()->register_event(linsten_socket.get_handle(), EVENT_READ|EVENT_PERSIST, -1, &listen_handler);
 	//timer event
-	//TimerHandler timer(get_io_demuxer());
-	//get_io_demuxer()->register_event(-1, EVENT_INVALID, 3000, &timer);
+	TimerHandler timer(get_io_demuxer());
+	get_io_demuxer()->register_event(-1, EVENT_INVALID, 3000, &timer);
 
 	//run server forever
 	get_io_demuxer()->run_loop();
