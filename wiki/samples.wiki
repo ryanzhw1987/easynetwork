@@ -1,5 +1,5 @@
 *一、前言*
- 本节分别介绍利用!EasyNetwork搭建单线程和多线程服务器框架的例子。我们的目标是在客户端和服务端传送简单的字符串协议。在搭建服务器框架前，我们先需要先创建我们的协议和协议类。这一般也是开发者需要准备的。
+ 本节分别介绍利用!EasyNetwork搭建单线程和多线程服务器框架的例子。我们的目标是在客户端和服务端传送简单的字符串协议。在搭建服务器框架前，我们需要先创建自己的协议和协议类。这一般也是开发者需要提前准备的。
 
 *二、协议族StringProtocolFamily*
  1. SpringProtocolFamily从DefaultProtocolFamily继承，用于创建和销毁stringProtocol协议：
@@ -32,7 +32,9 @@
  	delete protocol;
  }
 }}}
+ 这两个接口允许开发者自己控制协议的创建和销毁方式，比如开发者可以提供自己的内存管理模块，并从内存管理模块中分配和销毁自己的协议对象。[Download 多任务多线程下载例子展示了这样的一个方式]。
 
+<br><br>
 2. StringProtocol协议
  StringProtocol从Protocol继承，需要实现encode_body和decode_body等接口方法：
 {{{
