@@ -3,15 +3,17 @@
 <br><br>
 
 *一、 主要模块介绍*
- # [ByteBuffer]
- # [Socket]
- # [IODemuxer]
- # [EventHandler]
- # [Protocol]
- # [MemManager]
- # [Thread]
- # [ThreadPool]
- # [NetInterface]
+ * 基础模块
+  # [ByteBuffer]
+  # [Socket]
+  # [IODemuxer]
+  # [EventHandler]
+  # [Protocol]
+  # [MemManager]
+  # [Thread]
+  # [ThreadPool]
+ * 框架结构
+  # [NetInterface]
 
 <br><br>
 *二、 !EasyNetwork的主要组件*
