@@ -1,51 +1,39 @@
- =EasyNetwork网络开发框架,致力于为服务端的开发提供一个快速高效的方法.=
+<h1>!EasyNetwork框架详细介绍</h1>
 
- * 源码svn地址:[http://easynetwork.googlecode.com/svn/trunk/libnetframework]
- * 联系邮箱:xmulyj@gmail.com
+<br><br>
 
- * *[FQA]*
-   * 服务器开发需要做什么
-   * 什么是框架
-   * 什么是EasyNetwork网络开发框架
-   * EasyNetwork?框架扩展性如何
-   * EasyNetwork怎么管理连接
-   * EasyNetwork什么时候收/发数据
-   * EasyNetwork怎么收发数据
-   * EasyNetwork怎么编/解码(序列化/反序列化)数据
-   * EasyNetwork支持自定义协议格式吗
-   * EasyNetwork怎么处理粘包现象
-   * EasyNetwork怎么处理高并发要求
-   * EasyNetwork怎么处理高吞吐量要求
-   * EasyNetwork内存管理与优化
-   * 如何利用EasyNetwork框架搭建自己的服务器
-   * 服务器代码自动化生成工具server_tool
+*一、 主要模块介绍*
+ # [Socket]
+ # [IOBuffer]
+ # [IODemuxer]
+ # [EventHandler]
+ # [Protocol]
+ # [MemManager]
+ # [Thread]
+ # [ThreadPool]
+ # [NetInterface]
 
- * *用EasyNetwork搭建的Server*
-   # [Download 下载服务(支持多任务多线程,支持断点续传)]
-   # memcache服务器(敬请期待...:p)
+<br><br>
+*二、 !EasyNetwork的主要组件*
 
- * *[libslog slog多线程安全日志库]*
-
- * *模块介绍*
- # *[AppServerSamples 3分钟搭建服务器]*
- # *[Socket]*
- # *[IOBuffer]*
- # *[IODemuxer]*
- # *[EventHandler]*
- # *[Protocol]*
- # *[MemManager]*
- # *[Thread]*
- # *[ThreadPool]*
- # *[NetInterface]*
-
- * *NetFramework的主要组件*
 [http://easynetwork.googlecode.com/files/Component.jpg]
 
- * *类图*
+<br><br>
+*三、 类图*
+
 [http://easynetwork.googlecode.com/files/Class.jpg]
 
- * *单线程框架流程图*
+<br><br>
+*四、 单线程开发范式流程图*
+
 [http://easynetwork.googlecode.com/files/procedure.jpg]
 
- * *多线程框架流程图*
+<br><br>
+*五、 多线程框架流程图*
+
 [http://easynetwork.googlecode.com/files/MTframe.jpg]
+
+<br><br><br>
+联系作者：_xmulyj@gmail.com_
+
+<br><br><br>
