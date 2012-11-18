@@ -17,6 +17,8 @@
 另外，框架使用 _[libslog]_ 日志文件系统。
 
 <br><br><br>
-联系作者：_xmulyj@gmail.com_ 提供您宝贵的意见和建议
+联系作者：_xmulyj@gmail.com_
+
+提供您宝贵的意见和建议
 
 <br><br>
