@@ -1,6 +1,6 @@
-*一、enetlib工具的使用*
+*一、 enetlib工具的使用*
  
- enetlib随!EasyNetwork库一起安装。enetlib工具可以帮你快速生成框架类代码。其使用非常简单，安装之后,在命令行输入enetlib可以获取如下帮助信息：
+ enetlib随!EasyNetwork库一起安装。enetlib工具可以帮你快速生成框架类代码。其使用非常简单，安装之后，在命令行输入enetlib可以获取如下帮助信息：
    
  
  Usage: enetlib -[s|m] ServerClass [-main]
@@ -12,7 +12,7 @@
         -main : Generate a Main-cpp file for the ServerClass
  
 
-*二、生成单线程框架*
+*二、 生成单线程框架*
  
         enetlib –s SingleServer [-main]
    
@@ -27,7 +27,7 @@
  
   
  
-*三、生成多线程框架*
+*三、 生成多线程框架*
  
           enetlib –m MultipleServer [-main]
  
@@ -42,7 +42,7 @@
  MultipleServerMain.cpp  [使用-main参数]
  
   
-*四、其他*
+*四、 其他*
     enetlib生成的类代表!NetInterface的一个实例。开发者通过创建自己的协议族类(ProtocolFamily),并在生成的框架类代码中实现相应的接口方法就可以完成自己的应用层业务逻辑.
  
  
