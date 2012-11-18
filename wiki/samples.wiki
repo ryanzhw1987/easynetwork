@@ -4,33 +4,34 @@
 *二、协议族StringProtocolFamily*
  1. SpringProtocolFamily从DefaultProtocolFamily继承，用于创建和销毁!StringProtocol协议：
 {{{
- class StringProtocolFamily: public DefaultProtocolFamily
- {
- public:
- 	Protocol* create_protocol_by_header(ProtocolHeader *header);
- 	void destroy_protocol(Protocol *protocol);
+
+class StringProtocolFamily: public DefaultProtocolFamily
+{
+public:
+	Protocol* create_protocol_by_header(ProtocolHeader *header);
+	void destroy_protocol(Protocol *protocol);
  };
 
- inline
- Protocol* StringProtocolFamily::create_protocol_by_header(ProtocolHeader *header)
- {
+inline
+Protocol* StringProtocolFamily::create_protocol_by_header(ProtocolHeader *header)
+{
 	int protocol_type = ((DefaultProtocolHeader *)header)->get_protocol_type();
- 	Protocol *protocol = NULL;
- 	switch(protocol_type)
- 	{
- 	case PROTOCOL_STRING:
- 		protocol  =  new StringProtocol;
- 		break;
+	Protocol *protocol = NULL;
+	switch(protocol_type)
+	{
+	case PROTOCOL_STRING:
+		protocol  =  new StringProtocol;
+		break;
 	}
 	
 	return protocol;
- }
+}
  
- inline
- void StringProtocolFamily::destroy_protocol(Protocol *protocol)
- {
- 	delete protocol;
- }
+inline
+void StringProtocolFamily::destroy_protocol(Protocol *protocol)
+{
+	delete protocol;
+}
 }}}
  这两个接口允许开发者自己控制协议的创建和销毁方式，比如开发者可以提供自己的内存管理模块，并从内存管理模块中分配和销毁自己的协议对象。[Download 多任务多线程下载]展示了利用内存管理模块分配协议对象的例子。
 
@@ -39,73 +40,79 @@
  !StringProtocol从Protocol继承，需要实现encode_body和decode_body等接口方法：
 {{{
 class StringProtocol:public Protocol
-  {
-  public: 
- 	//协议的描述信息 
- 	const char* details(){return "raw_string_protocol";}
- 	//编码协议体数据到io_buffer,成功返回true,失败返回false. 	
- 	bool encode_body(ByteBuffer *byte_buffer); 	
- 	//解码协议体数据io_buffer.成功返回true,失败返回false. 	
- 	bool decode_body(const char *buf, int size);
- };
+{
+public: 
+	//协议的描述信息 
+	const char* details(){return "raw_string_protocol";}
+	//编码协议体数据到io_buffer,成功返回true,失败返回false. 	
+	bool encode_body(ByteBuffer *byte_buffer); 	
+	//解码协议体数据io_buffer.成功返回true,失败返回false. 	
+	bool decode_body(const char *buf, int size);
+};
 
 /////////////////////////////////////////////////////////////////////
- //编码整数
- #define ENCODE_INT(i) do{ \
- 	if(!byte_buffer->append((const char*)&i, sizeof(i))) \
- 		return false; \
- }while(0)
- //解码整数
- #define DECODE_INT(i) do{ \
- 	if(size < sizeof(i)) return false; \
- 	i = *(int*)buf; buf+=sizeof(i); size-=sizeof(i); \
- }while(0)
+//编码整数
+#define ENCODE_INT(i) do{ \
+if(!byte_buffer->append((const char*)&i, sizeof(i))) \
+	return false; \
+}while(0)
+//解码整数
+#define DECODE_INT(i) do{ \
+if(size < sizeof(i)) return false; \
+	i = *(int*)buf; buf+=sizeof(i); size-=sizeof(i); \
+}while(0)
  
- //编码字符串
- #define ENCODE_STRING(str) do{\
- 	len = str.size(); \
- 	if(!byte_buffer->append((const char*)&len, sizeof(len))) \
- 		return false; \
- 	if(len > 0 && !byte_buffer->append(str.c_str())) \
- 		return false; \
+//编码字符串
+#define ENCODE_STRING(str) do{\
+len = str.size(); \
+if(!byte_buffer->append((const char*)&len, sizeof(len))) \
+	return false; \
+if(len > 0 && !byte_buffer->append(str.c_str())) \
+	return false; \
  }while(0)
- //解码字符串
- #define DECODE_STRING(str) do{\
- 	DECODE_INT(len); \
- 	if(len<0 || size<len) return false; \
- 	if(len > 0) \
- 		str.assign(buf, len); buf+=len; size-=len; \
- }while(0)
+//解码字符串
+#define DECODE_STRING(str) do{\
+DECODE_INT(len); \
+if(len<0 || size<len) return false; \
+if(len > 0) \
+	str.assign(buf, len); buf+=len; size-=len; \
+}while(0)
  
- //编码协议体数据到io_buffer,成功返回true,失败返回false.
- inline
- bool StringProtocol::encode_body(ByteBuffer *byte_buffer)
- {
- 	int len = 0;
- 	////m_str
- 	ENCODE_STRING(m_str);
- 
- 	return true;
- }
- //解码协议体数据io_buffer.成功返回true,失败返回false.
- inline
- bool StringProtocol::decode_body(const char *buf, int size)
- {
- 	int len = 0;
- 	////m_str
- 	DECODE_STRING(m_str);
- 
- 	return true;
- }
+//编码协议体数据到io_buffer,成功返回true,失败返回false.
+inline
+bool StringProtocol::encode_body(ByteBuffer *byte_buffer)
+{
+	int len = 0;
+	////m_str
+	ENCODE_STRING(m_str);
+
+	return true;
+}
+//解码协议体数据io_buffer.成功返回true,失败返回false.
+inline
+bool StringProtocol::decode_body(const char *buf, int size)
+{
+	int len = 0;
+	////m_str
+	DECODE_STRING(m_str);
+
+	return true;
+}
 }}}
 
 
 <br><br>
-*三、单线程框架*
+*三、单线程开发范式*
+ 单线程开发范式指服务器只有一个线程，在这个线程里面监听服务端口、接收链接请求、处理客户端发送的请求等。该例子见框架源码中的AppFramework_Sample。
+
+ 1. 利用enetlib工具生产框架代码
+{{{
+enetlib -s ServerAppFramework -main
+}}}
 
 <br><br>
-*四、多线程框架*
-
+*四、多线程开发范式*
+ 多线程开发范式指服务器使用一个主线程监听服务端口，当接收到链接请求时，把该新链接按某种策略分配到其他子线程，由该子线程负责对新链接的监听、处理客户端发送的请求等。当新链接分配到某个子线程后，该链接和主线程不再有任何关系。
 
 
 <br><br>
