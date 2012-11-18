@@ -6,7 +6,7 @@ LIBS=-lslog /usr/local/lib/libnetframework.a -lpthread
 
 all:test_server_mt
 	
-test_server_mt:MTServerAppFramework_main.cpp MTServerAppFramework.cpp MTServerAppFramework.h
+test_server_mt:MTServerAppFrameworkMain.cpp MTServerAppFramework.cpp MTServerAppFramework.h
 	g++ $^ ${INC} ${LIBS} ${FLAGS} -o $@
 clean:
 	rm test_server_mt
