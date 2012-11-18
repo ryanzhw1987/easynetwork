@@ -107,7 +107,7 @@ int offset = byte_buffer.reserve(10); //在数据末尾开始占用10个字符�
  该方法主要用来先写后面的内容，然后再调回来往预留的空间写入数据，这些数据值可能依赖于后面的内容。
 
 3. 流操作符
- 为了使用方便，ByteBuffer重载了4个操作符：
+ 为了使用方便，!ByteBuffer重载了4个操作符：
 {{{
 ByteBuffer& operator +=(const char *str);
 ByteBuffer& operator +=(const char c);
