@@ -11,7 +11,7 @@
 最新的框架源码可以从这里下载： _[http://easynetwork.googlecode.com/files/libnetframework_20121118.tar  libnetframework.tar]_
 
 <br>
-框架的使用可以参考： _[enetlib 利用enetlib生成框架类代码]_ 和 _[samples 框架应用例子]_ 。
+框架的使用可以参考： _[enetlib 利用enetlib生成框架类代码]_ 和 _[samples 1分钟搭建服务器框架]_ 。
 
 <br>
 另外，框架使用 _[libslog]_ 日志文件系统。
