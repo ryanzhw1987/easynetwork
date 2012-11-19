@@ -272,6 +272,7 @@ enetlib -m  MTServerAppFramework -main
  MTServerAppFramework.h
  MTServerAppFrameworkMain.cpp
 }}}
+ 其中MTServerAppFramework类从ConnectThread类继承。ConnectThread实现了接收新的链接请求、监听链接事件等接口方法。具体实现请看[MainFramework 框架的详细介绍]。
 
 2. 添加框架代码
 {{{
