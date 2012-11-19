@@ -5,7 +5,7 @@
  *      Author: LiuYongjin
  */
 
-#include "DownloadProtocol.h"
+#include "DownloadProtocolFamily.h"
 #include <string.h>
 
 ////////////////  请求文件大小  ///////////////////

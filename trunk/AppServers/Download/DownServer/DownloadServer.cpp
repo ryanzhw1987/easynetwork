@@ -6,7 +6,7 @@
  */
 #include "DownloadServer.h"
 #include "IODemuxerEpoll.h"
-#include "DownloadProtocol.h"
+#include "DownloadProtocolFamily.h"
 #include "slog.h"
 
 #include <stdio.h>
