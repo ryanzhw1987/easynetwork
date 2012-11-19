@@ -1,6 +1,5 @@
 ==TransProtocol==
  TransProtocol主要为客户端或者不需要使用框架的地方提供一个编解码协议、传输数据的小工具类。
-
 {{{
 class TransProtocol
 {
