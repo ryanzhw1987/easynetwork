@@ -1,19 +1,168 @@
 *前言*
- 本节介绍一个使用EasyNetwork框架搭建的多任务/多线程下载服务器。该Donwload server/client比较简单,没有做过多的优化和检查工作来保证服务的稳定性。因为我们的focus是“怎么使用框架搭建Download server"，而不是“Download server"。当然，现在我们只要把精力放在应用层的实现逻辑就可以了。
-
- 整个服务器/客户端的工作流程大概如下：客户端向服务端发送请求文件大小的协议，收到服务端回复之后根据文件大小进行分片；客户端向服务端请求每个分片的数据；服务端收到请求分片的任务后，按照分片在文件中的起始位置和大小读取数据并发送给客户端。
-
- * 好吧，进入主题，本次新闻联播的主要内容有：
-  * [MThreadDownload 1._Download_ProtocolFamily]
-  * [Download#2._Download_Server]
-  * [Download#3._Download_Client]
-  * [MThreadDownload 4._Ending]
-
-
-==1. Download_ProtocolFamily==
- 搭建框架之前我们先定义好协议和协议族，
-==2. Download_Server==
-
-==3. Download_Client==
-
-==4. Ending==
+  本节介绍一个使用EasyNetwork框架搭建的多任务/多线程下载服务器。该Donwload server/client比较简单,没有做过多的优化和检查工作来保证服务的稳定性。因为我们的focus是“怎么使用框架搭建Download server"，而不是“Download server"。当然，现在我们只要把精力放在应用层的实现逻辑就可以了。
+ 
+  整个服务器/客户端的工作流程大概如下：客户端向服务端发送请求文件大小的协议，收到服务端回复之后根据文件大小进行分片；客户端向服务端请求每个分片的数据；服务端收到请求分片的任务后，按照分片在文件中的起始位置和大小读取数据并发送给客户端。
+ 
+  另外，在协议族中创建和销毁协议对象时我们使用来MemCache内存管理模块来控制内存的分配和释放，从而避免产生内存碎片。具体间下面的协议族定义。
+ 
+  好吧，进入主题，本次新闻联播的主要内容有：
+   * [MThreadDownload#1._Download_ProtocolFamily]
+   * [MThreadDownload#2._Download_Server]
+   * [MThreadDownload#3._Download_Client]
+   * [MThreadDownload#4._Ending]
+ 
+ 
+ ==1. Download_ProtocolFamily==
+  搭建框架之前我们先定义好协议和协议族。我们利用框架的DefaultProtocol来定义我们下载服务器需要用到的4个协议:RequestSize, RespondSize, RequestData, RespondData.(具体见源码)
+ 
+  a) RequestSize请求文件大小
+ {{{
+ //DownloadProtocolFamily.h
+ //请求文件大小
+ class RequestSize: public Protocol
+ {
+ public://实现protocol的接口
+ 	//协议的描述信息
+ 	const char* details(){return "RequestSize";}
+ 	//编码协议体数据到byte_buffer,成功返回true,失败返回false.
+ 	bool encode_body(ByteBuffer *byte_buffer);
+ 	//解码大小为size的协议体数据buf.成功返回true,失败返回false.
+ 	bool decode_body(const char *buf, int size);
+ public:
+ 	RequestSize(){}
+ 	RequestSize(string &filename)
+ 	{
+ 		m_file_name = filename;
+ 	}
+ 	void assign(const string &file_name){m_file_name = file_name;}
+ 	const string& get_file_name(){return m_file_name;}
+ private:
+ 	string m_file_name;
+ };
+ 
+ //DownloadProtocolFamily.cpp
+ //编码协议体数据到byte_buffer,成功返回true,失败返回false.
+ bool RequestSize::encode_body(ByteBuffer *byte_buffer)
+ {
+ 	int len = 0;
+ 	//file name
+ 	ENCODE_STRING(m_file_name);
+ 
+ 	return true;
+ }
+ 
+ //解码大小为size的协议体数据buf.成功返回true,失败返回false.
+ bool RequestSize::decode_body(const char* buf, int size)
+ {
+ 	int len = 0;
+ 	//file name
+ 	DECODE_STRING(m_file_name);
+ 
+ 	return true;
+ }
+ }}}
+  在编解码中我们使用来ENCODE_STRING和DECODE_STRING两个宏定义以便快速的编解码相关字段。这些宏定义在库Protocol.h。
+ 
+  b) RespondSize 回复文件大小（略）
+ 
+  c) RequestData 请求文件数据（略）
+ 
+  d) RespondData 回复文件数据（略）
+ 
+  e) DownloadProtocolFamily下载协议族
+  最后需要定义一个协议族类用来创建和销毁协议：
+ {{{
+ //DownloadProtocolFamily.h
+ class DownloadProtocolFamily:public DefaultProtocolFamily
+ {
+ public:
+ 	Protocol* create_protocol_by_header(ProtocolHeader *header);
+ 	void destroy_protocol(Protocol *protocol);
+ private:
+ 	//memory cache:
+ 	MemCache<RequestSize> m_request_size_memcache;
+ 	MemCache<RespondSize> m_respond_size_memcache;
+ 	MemCache<RequestData> m_request_data_memcache;
+ 	MemCache<RespondData> m_respond_data_memcache;
+ };
+ 
+ //DownloadProtocolFamily.cpp
+ /////////////////////////////////////////////////////////////////////////////////
+ Protocol* DownloadProtocolFamily::create_protocol_by_header(ProtocolHeader *header)
+ {
+ 	int protocol_type = ((DefaultProtocolHeader *)header)->get_protocol_type();
+ 	Protocol *protocol = NULL;
+ 	switch(protocol_type)
+ 	{
+ 	case PROTOCOL_REQUEST_SIZE:
+ 		protocol = (Protocol*)m_request_size_memcache.Alloc();
+ 		SLOG_DEBUG("create RequestSize[%x] from m_request_size_memcache", protocol);
+ 		break;
+ 	case PROTOCOL_RESPOND_SIZE:
+ 		protocol = (Protocol*)m_respond_size_memcache.Alloc();
+ 		SLOG_DEBUG("create RespondSize[%x] from m_respond_size_memcache", protocol);
+ 		break;
+ 	case PROTOCOL_REQUEST_DATA:
+ 		protocol = (Protocol*)m_request_data_memcache.Alloc();
+ 		SLOG_DEBUG("create RequestData[%x] from m_request_data_memcache", protocol);
+ 		break;
+ 	case PROTOCOL_RESPOND_DATA:
+ 		protocol = (Protocol*)m_respond_data_memcache.Alloc();
+ 		SLOG_DEBUG("create RespondData[%x] from m_respond_data_memcache", protocol);
+ 		break;
+ 	default:
+ 		break;
+ 	}
+ 
+ 	return protocol;
+ }
+ 
+ void DownloadProtocolFamily::destroy_protocol(Protocol* protocol)
+ {
+ 	if(protocol == NULL)
+ 		return;
+ 	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
+ 	switch(header->get_protocol_type())
+ 	{
+ 	case PROTOCOL_REQUEST_SIZE:
+ 	{
+ 		SLOG_DEBUG("free DownloadRequest[%x] to m_request_size_memcache", protocol);
+ 		RequestSize *temp_protocol = (RequestSize*)protocol;
+ 		m_request_size_memcache.Free(temp_protocol);
+ 		break;
+ 	}
+ 	case PROTOCOL_RESPOND_SIZE:
+ 	{
+ 		SLOG_DEBUG("free RespondSize[%x] to m_respond_size_memcache", protocol);
+ 		RespondSize *temp_protocol = (RespondSize*)protocol;
+ 		m_respond_size_memcache.Free(temp_protocol);
+ 		break;
+ 	}
+ 	case PROTOCOL_REQUEST_DATA:
+ 	{
+ 		SLOG_DEBUG("free RequestData[%x] to m_request_data_memcache", protocol);
+ 		RequestData *temp_protocol = (RequestData*)protocol;
+ 		m_request_data_memcache.Free(temp_protocol);
+ 		break;
+ 	}
+ 	case PROTOCOL_RESPOND_DATA:
+ 	{
+ 		SLOG_DEBUG("free RespondData[%x] to m_respond_data_memcache", protocol);
+ 		RespondData *temp_protocol = (RespondData*)protocol;
+ 		m_respond_data_memcache.Free(temp_protocol);
+ 		break;
+ 	}
+ 	default:
+ 		break;
+ 	}
+ }
+ }}}
+  协议族需要实现create_protocol_by_header和destroy_protocol两个接口方法，用来创建/销毁具体的协议。
+ 
+  另外代码中使用了MemCache模块来控制内存空间到分配。协议的创建和销毁在实际项目中是非常频繁的操作，通过使用内存管理模块可以避免产生内存碎片而导致程序效率降低的问题。
+ 
+ ==2. Download_Server==
+ 
+ ==3. Download_Client==
+ 
+ ==4. Ending==
