@@ -3,7 +3,7 @@
  libslog是一个基于linux的高性能开源C/C++多线程安全日志库。
  libslog的最新源码可从这里下载：[http://easynetwork.googlecode.com/files/libslog.tar libslog.tar]
 
- 有任何宝贵的意见和建议请联系：_xmulyj@gmail.com_
+ 有任何宝贵的意见和建议请联系作者：_xmulyj@gmail.com_
 
 *一、 特性*
  a. 多线程安全
