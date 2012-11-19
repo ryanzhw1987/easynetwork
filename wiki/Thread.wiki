@@ -1,6 +1,6 @@
-==!Thread==
+==Thread==
 
- !Thread类是对线程的封装。add_task方法用于向线程添加一个任务，同时该方法会调用notify_add_task接口方法通知线程有新的任务添加到队列中。线程需要实现notify_add_task和on_notify_add_task接口方法来实现通知和响应新任务的添加。
+ Thread类是对线程的封装。add_task方法用于向线程添加一个任务，同时该方法会调用notify_add_task接口方法通知线程有新的任务添加到队列中。线程需要实现notify_add_task和on_notify_add_task接口方法来实现通知和响应新任务的添加。
 
 {{{
 class Thread
@@ -50,8 +50,3 @@ protected:
 	virtual bool on_notify_add_task()=0;
 };
 }}}
-
-
-= Details =
-
-待添加...
