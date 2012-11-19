@@ -1,6 +1,6 @@
 <h1>libslog</h1>
 
- libslog是一个基于linux的高性能开源C/C++多线程安全日志库。_EasyNetwork_服务端开源框架使用了libslog作为日志库。
+ libslog是一个基于linux的高性能开源C/C++多线程安全日志库。_EasyNetwork_ 服务端开源框架使用了libslog作为日志库。
 
  libslog的最新源码可从这里下载：[http://easynetwork.googlecode.com/files/libslog.tar libslog.tar]
 
