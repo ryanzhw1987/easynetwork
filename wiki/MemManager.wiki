@@ -28,12 +28,10 @@ private:
 {{{
 MemCache<StringProtocol> m_string_protocol_memcache;
 }}}
-
   * 生成StringProtocol
 {{{
 Protocol* protocol = (Protocol*)m_string_protocol_memcache.Alloc();
 }}}
-
   * 释放StringProtocol
 {{{
 StringProtocol* string_protocol = (StringProtocol*)protocol;
@@ -44,13 +42,11 @@ m_string_protocol_memcache.Free(string_protocol);
   * 定义TransSocket的Memcache
 {{{
 MemCache<TransSocket> m_trans_socket_memcache;
-}}}
- 
+}}} 
   * 生成TransSocket
 {{{
 Socket* socket = (Socket*)m_trans_socket_memcache.Alloc();
 }}}
-
   * 释放TransSocket
 {{{
 TransSocket* trans_socket = (TransSocket*)socket;
