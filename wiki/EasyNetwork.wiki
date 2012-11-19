@@ -8,7 +8,7 @@
 每个服务器都是!NetInterface的一个实例。!NetInterface为应用层提供了接收和发送协议等接口，应用层通过实现这些接口对协议进行处理便可完成自己的业务逻辑。开发者可以不用关心链接的创建、接收和管理、数据的接收、序列化合反序列化等底层的工作，这些都由!NetInterface完成。另外，框架提供的ConnectThread类和ConnectThreadPool类对多线程服务器开发范式进行了封装。ConnectThread也是!NetInterface的一个实例。当收到新的链接请求时，框架按某种策略自动把新的链接分配到ConnectThread，由ConnectThread进行处理。这里是框架的 _[MainFramework 详细介绍]_ 。
 
 <br>
-最新的框架源码可以从这里下载： _[http://easynetwork.googlecode.com/files/libnetframework_20121118.tar  libnetframework.tar]_
+最新的框架源码可以从这里下载： _[http://easynetwork.googlecode.com/files/libnetframework_20121119.tar  libnetframework.tar]_
 
 <br>
 框架的使用可以参考： _[enetlib 利用enetlib生成框架类代码]_ 和 _[samples 1分钟搭建服务器框架]_ 。
