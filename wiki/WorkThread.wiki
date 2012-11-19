@@ -1,7 +1,6 @@
 ==!WorkThread==
 
- !WorkThread是一个工作者线程，从Thread继承。当线程启动后不断从任务队列中获取任务，然后进行处理。当任务队列空时，线程等待条件变量而进入休眠状态，直到收到添加任务的条件信号。
-
+ !WorkThread是一个工作者线程，从Thread继承。当线程启动后不断从任务队列中获取任务，然后进行处理。当任务队列空时，线程等待条件变量而进入休眠状态，直到收到添加任务的条件信号。!WorkThread特别适用于生产者/消费者模式。
 {{{
 template <class T>
 class WorkThread: public Thread<T>
