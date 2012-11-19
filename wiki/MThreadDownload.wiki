@@ -1,4 +1,4 @@
-<h1>前言</h1>
+=前言=
   本节介绍一个使用EasyNetwork框架搭建的多任务/多线程下载服务器。该Donwload server/client比较简单,没有做过多的优化和检查工作来保证服务的稳定性。因为我们的focus是“怎么使用框架搭建Download server"，而不是“Download server"。当然，现在我们只要把精力放在应用层的实现逻辑就可以了。
  
   整个服务器/客户端的工作流程大概如下：客户端向服务端发送请求文件大小的协议，收到服务端回复之后根据文件大小进行分片；客户端向服务端请求每个分片的数据；服务端收到请求分片的任务后，按照分片在文件中的起始位置和大小读取数据并发送给客户端。
@@ -12,7 +12,7 @@
    * [MThreadDownload#4._Ending]
  
  
-==1. Download ProtocolFamily==
+=1. Download ProtocolFamily=
   搭建框架之前我们先定义好协议和协议族。我们利用框架的DefaultProtocol来定义我们下载服务器需要用到的4个协议:RequestSize, RespondSize, RequestData, RespondData.(具体见源码)
  
   a) RequestSize请求文件大小
@@ -161,7 +161,7 @@
  
   另外代码中使用了MemCache模块来控制内存空间到分配。协议的创建和销毁在实际项目中是非常频繁的操作，通过使用内存管理模块可以避免产生内存碎片而导致程序效率降低的问题。
  
-==2. Download Server==
+=2. Download Server=
  这一节开始我们介绍多任务/多线程下载服务。服务器的框架大体如下：
   * 服务器收到一个新链接时，将该链接分配到某个线程，由该线程处理在该链接上的请求。
   * 某个线程收到RequestSize协议时，返回指定的file_name文件的大小给客户端(回复RespondSize协议)。
@@ -287,6 +287,6 @@ bool DownloadServer::on_recv_protocol(SocketHandle socket_handle, Protocol *prot
 }}}
  
 
-==3. Download Client==
+=3. Download Client=
 
-==4. Ending==
+=4. Ending=
