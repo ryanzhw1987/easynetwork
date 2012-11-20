@@ -1,5 +1,5 @@
 ==!ConnectThread==
-!ConnectThread类继承NetInterface类和PipeThread类，主要实现类PipeThread的接口方法：
+!ConnectThread类继承NetInterface类和PipeThread类，主要实现类!PipeThread的接口方法：
 {{{
 class ConnectThread:public NetInterface, public PipeThread<SocketHandle>
 {
@@ -45,3 +45,17 @@ bool ConnectThread::on_notify_add_task()
 }
 }}}
  该方法通过调用!NetInterface的accept将接收到的新链接注册到IODemuxer中进行监听。之后所有该链接的事件都由!ConnectThread来处理。
+
+<br>
+* 3. run_thread方法*
+该方法真正执行线程的运行，我们记得!NetInterface使用前需要显示调用start_server来完成初始化工作，因此在run_thread中完成这件事情，而线程要做的具体事情由start_server的实现来完成：
+{{{
+void ConnectThread::run_thread()
+{
+	SLOG_INFO("ConnectThread[ID=%d] is running...", get_thread_id());
+	//Start App Server(NetInterface)
+	start_server();
+
+	SLOG_INFO("ConnectThread end...");
+}
+}}}
