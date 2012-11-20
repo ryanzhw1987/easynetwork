@@ -1,5 +1,6 @@
 ==!ConnectThreadPool==
- !ConnectThreadPool用来创建链接线程池。当NetInterface收到新的链接请求时将新的链接分配到某个ConnectThrea中去，实际上是通过!ConnectThreadPool来进行分配的。!ConnectThreadPool通过继承ConnectAccepter类获得分配链接的能力。
+
+!ConnectThreadPool用来创建链接线程池。当NetInterface收到新的链接请求时将新的链接分配到某个ConnectThrea中去，实际上是通过!ConnectThreadPool来进行分配的。!ConnectThreadPool通过继承ConnectAccepter类获得分配链接的能力。
 
 {{{
 class ConnectThreadPool:public ThreadPool<SocketHandle>, public ConnectAccepter
