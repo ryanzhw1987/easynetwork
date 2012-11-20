@@ -11,6 +11,9 @@ function usage()
 	echo -e "\t-s : Generate a SINGLE thread server class"
 	echo -e "\t-m : Generate a MULTIPLE thread server class"
 	echo -e "\t-main : Generate a Main-cpp file for the ServerClass"
+	echo 
+	echo "Usage: enetlib -p ProtocolFamily"
+	echo -e "\t-p : Generate ProtocolFamily class"
 	echo
 }
 
@@ -20,7 +23,7 @@ if [ $# -lt 1 ];then
 	exit
 fi
 
-if [ "$1" != "-s" ] && [ "$1" != "-m" ];then
+if [ "$1" != "-s" ] && [ "$1" != "-m" ] && [ "$1" != "-p" ];then
 	echo "error: unknow option: $1"
 	usage;
 	exit
@@ -48,15 +51,21 @@ elif [ "$MODE" = "-s" ];then
 	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_STAppTemplate_H_/_${CAP_SC}_H_/" -e "s/STAppTemplate/$SC/" ${SRC}/STAppTemplate.h >${SC_H}
 	###cpp file
 	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/STAppTemplate/$SC/" ${SRC}/STAppTemplate.cpp >${SC_CPP}
-else
+elif [ "$MODE" = "-m" ];then
 	echo "Generate MULTIPLE thread class: ${SC_H},${SC_CPP}"
 	###h file
 	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_MTAppTemplate_H_/_${CAP_SC}_H_/" -e "s/MTAppTemplate/$SC/" ${SRC}/MTAppTemplate.h >${SC_H}
 	###cpp file
 	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/MTAppTemplate/$SC/" ${SRC}/MTAppTemplate.cpp >${SC_CPP}
+elif [ "$MODE" = "-p" ];then
+	echo "Generate ProtocolFamily class: ${SC_H},${SC_CPP}"
+	###h file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_TemplateProtocolFamily_H_/_${CAP_SC}_H_/" -e "s/TemplateProtocolFamily/$SC/" ${SRC}/TemplateProtocolFamily.h >${SC_H}
+	###cpp file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/TemplateProtocolFamily/$SC/" ${SRC}/TemplateProtocolFamily.cpp >${SC_CPP}
 fi
 
-if [ $# -eq 3 ] && [ "$3" = "-main" ];then
+if [ $# -eq 3 ] && [ "${MODE}" != "-p" ] && [ "$3" = "-main" ];then
 	MAINCPP="${SC}Main.cpp"
 
 	if [ -f "${MAINCPP}" ];then
