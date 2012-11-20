@@ -4,29 +4,20 @@
 
 *一、 主要模块介绍*
  * 基础模块
-  # [ByteBuffer]
-  # [ConnectAccepter]
-  # [ProtocolFamily]
-  # [DefaultProtocolFamily]
-  # [EventHandler]
-  # [IODemuxer]
-  # [IODemuxerEpoll]
-  # [ListenHandler]
-  # [MemManager]
-  # [Queue]
-  # [Socket]
-  # [Thread]
-  # [ThreadPool]
-  # [TransProtocol]
-  # [WorkThread]
+|| [ByteBuffer]    || [ConnectAccepter]       ||
+||[ProtocolFamily] ||[DefaultProtocolFamily]  ||
+||[EventHandler]   ||[IODemuxer]              ||
+||[IODemuxerEpoll] ||[ListenHandler]          ||
+||[MemManager]     ||[Queue]                  ||
+||[Socket]         ||[Thread]                 ||
+||[ThreadPool]     ||[TransProtocol]          ||
+||[WorkThread]     ||                         ||
 
 <br>
  * 框架结构
-  # [PipeThread]
-  # [SocketManager]
-  # [NetInterface]  
-  # [ConnectThread]
-  # [ConnectThreadPool]
+||[PipeThread]        ||[SocketManager] ||   
+||[NetInterface]      ||[ConnectThread] ||
+||[ConnectThreadPool] ||                ||
 
 
 <br><br>
