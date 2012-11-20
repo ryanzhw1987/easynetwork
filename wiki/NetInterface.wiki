@@ -87,7 +87,8 @@ bool STAppTemplate::start_server()
 }
 }}}
 
- * *其他成员函数*
+ * *其他成员方法*
+ 其他成员方法，用来管理链接、发送/接收协议数据：
 {{{
 //获取主动链接
 virtual SocketHandle get_active_trans_socket(const char *ip, int port);
