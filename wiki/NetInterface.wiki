@@ -29,41 +29,62 @@ public:
  根据上面的分析，NetInterface提供给应用层的接口方法主要有：
 {{{
 protected:
-//返回值:true:成功, false:失败
-////由应用层实现 -- 接收协议函数
-virtual bool on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)=0;
-////由应用层实现 -- 协议发送错误处理函数
-virtual bool on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)=0;
-////由应用层实现 -- 协议发送成功处理函数
-virtual bool on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)=0;
-////由应用层实现 -- 连接错误处理函数
-virtual bool on_socket_handle_error(SocketHandle socket_handle)=0;
-////由应用层实现 -- 连接超时处理函数
-virtual bool on_socket_handle_timeout(SocketHandle socket_handle)=0;
-////由应用层实现 -- 已经收到一个新的连接请求
-virtual bool on_socket_handler_accpet(SocketHandle socket_handle)=0;
+    //返回值:true:成功, false:失败
+    ////由应用层实现 -- 接收协议函数
+    virtual bool on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)=0;
+    ////由应用层实现 -- 协议发送错误处理函数
+    virtual bool on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)=0;
+    ////由应用层实现 -- 协议发送成功处理函数
+    virtual bool on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)=0;
+    ////由应用层实现 -- 连接错误处理函数
+    virtual bool on_socket_handle_error(SocketHandle socket_handle)=0;
+    ////由应用层实现 -- 连接超时处理函数
+    virtual bool on_socket_handle_timeout(SocketHandle socket_handle)=0;
+    ////由应用层实现 -- 已经收到一个新的连接请求
+    virtual bool on_socket_handler_accpet(SocketHandle socket_handle)=0;
 }}}
 
- * *构造函数*
+ * *!NetInterface的初始化*
+ !NetINterface组合了IODemuxer、SocketManager以及ProtocolFamily，因此在!NetINterface在被创建或者被使用前必须创造出这三者的实例。!NetINterface默认使用IODemuxerEpoll和SocketManger，但是ProtocolFamily是由具体的应用所决定，因此开发者需要实现create_protocol_family和destroy_protocol_family接口来创建/销毁具体的ProtocolFamily：
 {{{
-//需要聚合一个io_demuxer,protocol_family协议族,socket_manager管理器
-NetInterface(IODemuxer *io_demuxer, ProtocolFamily *protocol_family, SocketManager *socket_manager);
+protected:
+	////由应用层实现 -- 创建具体的协议族
+	virtual ProtocolFamily* create_protocol_family()=0;
+	////由应用层实现 -- 销毁协议族
+	virtual void delete_protocol_family(ProtocolFamily* protocol_family)=0;
 }}}
-
- * *应用程序需要实现的接口*
+ 换句话说，协议族的创建是放到!NetInterface的子类中创建。既然这样，就不能在!NetInterface的构造函数中去创建协议族实例，而需要另外提供一个时机来创建协议族实例。init_net_interface方法用来创建IODemuxer、SocketManger和ProtocolFamily的实例：
 {{{
-//////////////////由应用层重写 接收协议函数//////////////////
-virtual int on_recv_protocol(SocketHandle socket_handle, Protocol *protocol)=0;
-//////////////////由应用层重写 协议发送错误处理函数//////////
-virtual int on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)=0;
-//////////////////由应用层重写 协议发送成功处理函数//////////
-virtual int on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)=0;
-//////////////////由应用层重写 连接错误处理函数//////////////
-virtual int on_socket_handle_error(SocketHandle socket_handle)=0;
-//////////////////由应用层重写 连接超时处理函数//////////////
-virtual int on_socket_handle_timeout(SocketHandle socket_handle)=0;
-//////////////////由应用层重写 收到一个新的连接请求////////
-virtual int on_socket_handler_accpet(SocketHandle socket_handle){return 0;}
+bool NetInterface::init_net_interface()
+{
+	if(m_io_demuxer == NULL)
+		m_io_demuxer = create_io_demuxer();
+	if(m_socket_manager == NULL)
+		m_socket_manager = create_socket_manager();
+	if(m_protocol_family == NULL)
+		m_protocol_family = create_protocol_family();
+	return true;
+}
+}}}
+ 当!NetInterface的子类实例被创建后，需要显示调用该方法来完成!NetInterface的初始化。我们提供了一个start_server的接口方法，强制开发者显示调用该方法来启动!NetInterface，因此在start_server中调用init_net_interface会是一个好的方案，框架在enetlib工具生产框架类代码的时候，显示生成了start_server对init_net_interface的调用：
+{{{
+public:
+	////由应用层实现 -- net interface实例启动入口
+	virtual bool start_server()=0;
+...
+...
+
+//框架生成的代码
+bool STAppTemplate::start_server()
+{
+	////Init NetInterface
+	init_net_interface();
+
+	////Add your codes here
+	///////////////////////
+
+	return true;
+}
 }}}
 
  * *其他成员函数*
