@@ -2,47 +2,53 @@
  
  enetlib随!EasyNetwork库一起安装。enetlib工具可以帮你快速生成框架类代码。其使用非常简单，安装之后，在命令行输入enetlib可以获取如下帮助信息：
    
- 
+{{{
  Usage: enetlib -[s|m] ServerClass [-main]
- 
-        -s : Generate a SINGLE thread server class
- 
-        -m : Generate a MULTIPLE thread server class
- 
-        -main : Generate a Main-cpp file for the ServerClass
- 
+         -s : Generate a SINGLE thread server class
+         -m : Generate a MULTIPLE thread server class
+         -main : Generate a Main-cpp file for the ServerClass
 
+ Usage: enetlib -p ProtocolFamily
+         -p : Generate a ProtocolFamily class
+}}}
+
+<br><br>
 *二、 生成单线程框架*
- 
-        enetlib –s SingleServer [-main]
-   
- 
- 将在当前目录生成如下文件: ls
- 
- SingleServer.cpp
- 
- SingleServer.h
- 
- SingleServerMain.cpp  [使用-main参数]
- 
-  
- 
+{{{
+enetlib –s SingleServer [-main]
+}}} 
+将在当前目录生成如下文件：
+{{{
+SingleServer.cpp 
+SingleServer.h 
+SingleServerMain.cpp  [使用-main参数]
+}}} 
+
+<br><br>
 *三、 生成多线程框架*
- 
-          enetlib –m MultipleServer [-main]
- 
-  
- 
- 将在当前目录生成如下文件: ls
- 
- MultipleServer.cpp
- 
- MultipleServer.h
- 
- MultipleServerMain.cpp  [使用-main参数]
- 
-  
-*四、 其他*
+{{{
+enetlib –m MultipleServer [-main]
+}}} 
+将在当前目录生成如下文件：
+{{{
+MultipleServer.cpp 
+MultipleServer.h 
+MultipleServerMain.cpp  [使用-main参数]
+}}}
+
+<br><br> 
+*四、 生成协议族类代码
+{{{
+enetlib –p TestProtocolFamily
+}}} 
+将在当前目录生成如下文件：
+{{{
+TestProtocolFamily.cpp 
+TestProtocolFamily.h
+}}}
+
+<br><br>
+*五、 其他*
     enetlib生成的类代表!NetInterface的一个实例。开发者通过创建自己的协议族类(ProtocolFamily)，并在生成的框架类代码中实现相应的接口方法就可以完成自己的应用层业务逻辑。
  
  
