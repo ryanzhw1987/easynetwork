@@ -1,6 +1,6 @@
 ==!ConnectAccepter==
 
-!ConnectAccepter是链接接收器纯虚类，用来控制如何接收一个新的链接请求（SocketHanle）。其只有一个纯虚方法：
+!ConnectAccepter是链接接收器纯虚类，用来控制如何接收一个新的链接请求（SocketHanle）。只有一个纯虚方法，实现不同的accept方法可控制对链接的不同分配策略：
 {{{
 //链接请求接收器
 class ConnectAccepter
