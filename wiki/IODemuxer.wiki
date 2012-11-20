@@ -1,14 +1,12 @@
-#summary One-sentence summary of this page.
+==!IODemuxer==
 
-= Introduction =
+IODemuxer接口类表示一个IO多路复用。其提供了注册，分配事件的接口方法。需要监听一个链接的读，写，错误等事件时，将该链接和对应的EventHandler事件处理类注册到IODemuxer中，由IODemuxer监听该链接，当该链接发送事件时，IODemuxer调用对应的接口方法实现事件的分派。
 
-IO多路复用,事件源.
+另外IODemuxer还实现了时钟超时检查功能。通过注册相应的时钟超时事件类，即可处理超时事件。
 
-
-= Details =
  * *IODemuxer方法*
 
- * 注册事件register_event.事件发生后由[EventHandler]响应发生的事件
+ * 注册事件register_event.事件发生后由!EventHandler响应发生的事件
 {{{
 //fd: socket描述符. 当为小于0时表示注册的是时钟超时事件,此时timeout_ms必须大于0,并且无法注销;
 //type: fd的读写事件.fd大于0时有效.
@@ -27,7 +25,7 @@ const EVENT_TYPE EVENT_WRITE       = 0x2; //可写事件
 const EVENT_TYPE EVENT_PERSIST     = 0x10;//只有当和EVENT_READ组合或者是时钟事件时才有效
 }}}
 
- * 事件响应类[EventHandler]
+ * 事件响应类!EventHandler
 响应事件
 
  * 注销事件unregister_event
