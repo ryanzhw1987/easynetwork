@@ -1,4 +1,8 @@
 * !EasyNetwork源码：*
+ * [http://easynetwork.googlecode.com/files/libnetframework_20121120.tar libnetframework_20121120.tar]
+ 更新内容:
+  # enetlib工具添加生成协议族模板代码功能；
+<br>
  * [http://easynetwork.googlecode.com/files/libnetframework_20121119.tar libnetframework_20121119.tar]
 
 <br><br>
