@@ -45,7 +45,7 @@ protected:
 }}}
 
  * *!NetInterface的初始化*
- !NetINterface组合了IODemuxer、SocketManager以及ProtocolFamily，因此在!NetINterface在被创建或者被使用前必须创造出这三者的实例。!NetINterface默认使用IODemuxerEpoll和SocketManger，但是ProtocolFamily是由具体的应用所决定，因此开发者需要实现create_protocol_family和destroy_protocol_family接口来创建/销毁具体的ProtocolFamily：
+ !NetINterface组合了IODemuxer、SocketManager以及ProtocolFamily，因此在!NetINterface在被创建或者被使用前必须创造出这三者的实例。!NetINterface默认使用IODemuxerEpoll和SocketManager，但是ProtocolFamily是由具体的应用所决定，因此开发者需要实现create_protocol_family和destroy_protocol_family接口来创建/销毁具体的ProtocolFamily：
 {{{
 protected:
 	////由应用层实现 -- 创建具体的协议族
