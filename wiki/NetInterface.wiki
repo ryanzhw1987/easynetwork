@@ -1,21 +1,47 @@
-#summary One-sentence summary of this page.
+==!NetInterface==
 
-= Introduction =
-
-服务器框架的接口, 继承ConnectAccepter和EventHandler类
+!NetInterface是服务器框架的接口，其实对链接的请求、创建等进行管理，同时处理协议的编/解码、数据的发送。!NetInterface继承于ConnectAccepter和EventHandler类。
 
 
-= 成员函数 =
- * *实现基类ConnectAccepter和EventHandler的方法*
+= 成员方法 =
+ * *实现ConnectAccepter*
 {{{
-//实现ConnectAccepter:接收一个新的连接请求
-virtual bool accept(SocketHandle trans_fd);
+public:
+	//实现ConnectAccepter:接收一个新的连接请求
+	virtual bool accept(SocketHandle trans_fd);
+}}}
+ accept方法被调用后，将收到的链接注册到IODemuxer进行监听，由注册的事件处理句柄处理链接的相应事件。
 
-//重写EventHandler:实现trans socket的读写
-virtual HANDLE_RESULT on_readable(int fd);
-virtual HANDLE_RESULT on_writeabble(int fd);
-virtual HANDLE_RESULT on_timeout(int fd);  //to do deal with timeout
-virtual HANDLE_RESULT on_error(int fd); //to do deal with error
+ * *实现EventHandler的接口*
+{{{
+	//重写EventHandler:实现trans socket的读写
+	virtual HANDLE_RESULT on_readable(int fd);
+	virtual HANDLE_RESULT on_writeable(int fd);
+	virtual HANDLE_RESULT on_timeout(int fd);  //to do deal with timeout
+	virtual HANDLE_RESULT on_error(int fd); //to do deal with error
+}}}
+  * 当某个链接的读事件发生时，on_readable方法将被调用。on_readable方法查找链接对应的TranSocket对象，然后开始接收一个协议数据：<br>1. 接收协议头数据并解码；<br>2. 接收协议体数据并解码；<br>3. 调用接口方法on_recv_protocol向应用层分发协议；<br>4. 如果协议数据未接收完整，接收到的数据将保存在TransSocket等待下一次的读事件发生；<br><br>
+  * 当某个链接的写事件发生时，on_writeable方法被调用。on_writeable方法查找链接对应的TransSocket对象，然后开始发送一个协议数据：<br>1. 从链接的待发送协议队列取一个协议；<br>将协议进行编码；<br>发送编码后的协议数据；<br>根据发送成功/失败调用on_protocol_send_succ/on_socket_handle_error接口上报应用层。<br><br>
+  * 当某个链接超时时，on_timeout方法将被调用。on_timeout将会取消该链接上的所有待发送协议，然后调用on_socket_handle_timeout上报应用层。<br><br>
+  * 当某个链接出现错误时将调用on_error方法。on_error将会取消该链接上的所有待发送协议，然后调用on_socket_handle_error上报给应用层。
+
+ * *提供给应用层的接口方法*
+ 根据上面的分析，NetInterface提供给应用层的接口方法主要有：
+{{{
+protected:
+//返回值:true:成功, false:失败
+////由应用层实现 -- 接收协议函数
+virtual bool on_recv_protocol(SocketHandle socket_handle, Protocol *protocol, bool &detach_protocol)=0;
+////由应用层实现 -- 协议发送错误处理函数
+virtual bool on_protocol_send_error(SocketHandle socket_handle, Protocol *protocol)=0;
+////由应用层实现 -- 协议发送成功处理函数
+virtual bool on_protocol_send_succ(SocketHandle socket_handle, Protocol *protocol)=0;
+////由应用层实现 -- 连接错误处理函数
+virtual bool on_socket_handle_error(SocketHandle socket_handle)=0;
+////由应用层实现 -- 连接超时处理函数
+virtual bool on_socket_handle_timeout(SocketHandle socket_handle)=0;
+////由应用层实现 -- 已经收到一个新的连接请求
+virtual bool on_socket_handler_accpet(SocketHandle socket_handle)=0;
 }}}
 
  * *构造函数*
