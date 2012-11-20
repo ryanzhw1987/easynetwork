@@ -1,0 +1,47 @@
+==!ConnectThread==
+!ConnectThread类继承NetInterface类和PipeThread类，主要实现类PipeThread的接口方法：
+{{{
+class ConnectThread:public NetInterface, public PipeThread<SocketHandle>
+{
+public:
+	ConnectThread(bool detachable=true, unsigned int stack_size=0, int id=0):PipeThread<SocketHandle>(detachable, stack_size, id){}
+protected:
+	//实现接口:线程实际运行的入口
+	void run_thread();
+	//实现接口:响应添加任务事件
+	bool on_notify_add_task();
+	//实现PipeThread接口:注册通知事件
+	bool register_notify_handler(int write_pipe, EVENT_TYPE event_type, EventHandler* event_handler);
+}}}
+
+<br>
+
+*1. register_notify_handler方法*
+
+该方法用来向IODemuxer注册管道事件；
+{{{
+bool ConnectThread::register_notify_handler(int read_pipe, EVENT_TYPE event_type, EventHandler* event_handler)
+{
+	IODemuxer* io_demuxer = get_io_demuxer();
+	return io_demuxer->register_event(read_pipe,event_type,-1,event_handler)==0?true:false;
+}
+}}}
+
+* 2. on_notify_add_task方法*
+
+该方法响应添加一个链接任务：
+{{{
+bool ConnectThread::on_notify_add_task()
+{
+	SLOG_DEBUG("Thread[ID=%d,Addr=%x] do task", get_thread_id(), this);
+	SocketHandle trans_fd;
+	while(get_task(trans_fd))
+	{
+		SLOG_DEBUG("thread accept trans fd=%d", trans_fd);
+		if(NetInterface::accept(trans_fd) == false)
+			SLOG_ERROR("connect thread accept fd=%d failed", trans_fd);
+	}
+	return true;
+}
+}}}
+ 该方法通过调用!NetInterface的accept将接收到的新链接注册到IODemuxer中进行监听。之后所有该链接的事件都由!ConnectThread来处理。
