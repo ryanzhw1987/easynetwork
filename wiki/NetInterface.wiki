@@ -26,7 +26,7 @@ public:
   * 当某个链接出现错误时将调用on_error方法。on_error将会取消该链接上的所有待发送协议，然后调用on_socket_handle_error上报给应用层。
 
  * *提供给应用层的接口方法*
- 根据上面的分析，NetInterface提供给应用层的接口方法主要有：
+ 根据上面的分析，!NetInterface提供给应用层的接口方法主要有：
 {{{
 protected:
     //返回值:true:成功, false:失败
