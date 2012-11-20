@@ -1,6 +1,6 @@
-==SocketManager==
+==!SocketManager==
 
-SocketManager类用来管理链接，包括创建主动链接，管理被动链接等：
+!SocketManager类用来管理链接，包括创建主动链接，管理被动链接等：
 {{{
 class SocketManager
 {
