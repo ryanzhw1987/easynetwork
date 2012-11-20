@@ -1,17 +1,22 @@
 <h1>!EasyNetwork框架详细介绍</h1>
+!EasyNetwork对网络底层、链接管理、协议编/解码、数据的接/发送等进行了封装，并且提供了一些其他工具类，由这些类构成了框架的基础模块。
+
+而!NetInterface则将这些模块进行了有机结合，为应用层提供了统一的接口。通过实现!NetInterface类相应的接口，开发者可以快速搭建自己的服务器框架，并把精力集中于业务逻辑的开发。
+
+另外!ConnectThread和!ConnectThreadPool则是对多线程的服务器框架的封装，每个!ConnectThread是!NetInterface的一个实例。同样只要实现ConnectThread的接口方法，开发者就能搭建好一个多线程的服务器框架，而不必关心链接的分配、线程的创建/管理等细节。
 
 <br><br>
 
 *一、 主要模块介绍*
  * 基础模块
-|| [ByteBuffer]    || [ConnectAccepter]       ||
-||[ProtocolFamily] ||[DefaultProtocolFamily]  ||
-||[EventHandler]   ||[IODemuxer]              ||
-||[IODemuxerEpoll] ||[ListenHandler]          ||
-||[MemManager]     ||[Queue]                  ||
-||[Socket]         ||[Thread]                 ||
-||[ThreadPool]     ||[TransProtocol]          ||
-||[WorkThread]     ||                         ||
+|| [ByteBuffer]     || [ConnectAccepter]        ||
+|| [ProtocolFamily] || [DefaultProtocolFamily]  ||
+|| [EventHandler]   || [IODemuxer]              ||
+|| [IODemuxerEpoll] || [ListenHandler]          ||
+|| [MemManager]     || [Queue]                  ||
+|| [Socket]         || [Thread]                 ||
+|| [ThreadPool]     || [TransProtocol]          ||
+|| [WorkThread]     ||                          ||
 
 <br>
  * 框架结构
