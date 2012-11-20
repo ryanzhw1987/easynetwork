@@ -1,7 +1,6 @@
-#summary One-sentence summary of this page.
+==TransSocket==
 
-= Introduction =
-实现socket的链接,数据的传送.
+TransSocket类实现socket的链接,数据的传送.
  # 包含一个receive [IOBuffer]用于接收数据.
  # 包含一个send [IOBuffer]用于发送数据.
 
