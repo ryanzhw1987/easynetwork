@@ -14,6 +14,7 @@ public:
 
  * *实现EventHandler的接口*
 {{{
+public:
 	//重写EventHandler:实现trans socket的读写
 	virtual HANDLE_RESULT on_readable(int fd);
 	virtual HANDLE_RESULT on_writeable(int fd);
