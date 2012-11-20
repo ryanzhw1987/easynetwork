@@ -22,9 +22,9 @@
 
 <br>
  * 框架结构
-||[PipeThread]        ||[SocketManager] ||   
-||[NetInterface]      ||[ConnectThread] ||
-||[ConnectThreadPool] ||                ||
+|| [NetInterface]        || [SocketManager] ||   
+|| [PipeThread]          || [ConnectThread] ||
+|| [ConnectThreadPool]   ||                 ||
 
 
 <br><br>
