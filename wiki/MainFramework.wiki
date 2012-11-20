@@ -3,7 +3,7 @@
 
 而!NetInterface则将这些模块进行了有机结合，为应用层提供了统一的接口。通过实现!NetInterface类相应的接口，开发者可以快速搭建自己的服务器框架，并把精力集中于业务逻辑的开发。
 
-另外!ConnectThread和!ConnectThreadPool则是对多线程的服务器框架的封装，每个!ConnectThread是!NetInterface的一个实例。同样只要实现ConnectThread的接口方法，开发者就能搭建好一个多线程的服务器框架，而不必关心链接的分配、线程的创建/管理等细节。
+另外!ConnectThread和!ConnectThreadPool则是对多线程的服务器框架的封装，每个!ConnectThread是!NetInterface的一个实例。同样只要实现!ConnectThread的接口方法，开发者就能搭建好一个多线程的服务器框架，而不必关心链接的分配、线程的创建/管理等细节。
 
 本节将具体地介绍一些基础模块和框架结构，以及一些类图和框架流程等内容。
 
