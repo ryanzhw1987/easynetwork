@@ -69,7 +69,7 @@ bool Protocol::encode()
 }
 }}}
 
-* 3.ProtocolFamily协议族*
+* 3. !ProtocolFamily协议族*
  协议族是一个工厂类，用来创建/销毁具体的协议。开发者需要实现如下几个接口方法：
 {{{
 class ProtocolFamily
