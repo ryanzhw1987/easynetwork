@@ -1,6 +1,6 @@
 ==!ListenHandler==
 
- !ListenHandler类用来响应服务端监听端口的读、写、超时、错误等事件。当监听端口可读时，IODemuxer会调用ListenHandler类的on_readable方法，该方法accept一个新的链接，然后通过ConnectAccepter类来分派该新链接。通过设置不同的ConnectAccepter类可以实现单线程、多线程服务器框架。
+ !ListenHandler类用来响应服务端监听端口的读、写、超时、错误等事件。当监听端口可读时，IODemuxer会调用!ListenHandler类的on_readable方法，该方法accept一个新的链接，然后通过ConnectAccepter类来分派该新链接。通过设置不同的!ConnectAccepter类可以实现单线程、多线程服务器框架。
 {{{
 class ListenHandler:public EventHandler
 {
