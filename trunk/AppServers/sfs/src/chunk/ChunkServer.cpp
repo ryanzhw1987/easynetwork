@@ -76,10 +76,12 @@ HANDLE_RESULT ChunkServer::on_timeout(int fd)
 	assert(protocol_chunk_ping != NULL);
 
 	string chunk_id = "chunk0";
+	string chunk_addr = "127.0.0.1";
 	uint64_t disk_space = 123456789;
 	uint64_t disk_used = 2342234;
 
 	protocol_chunk_ping->set_chunk_id(chunk_id);
+	protocol_chunk_ping->set_chunk_addr(chunk_addr);
 	protocol_chunk_ping->set_chunk_port(3013);
 	protocol_chunk_ping->set_disk_space(disk_space);
 	protocol_chunk_ping->set_disk_used(disk_used);
