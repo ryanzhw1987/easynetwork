@@ -75,15 +75,33 @@ bool MasterServer::on_recv_protocol(SocketHandle socket_handle, Protocol *protoc
 	case PROTOCOL_CHUNK_PING:    //响应chunk的ping包
 		{
 			ProtocolChunkPing *protocol_chunkping = (ProtocolChunkPing *)protocol;
-			SLOG_INFO("Thread[id=%d] receive ChunkPing protocol.ChunkId=%s, ChunkPort=%d, DiskSpace=%lld, DiskUsed=%lld"
+			ChunkPing chunk_ping;
+			chunk_ping.id = protocol_chunkping->get_chunk_id();
+			chunk_ping.addr = protocol_chunkping->get_chunk_addr();
+			chunk_ping.port = protocol_chunkping->get_chunk_port();
+			chunk_ping.disk_space = protocol_chunkping->get_disk_space();
+			chunk_ping.disk_used = protocol_chunkping->get_disk_used();
+
+			SLOG_INFO("Thread[id=%d] receive ChunkPing protocol.ChunkId=%s, ChunkAddr=%s, ChunkPort=%d, DiskSpace=%lld, DiskUsed=%lld"
 						,get_thread_id()
-						,protocol_chunkping->get_chunk_id().c_str()
-						,protocol_chunkping->get_chunk_port()
-						,protocol_chunkping->get_disk_space()
-						,protocol_chunkping->get_disk_used());
+						,chunk_ping.id.c_str()
+						,chunk_ping.addr.c_str()
+						,chunk_ping.port
+						,chunk_ping.disk_space
+						,chunk_ping.disk_used);
 
 			ProtocolChunkPingResp *protocol_chunkping_resp = (ProtocolChunkPingResp *)protocol_family->create_protocol(PROTOCOL_CHUNK_PING_RESP);
-			protocol_chunkping_resp->set_result(0);
+
+			if(chunk_ping.id == "" || chunk_ping.addr == "")
+			{
+				SLOG_ERROR("chunk id or addr is empty.");
+				protocol_chunkping_resp->set_result(0);
+			}
+			else
+			{
+				add_chunk(chunk_ping);
+				protocol_chunkping_resp->set_result(1);
+			}
 
 			if(!send_protocol(socket_handle, protocol_chunkping_resp))
 			{
@@ -147,6 +165,21 @@ bool MasterServer::on_socket_handler_accpet(SocketHandle socket_handle)
 	////////////////////////////////////
 
 	return true;
+}
+
+void MasterServer::add_chunk(ChunkPing &chunk_ping)
+{
+	map<string, ChunkPing>::iterator it = m_chunk_manager.find(chunk_ping.id);
+	if(it == m_chunk_manager.end())
+	{
+		SLOG_DEBUG("add a new chunk info. chunk ID=%s.", chunk_ping.id.c_str());
+		m_chunk_manager.insert(std::make_pair(chunk_ping.id, chunk_ping));
+	}
+	else
+	{
+		SLOG_DEBUG("update a chunk info. chunk ID=%s.", chunk_ping.id.c_str());
+		it->second = chunk_ping;
+	}
 }
 
 /////////////////////////////////////// MasterThreadPool ///////////////////////////////////////

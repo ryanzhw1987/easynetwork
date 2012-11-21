@@ -11,6 +11,23 @@
 #include "ConnectThread.h"
 #include "ConnectThreadPool.h"
 
+#include <stdint.h>
+#include <string>
+#include <map>
+using std::string;
+using std::map;
+
+class ChunkPing
+{
+public:
+	string id;
+	string addr;
+	int port;
+	uint64_t disk_space;
+	uint64_t disk_used;
+};
+
+
 class MasterServer:public ConnectThread
 {
 protected:
@@ -34,6 +51,10 @@ protected:
 public:
 	////由应用层实现 -- net interface实例启动入口
 	bool start_server();
+
+private:
+	map<string, ChunkPing> m_chunk_manager;
+	void add_chunk(ChunkPing &chunk_ping);
 };
 
 class MasterThreadPool:public ConnectThreadPool
