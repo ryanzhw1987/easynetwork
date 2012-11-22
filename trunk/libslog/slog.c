@@ -323,7 +323,7 @@ void format_time(char *buf)
 {
     time_t now = time(NULL);
     struct tm* t = localtime(&now);
-    sprintf(buf,"%d-%02d-%02d %02d:%02d:%02d",t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+    sprintf(buf,"%d-%02d-%02d %02d:%02d:%02d ",t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 }
 
 //打印当前配置参数
@@ -359,7 +359,7 @@ void format_to_string(char *str, int str_size, const char *log_level, const char
 
 	format_time(str);
 	if(log_level != NULL)
-		sprintf(str+strlen(str),"[%s]", log_level);
+		sprintf(str+strlen(str),"[%0x, %s]", (unsigned int)pthread_self(), log_level);
 	len = strlen(str);
 	vsnprintf(str+len, str_size-len, fmt, *args);
 }
