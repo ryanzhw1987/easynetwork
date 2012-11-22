@@ -33,7 +33,8 @@ void TemplateProtocolFamily::destroy_protocol(Protocol *protocol)
 {
 	////Add Your Code To Destroy Protocol From Here
 	////////////////////////////////////////////////
-	delete protocol;
+	if(protocol != NULL)
+		delete protocol;
 }
 
 //////////////////////////////  Protocol  //////////////////////////////

@@ -20,7 +20,7 @@ void SLOG_UNINIT();
 #define PRE_STR "[%s:%s(%d)] ... "
 #define VAL_STR ,__FILE__,__FUNCTION__,__LINE__
 #else
-#define PRE_STR 
+#define PRE_STR " ... "
 #define VAL_STR 
 #endif
 

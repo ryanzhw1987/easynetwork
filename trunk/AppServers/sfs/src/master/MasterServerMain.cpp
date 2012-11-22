@@ -21,7 +21,7 @@ int main()
 		return -1;
 	}
 
-	MasterThreadPool server_pool(5);
+	MasterThreadPool server_pool(1);
 	server_pool.start();
 
 	//listen event
