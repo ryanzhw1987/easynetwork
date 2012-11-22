@@ -17,7 +17,7 @@
 using std::string;
 using std::map;
 
-class ChunkPing
+class ChunkPingInfo
 {
 public:
 	string id;
@@ -53,8 +53,9 @@ public:
 	bool start_server();
 
 private:
-	map<string, ChunkPing> m_chunk_manager;
-	void add_chunk(ChunkPing &chunk_ping);
+	map<string, ChunkPingInfo> m_chunk_manager;
+	void add_chunk(ChunkPingInfo &chunk_ping);
+	bool get_chunk(ChunkPingInfo &chunk_info);
 };
 
 class MasterThreadPool:public ConnectThreadPool
