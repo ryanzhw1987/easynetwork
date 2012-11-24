@@ -1,6 +1,6 @@
 #!/bin/bash
 SRC="/usr/local/include/libnetframework/AppTemplate"
-SRC="./"
+
 DAY=`date +"%Y-%m-%d"`
 USER=`users|awk '{print $1}'`
 
@@ -59,6 +59,19 @@ function generate_protocl_family()
 	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/TemplateProtocolFamily/$PF/" ${SRC}/TemplateProtocolFamily.cpp >${PF}.cpp
 }
 
+function generate_main()
+{
+	ClassName=$1
+	MAINCPP="${ClassName}Main.cpp"
+
+	if [ -f "${MAINCPP}" ];then
+		echo "${MAINCPP} already exist. Do Nothing."
+	else
+		echo "Generate Main cpp file: ${MAINCPP}"
+		sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/AppTemplate/${ClassName}/" ${SRC}/AppTemplateMain.cpp >${MAINCPP}
+	fi
+}
+
 ##########################
 if [ $# -lt 1 ];then
 	usage;
@@ -96,14 +109,7 @@ elif [ "$MODE" = "-p" ];then
 fi
 
 if [ $# -gt 2 ] && [ ${!#} = "-main" ];then
-	MAINCPP="${2}Main.cpp"
-
-	if [ -f "${MAINCPP}" ];then
-		echo "${MAINCPP} already exist. Do Nothing."
-	else
-		echo "Generate Main cpp file: ${MAINCPP}"
-		sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/AppTemplate/$2/" ${SRC}/AppTemplateMain.cpp >${MAINCPP}
-	fi
+	generate_main $2
 fi
 
 echo "finished..."
