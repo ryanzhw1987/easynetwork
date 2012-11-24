@@ -1,5 +1,6 @@
 #!/bin/bash
 SRC="/usr/local/include/libnetframework/AppTemplate"
+SRC="./"
 
 DAY=`date +"%Y-%m-%d"`
 USER=`users|awk '{print $1}'`
@@ -7,18 +8,15 @@ USER=`users|awk '{print $1}'`
 function usage()
 {
 	echo
-	echo "Usage: enetlib -[s|m] ServerClass [-p ProtocolFamily] [-main]"
+	echo "Usage: enetlib -[s|m|p] ClassName [-main]"
 	echo -e "\t-s : Generate a SINGLE thread server class"
 	echo -e "\t-m : Generate a MULTIPLE thread server class"
-	echo -e "\t-p : Use ProtocolFamily"
+	echo -e "\t-p : Use ProtocolFamily class, generate protocol_family class if not exist"
 	echo -e "\t-main : Generate a Main-cpp file for the ServerClass"
 	echo 
-	echo "Usage: enetlib -p ProtocolFamily"
-	echo -e "\t-p : Generate ProtocolFamily class"
-	echo
 }
 
-function genetate_framework_Class()
+function generate_framework_Class()
 {
 	TClassName=$1   ###模板类名
 	ClassName=$2    ###目标类名
@@ -78,38 +76,53 @@ if [ $# -lt 1 ];then
 	exit
 fi
 
-if [ "$1" != "-s" ] && [ "$1" != "-m" ] && [ "$1" != "-p" ];then
-	echo "error: unknow option: $1"
-	usage;
-	exit
-fi
-MODE=$1
+MODE=""       ### 线程模式
+CLASS_NAME="" ### 类名
+PRO_FAMILY="" ### 协议族类名
+MAIN_FLAG=0   ### 是否生成main文件
 
-if [ $# -lt 2 ];then
-	echo "error: ServerClass needed"
-	usage;
-	exit
-fi
-
-if [ "$MODE" = "-s" ];then
-	PF=""  ###协议族
-	if [ "$3" = "-p" ] && [ "$4" != "" ] && [ "${4:0:1}" != "-" ] ;then
-		generate_protocl_family $4
-		PF=$4
+argc=$#
+i=1
+while [ $i -le $argc ] ;do
+	#echo "${!i}"
+	if [ "${!i}" = "-s" ] || [ "${!i}" = "-m" ];then
+		MODE=${!i}
+		i=$((i+1))
+		CLASS_NAME=${!i}
+		if [ "${CLASS_NAME}" = "" ]  || [ "${CLASS_NAME:0:1}" = "-" ];then
+			usage;
+			exit
+		fi
+	elif [ "${!i}" = "-p" ];then
+		i=$((i+1))
+		PRO_FAMILY=${!i}
+		#echo ${PRO_FAMILY}
+		if [ "${PRO_FAMILY}" = "" ]  || [ "${PRO_FAMILY:0:1}" = "-" ];then
+			usage;
+			exit
+		fi
+	elif [ "${!i}" = "-main" ];then
+		MAIN_FLAG=1
 	fi
-	genetate_framework_Class STAppTemplate $2 $PF
-elif [ "$MODE" = "-m" ];then
-	if [ "$3" = "-p" ] && [ "$4" != "" ] && [ "${4:0:1}" != "-" ];then
-		generate_protocl_family $4
-		PF=$4
-	fi
-	genetate_framework_Class MTAppTemplate $2 $PF
-elif [ "$MODE" = "-p" ];then
-	generate_protocl_family $2
+
+	i=$((i+1))
+done	
+
+#### 生成协议文件
+if [ "${PRO_FAMILY}" != "" ];then
+	 generate_protocl_family ${PRO_FAMILY}
 fi
 
-if [ $# -gt 2 ] && [ ${!#} = "-main" ];then
-	generate_main $2
+if [ "${MODE}" != "" ];then
+	TEMPLATE="STAppTemplate"
+	if [ "${MODE}" = "-m" ];then
+		TEMPLATE="MTAppTemplate"
+	fi
+	generate_framework_Class $TEMPLATE ${CLASS_NAME} ${PRO_FAMILY}
+
+	if [ ${MAIN_FLAG} -eq 1 ];then
+		generate_main ${CLASS_NAME}
+	fi	
 fi
 
 echo "finished..."
