@@ -1,20 +1,62 @@
 #!/bin/bash
 SRC="/usr/local/include/libnetframework/AppTemplate"
-
+SRC="./"
 DAY=`date +"%Y-%m-%d"`
 USER=`users|awk '{print $1}'`
 
 function usage()
 {
 	echo
-	echo "Usage: enetlib -[s|m] ServerClass [-main]"
+	echo "Usage: enetlib -[s|m] ServerClass [-p ProtocolFamily] [-main]"
 	echo -e "\t-s : Generate a SINGLE thread server class"
 	echo -e "\t-m : Generate a MULTIPLE thread server class"
+	echo -e "\t-p : Use ProtocolFamily"
 	echo -e "\t-main : Generate a Main-cpp file for the ServerClass"
 	echo 
 	echo "Usage: enetlib -p ProtocolFamily"
 	echo -e "\t-p : Generate ProtocolFamily class"
 	echo
+}
+
+function genetate_framework_Class()
+{
+	TClassName=$1   ###模板类名
+	ClassName=$2    ###目标类名
+	PF=$3           ###协议族
+	
+	MACRO=`echo $ClassName|awk '{print toupper($1)}'`   ###宏名称
+
+	if [ -f "${ClassName}.h" ] || [ -f "${ClassName}.cpp" ];then
+		echo "${ClassName}.h or ${ClassName}.cpp already exist. Do Nothing."
+		return
+	fi
+
+	echo "Generate Framework Class: ${ClassName}.h, ${ClassName}.cpp..."
+	### h file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_${TClassName}_H_/_${MACRO}_H_/" -e "s/${TClassName}/${ClassName}/g" ${SRC}/${TClassName}.h >${ClassName}.h
+	### cpp file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/${TClassName}/${ClassName}/g" ${SRC}/${TClassName}.cpp >${ClassName}.cpp
+
+	if [ "$PF" != "" ];then
+		sed -i "s/TemplateProtocolFamily/$PF/" ${ClassName}.cpp
+	fi
+}
+
+function generate_protocl_family()
+{
+	PF=$1  ###协议族名称
+	MACRO=`echo $PF|awk '{print toupper($1)}'`   ###宏名称
+
+	if [ -f "$PF.h" ] || [ -f "$PF.cpp" ];then
+		echo "$PF.h or $PF.cpp already exist. Do Nothing."
+		return
+	fi
+
+	echo "Generate ProtocolFamily class: $PF.h, $PF.cpp..."
+	### h file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_TemplateProtocolFamily_H_/_${MACRO}_H_/" -e "s/TemplateProtocolFamily/$PF/" ${SRC}/TemplateProtocolFamily.h >${PF}.h
+	### cpp file
+	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/TemplateProtocolFamily/$PF/" ${SRC}/TemplateProtocolFamily.cpp >${PF}.cpp
 }
 
 ##########################
@@ -36,43 +78,31 @@ if [ $# -lt 2 ];then
 	exit
 fi
 
-#echo "ServerClass Name: $2"
-
-SC=$2
-SC_H=$2.h
-SC_CPP=$2.cpp
-CAP_SC=`echo $SC|awk '{print toupper($1)}'`
-
-if [ -f "${SC_H}" ] || [ -f "${SC_CPP}" ];then
-	echo "error: file '${SC_H}' or '${SC_CPP}' exist !!!"
-elif [ "$MODE" = "-s" ];then
-	echo "Generate SINGLE thread Class: ${SC_H},${SC_CPP}"
-	###h file
-	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_STAppTemplate_H_/_${CAP_SC}_H_/" -e "s/STAppTemplate/$SC/" ${SRC}/STAppTemplate.h >${SC_H}
-	###cpp file
-	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/STAppTemplate/$SC/" ${SRC}/STAppTemplate.cpp >${SC_CPP}
+if [ "$MODE" = "-s" ];then
+	PF=""  ###协议族
+	if [ "$3" = "-p" ] && [ "$4" != "" ] && [ "${4:0:1}" != "-" ] ;then
+		generate_protocl_family $4
+		PF=$4
+	fi
+	genetate_framework_Class STAppTemplate $2 $PF
 elif [ "$MODE" = "-m" ];then
-	echo "Generate MULTIPLE thread class: ${SC_H},${SC_CPP}"
-	###h file
-	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_MTAppTemplate_H_/_${CAP_SC}_H_/" -e "s/MTAppTemplate/$SC/" ${SRC}/MTAppTemplate.h >${SC_H}
-	###cpp file
-	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/MTAppTemplate/$SC/" ${SRC}/MTAppTemplate.cpp >${SC_CPP}
+	if [ "$3" = "-p" ] && [ "$4" != "" ] && [ "${4:0:1}" != "-" ];then
+		generate_protocl_family $4
+		PF=$4
+	fi
+	genetate_framework_Class MTAppTemplate $2 $PF
 elif [ "$MODE" = "-p" ];then
-	echo "Generate ProtocolFamily class: ${SC_H},${SC_CPP}"
-	###h file
-	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/_TemplateProtocolFamily_H_/_${CAP_SC}_H_/" -e "s/TemplateProtocolFamily/$SC/" ${SRC}/TemplateProtocolFamily.h >${SC_H}
-	###cpp file
-	sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/TemplateProtocolFamily/$SC/" ${SRC}/TemplateProtocolFamily.cpp >${SC_CPP}
+	generate_protocl_family $2
 fi
 
-if [ $# -eq 3 ] && [ "${MODE}" != "-p" ] && [ "$3" = "-main" ];then
-	MAINCPP="${SC}Main.cpp"
+if [ $# -gt 2 ] && [ ${!#} = "-main" ];then
+	MAINCPP="${2}Main.cpp"
 
 	if [ -f "${MAINCPP}" ];then
-		echo "error: file '${MAINCPP}' exist!!!"
+		echo "${MAINCPP} already exist. Do Nothing."
 	else
 		echo "Generate Main cpp file: ${MAINCPP}"
-		sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/AppTemplate/$SC/" ${SRC}/AppTemplateMain.cpp >${MAINCPP}
+		sed -e "s/\#CreateDate\#/$DAY/" -e "s/\#Author\#/$USER/" -e "s/AppTemplate/$2/" ${SRC}/AppTemplateMain.cpp >${MAINCPP}
 	fi
 fi
 

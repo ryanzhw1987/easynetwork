@@ -8,7 +8,7 @@
 #include "TaskManager.h"
 #include "IODemuxerEpoll.h"
 #include "SocketManager.h"
-#include "DownloadProtocol.h"
+#include "DownloadProtocolFamily.h"
 
 void TaskManager::run_thread()
 {

@@ -7,7 +7,7 @@
 
 #include "DownloadManager.h"
 #include "IODemuxerEpoll.h"
-#include "DownloadProtocol.h"
+#include "DownloadProtocolFamily.h"
 
 #include <sstream>
 #include <iostream>
