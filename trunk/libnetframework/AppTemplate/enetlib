@@ -1,6 +1,5 @@
 #!/bin/bash
 SRC="/usr/local/include/libnetframework/AppTemplate"
-SRC="./"
 
 DAY=`date +"%Y-%m-%d"`
 USER=`users|awk '{print $1}'`
