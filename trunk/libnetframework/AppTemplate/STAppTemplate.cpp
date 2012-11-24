@@ -8,7 +8,9 @@
 #include "STAppTemplate.h"
 #include "slog.h"
 
+#include "TemplateProtocolFamily.h"
 
+///////////////////////////////////////  STAppTemplate  ///////////////////////////////////////
 bool STAppTemplate::start_server()
 {
 	////Init NetInterface
@@ -23,7 +25,7 @@ bool STAppTemplate::start_server()
 ProtocolFamily* STAppTemplate::create_protocol_family()
 {
 	//Create your protocol family here
-	//return new 'YourProtocolFamily';
+	return new TemplateProtocolFamily;
 }
 
 void STAppTemplate::delete_protocol_family(ProtocolFamily* protocol_family)

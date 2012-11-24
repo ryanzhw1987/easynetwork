@@ -6,10 +6,10 @@ LIBS=-lslog /usr/local/lib/libnetframework.a -pthread
 
 
 all:test_server test_client
-test_server:ServerAppFrameworkMain.cpp ServerAppFramework.cpp ServerAppFramework.h
+test_server:StringProtocolFamily.h ServerAppFrameworkMain.cpp ServerAppFramework.cpp ServerAppFramework.h
 	g++ $^ ${INC} ${LIBS} ${FLAGS} -o $@
 
-test_client:ClientAppFrameworkMain.cpp ClientAppFramework.cpp ClientAppFramework.h
+test_client:StringProtocolFamily.h ClientAppFrameworkMain.cpp ClientAppFramework.cpp ClientAppFramework.h
 	g++ $^ ${INC} ${LIBS} ${FLAGS} -o $@
 
 clean:

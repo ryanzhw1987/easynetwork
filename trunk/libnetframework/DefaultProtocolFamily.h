@@ -171,6 +171,11 @@ Protocol* DefaultProtocolFamily::create_protocol(int protocol_type, int sequence
 		protocol->attach_protocol_header(header);
 		protocol->set_protocol_family(this);
 	}
+	else
+	{
+		destroy_protocol_header(header);
+	}
+
 	return protocol;
 }
 

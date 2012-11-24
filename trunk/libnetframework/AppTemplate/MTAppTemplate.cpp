@@ -8,7 +8,9 @@
 #include "MTAppTemplate.h"
 #include "slog.h"
 
-/////////////////////////////////////// MTAppTemplate ///////////////////////////////////////
+#include "TemplateProtocolFamily.h"
+
+///////////////////////////////////////  MTAppTemplate  ///////////////////////////////////////
 bool MTAppTemplate::start_server()
 {
 	//Init NetInterface
@@ -24,7 +26,7 @@ bool MTAppTemplate::start_server()
 ProtocolFamily* MTAppTemplate::create_protocol_family()
 {
 	//Create your protocol family here
-	//return new 'YourProtocolFamily';
+	return new TemplateProtocolFamily;
 }
 
 void MTAppTemplate::delete_protocol_family(ProtocolFamily* protocol_family)
@@ -89,7 +91,7 @@ bool MTAppTemplate::on_socket_handler_accpet(SocketHandle socket_handle)
 }
 
 
-/////////////////////////////////////// MTAppTemplateThreadPool ///////////////////////////////////////
+///////////////////////////////////////  MTAppTemplateThreadPool  ///////////////////////////////////////
 Thread<SocketHandle>* MTAppTemplateThreadPool::create_thread()
 {
 	MTAppTemplate *app = new MTAppTemplate;
