@@ -80,11 +80,12 @@ HANDLE_RESULT ChunkServer::on_timeout(int fd)
 	uint64_t disk_space = 123456789;
 	uint64_t disk_used = 2342234;
 
-	protocol_chunk_ping->set_chunk_id(chunk_id);
-	protocol_chunk_ping->set_chunk_addr(chunk_addr);
-	protocol_chunk_ping->set_chunk_port(3013);
-	protocol_chunk_ping->set_disk_space(disk_space);
-	protocol_chunk_ping->set_disk_used(disk_used);
+	ChunkInfo& chunk_info = protocol_chunk_ping->get_chunk_info();
+	chunk_info.id = "chunk0";
+	chunk_info.addr = "127.0.0.1";
+	chunk_info.port = 3013;
+	chunk_info.disk_space = 123456789;
+	chunk_info.disk_used = 2342234;
 
 	if(!send_protocol(m_master_socket_handle, protocol_chunk_ping))
 	{

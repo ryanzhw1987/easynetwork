@@ -21,7 +21,7 @@ int main(int agrc, char* argv[])
 	//file info
 	string fid="AAACCCDDD";
 	SFS::FileInfo fileinfo;
-	if(sfs_file.file_info(&fileinfo, fid))
+	if(sfs_file.get_file_info(&fileinfo, fid))
 	{
 		SLOG_INFO("result:%d FID:%s FileSize:%lld.", fileinfo.result, fileinfo.fid.c_str(), fileinfo.size);
 		vector<ChunkInfo>::iterator it;
@@ -31,7 +31,7 @@ int main(int agrc, char* argv[])
 	*/
 
 	string filename="/data/test.txt";
-	sfs_file.store(filename);
+	sfs_file.save_file(filename);
 
 	SLOG_UNINIT();
 	return 0;
