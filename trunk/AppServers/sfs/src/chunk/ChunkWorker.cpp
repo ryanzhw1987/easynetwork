@@ -39,35 +39,29 @@ bool ChunkWorker::on_recv_protocol(SocketHandle socket_handle, Protocol *protoco
 	DefaultProtocolHeader *header = (DefaultProtocolHeader *)protocol->get_protocol_header();
 	switch(header->get_protocol_type())
 	{
-	case PROTOCOL_STORE:    //client 请求存储文件
+	case PROTOCOL_FILE:    //client 请求存储文件
 	{
-		ProtocolStore *protocol_store = (ProtocolStore *)protocol;
-		const string &fid = protocol_store->get_fid();
-		const string &filename = protocol_store->get_file_name();
-		uint64_t filesize = protocol_store->get_file_size();
-		uint64_t segoffset = protocol_store->get_seg_offset();
-		int segindex = protocol_store->get_seg_index();
-		int segsize = protocol_store->get_seg_size();
-		bool segfinished = protocol_store->get_seg_finished();
+		ProtocolFile *protocol_file = (ProtocolFile *)protocol;
+		FileSeg &file_seg = protocol_file->get_file_seg();
 
-		SLOG_INFO("receive Store Protocol. FID=%s, Filename=%s, Filesize=%lld, SegOffset=%lld, SegIndex=%d, SegSize=%d, SegFinished=%d"
-					,fid.c_str(), filename.c_str(), filesize, segoffset, segindex, segsize, segfinished?1:0);
+		SLOG_INFO("receive File Protocol[file info: fid=%s, name=%s, filesize=%lld] [seg info: offset=%lld, index=%d, size=%d]."
+					,file_seg.fid.c_str(), file_seg.name.c_str(), file_seg.filesize, file_seg.offset, file_seg.index, file_seg.size);
 
-		ProtocolStoreResp* protocol_store_resp = (ProtocolStoreResp*)protocol_family->create_protocol(PROTOCOL_STORE_RESP);
-		assert(protocol_store_resp != NULL);
-		protocol_store_resp->set_result(1);
-		protocol_store_resp->set_fid(fid);
-		string chunk_path = fid+"_chunk0_0_filesize";
-		protocol_store_resp->set_chunk_path(chunk_path);
+		ProtocolFileSaveResult* protocol_file_save_result = (ProtocolFileSaveResult*)protocol_family->create_protocol(PROTOCOL_FILE_SAVE_RESULT);
+		assert(protocol_file_save_result != NULL);
+		protocol_file_save_result->set_result(0);
+		FileSeg &file_seg_resp = protocol_file_save_result->get_file_seg();
+		file_seg_resp.fid = file_seg.fid;
+		file_seg_resp.index = file_seg.index;
 
-		if(!send_protocol(socket_handle, protocol_store_resp))
+		if(!send_protocol(socket_handle, protocol_file_save_result))
 		{
 			SLOG_ERROR("send StoreResp Protocol failed.");
-			protocol_family->destroy_protocol(protocol_store_resp);
+			protocol_family->destroy_protocol(protocol_file_save_result);
 		}
 		break;
 	}
-	case PROTOCOL_CHUNK_REPORT_RESP:    //master回复上报存储结果
+	case PROTOCOL_FILE_INFO_SAVE_RESULT:    //master回复保存文件信息结果
 	{
 		break;
 	}

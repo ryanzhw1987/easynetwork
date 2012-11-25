@@ -17,17 +17,6 @@
 using std::string;
 using std::map;
 
-class ChunkPingInfo
-{
-public:
-	string id;
-	string addr;
-	int port;
-	uint64_t disk_space;
-	uint64_t disk_used;
-};
-
-
 class MasterServer:public ConnectThread
 {
 protected:
@@ -53,9 +42,11 @@ public:
 	bool start_server();
 
 private:
-	map<string, ChunkPingInfo> m_chunk_manager;
-	void add_chunk(ChunkPingInfo &chunk_ping);
-	bool get_chunk(ChunkPingInfo &chunk_info);
+	map<string, ChunkInfo> m_chunk_manager;
+	void add_chunk(ChunkInfo &chunk_ping);
+	bool get_chunk(ChunkInfo &chunk_info);
+
+	map<string, FileInfo> m_fileinfo_cache;
 };
 
 class MasterThreadPool:public ConnectThreadPool

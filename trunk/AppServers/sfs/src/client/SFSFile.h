@@ -21,27 +21,25 @@ using std::vector;
 namespace SFS
 {
 
-class FileInfo
-{
-public:
-	int result;
-	string fid;
-	uint64_t size;
-	vector<ChunkInfo> chunkinfo;
-};
-
 class File
 {
 public:
 	File(string &master_addr, int master_port, int n_replica);
 
-	bool file_info(FileInfo *file_info, string &fid, bool query_chunkinfo=false);
-	//从sfs读取fid文件的数据保存到out_buf中
-	bool retrieve(string &fid, ByteBuffer *out_buf);
-	//从sfs读取fid文件的数据保存到out_file文件中
-	bool retrieve(string &fid, string &out_file);
-	//存储local_file文件到sfs
-	bool store(string &local_file);
+	//获取fid的文件信息
+	//query_chunkpath: 当没有文件信息的时候是否请求分配chunk path
+	//返回值:
+	//0:失败(没有文件信息/分配chunk path失败)
+	//1:有文件信息
+	//2:没有文件信息但分配chunk path成功
+	int get_file_info(FileInfo &file_info, string &fid, bool query_chunkpath=false);
+
+	//从sfs读取fid文件保存到local_file中
+	bool get_file(string &fid, string &local_file);
+
+	//将文件local_file保存到sfs系统
+	//失败返回false; 成功返回true,fileinfo表示保存后的文件信息
+	bool save_file(FileInfo &fileinfo, string &local_file);
 private:
 	string m_master_addr;
 	int    m_master_port;
@@ -49,8 +47,8 @@ private:
 	SFSProtocolFamily m_protocol_family;
 private:
 	Protocol* query_master(Protocol *protocol);
-	bool query_chunk_store(string &local_file, string &fid, string &chunk_addr, int chunk_port);
-	bool send_store_protocol(TransSocket* trans_socket, ProtocolStore *protocol_store, ByteBuffer *byte_buffer, int fd);
+	bool send_file_to_chunk(string &local_file, string &fid, string &chunk_addr, int chunk_port);
+	bool send_file_protocol_to_chunk(TransSocket* trans_socket, ProtocolFile *protocol_store, ByteBuffer *byte_buffer, int fd);
 };
 
 }
