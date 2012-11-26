@@ -239,7 +239,7 @@ HANDLE_RESULT NetInterface::on_writeable(int fd)
 	int ret = trans_socket->send_buffer();
 	if(ret == TRANS_ERROR)
 		return HANDLE_ERROR;
-	else if(ret > 0)
+	else if(ret > 0)  //只发送部分数据
 	{
 		SLOG_INFO("remain %d bytes data wait for sending on socket fd=%d",ret, fd);
 		if(m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this) != 0)
@@ -249,41 +249,46 @@ HANDLE_RESULT NetInterface::on_writeable(int fd)
 		}
 		return HANDLE_OK;
 	}
+
 	//移出一个待发送的协议
 	Protocol* protocol = get_wait_to_send_protocol(fd);
-	if(protocol != NULL)
+	if(protocol == NULL)
+		return HANDLE_OK;
+
+	if(protocol->encode() == false)
 	{
-		if(protocol->encode() == false)
+		SLOG_ERROR("protocol encode error. fd=%d", fd);
+		on_protocol_send_error(fd, protocol);
+		return HANDLE_ERROR;
+	}
+	ByteBuffer *raw_data = protocol->detach_raw_data();	//脱离raw_data
+	trans_socket->push_send_buffer(raw_data);
+	ret = trans_socket->send_buffer();
+	if(ret == TRANS_ERROR)
+	{
+		on_protocol_send_error(fd, protocol);
+		return HANDLE_ERROR;
+	}
+	else if(ret > 0)  //只发送了部分数据
+	{
+		SLOG_INFO("send %s. remain %d bytes data wait for sending on socket fd=%d", protocol->details(), ret, fd);
+		if(m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this) != 0)
 		{
-			SLOG_ERROR("protocol encode error. fd=%d", fd);
+			SLOG_ERROR("register write event error. fd=%d", fd);
+			on_protocol_send_error(fd, protocol);
 			return HANDLE_ERROR;
-		}
-		ByteBuffer *raw_data = protocol->detach_raw_data();	//脱离raw_data
-		trans_socket->push_send_buffer(raw_data);
-		ret = trans_socket->send_buffer();
-		if(ret == TRANS_ERROR)
-			return HANDLE_ERROR;
-		else if(ret > 0)
-		{
-			SLOG_INFO("send %s. remain %d bytes data wait for sending on socket fd=%d", protocol->details(), ret, fd);
-			if(m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this) != 0)
-			{
-				SLOG_ERROR("register write event error. fd=%d", fd);
-				return HANDLE_ERROR;
-			}
-			return HANDLE_OK;
 		}
 		on_protocol_send_succ(fd, protocol);
-
-		if(get_wait_to_send_protocol_number(fd) > 0)
-		{
-			if(m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this) != 0)
-			{
-				SLOG_ERROR("register write event error. fd=%d", fd);
-				return HANDLE_ERROR;
-			}
-		}
+		return HANDLE_OK;
 	}
+
+	on_protocol_send_succ(fd, protocol);
+	if((get_wait_to_send_protocol_number(fd)>0) && (m_io_demuxer->register_event(fd, EVENT_WRITE, m_socket_idle_timeout_ms, this)!=0))
+	{
+		SLOG_ERROR("register write event error. fd=%d", fd);
+		return HANDLE_ERROR;
+	}
+
 	return HANDLE_OK;
 }
 
