@@ -1,12 +1,16 @@
 * !EasyNetwork源码：*
+ * [http://easynetwork.googlecode.com/files/libnetframework_20121126.tar libnetframework_20121126.tar]
+ 更新内容:
+  # 解决NetInterface只发送部分数据时未回调接口的bug。
+
  * [http://easynetwork.googlecode.com/files/libnetframework_20121124.tar libnetframework_20121124.tar]
  更新内容:
   # enetlib更新；
-<br>
+
  * [http://easynetwork.googlecode.com/files/libnetframework_20121120.tar libnetframework_20121120.tar]
  更新内容:
   # enetlib工具添加生成协议族模板代码功能；
-<br>
+
  * [http://easynetwork.googlecode.com/files/libnetframework_20121119.tar libnetframework_20121119.tar]
 
 <br><br>
