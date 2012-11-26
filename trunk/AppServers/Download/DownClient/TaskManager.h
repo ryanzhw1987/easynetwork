@@ -14,7 +14,6 @@ using std::string;
 #include "PipeThread.h"
 #include "NetInterface.h"
 #include "DownloadManager.h"
-#include "DownloadProtocol.h"
 
 class TaskManager: public NetInterface, public PipeThread<string>
 {
