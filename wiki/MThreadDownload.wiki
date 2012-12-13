@@ -3,15 +3,17 @@
  
   整个服务器/客户端的工作流程大概如下：客户端向服务端发送请求文件大小的协议，收到服务端回复之后根据文件大小进行分片；客户端向服务端请求每个分片的数据；服务端收到请求分片的任务后，按照分片在文件中的起始位置和大小读取数据并发送给客户端。
  
-  另外，在协议族中创建和销毁协议对象时我们使用来MemCache内存管理模块来控制内存的分配和释放，从而避免产生内存碎片。具体间下面的协议族定义。
- 
+  另外，在协议族中创建和销毁协议对象时我们使用来MemCache内存管理模块来控制内存的分配和释放，从而避免产生内存碎片。具体见下面的协议族定义。
+
   好吧，进入主题，本次新闻联播的主要内容有：
    * [MThreadDownload#1._Download_ProtocolFamily]
    * [MThreadDownload#2._Download_Server]
    * [MThreadDownload#3._Download_Client]
    * [MThreadDownload#4._Ending]
- 
- 
+
+=0. 前期准备=
+ 如果要运行例子，需要在/data/目录下存放一个test.flv文件(几十M的文件即可)，例子中下载的就是该文件。
+
 =1. Download ProtocolFamily=
   搭建框架之前我们先定义好协议和协议族。我们利用框架的DefaultProtocol来定义我们下载服务器需要用到的4个协议:RequestSize, RespondSize, RequestData, RespondData.(具体见源码)
  
