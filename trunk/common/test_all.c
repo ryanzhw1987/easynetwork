@@ -9,6 +9,19 @@
 #include <assert.h>
 
 /////heapsort test /////
+static void test_heapsort();
+static void test_memoryslab();
+static void test_memorymgr();
+
+////////////////////////////  main  ////////////////////////////
+int main()
+{
+	test_heapsort();
+	test_memoryslab();
+	test_memorymgr();
+	return 0;
+}
+
 #include "heapsort.h"
 void test_heapsort()
 {
@@ -34,10 +47,33 @@ void test_heapsort()
 	heapsort_destroy(heap);
 }
 
-
-////////////////////////////  main  ////////////////////////////
-int main()
+#include "memorymgr.h"
+void test_memoryslab()
 {
-	test_heapsort();
-	return 0;
+	MemorySlab *mem_slab = memoryslab_create(4, 1);
+	int i=0;
+	while(i++<500)
+	{
+		void *ptr1 = memoryslab_malloc(mem_slab);
+		void *ptr2 = memoryslab_malloc(mem_slab);
+		printf("%0X %0X;", (unsigned int)ptr1, (unsigned int)ptr2);
+		memoryslab_free(mem_slab, ptr2);
+	}
+	printf("\n");
+
+	memoryslab_destroy(mem_slab);
+}
+
+void test_memorymgr()
+{
+	MemoryMgr *mem_mgr = memorymgr_init(1);
+	int i=0;
+	while(i++<500)
+	{
+		void *ptr1 = memorymgr_malloc(mem_mgr, 4);
+		void *ptr2 = memorymgr_malloc(mem_mgr, 6);
+		printf("%0X %0X;", (unsigned int)ptr1, (unsigned int)ptr2);
+	}
+	printf("\n");
+	memorymgr_uninit(mem_mgr);
 }
