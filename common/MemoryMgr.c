@@ -1,11 +1,11 @@
 /*
- * memorymgr.c
+ * MemoryMgr.c
  *
  *  Created on: 2012-12-23
  *      Author: LiuYongJin
  */
 
-#include "memorymgr.h"
+#include "MemoryMgr.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>

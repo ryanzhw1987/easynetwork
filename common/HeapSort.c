@@ -1,11 +1,11 @@
 /*
- * heapsort.cpp
+ * HeapSort.cpp
  *
  *  Created on: 2012-12-23
  *      Author: LiuYongJin
  */
 
-#include "heapsort.h"
+#include "HeapSort.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

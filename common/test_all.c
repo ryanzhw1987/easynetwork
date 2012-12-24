@@ -22,7 +22,7 @@ int main()
 	return 0;
 }
 
-#include "heapsort.h"
+#include "HeapSort.h"
 void test_heapsort()
 {
 	Heap *heap = heapsort_create(NULL, NULL);
@@ -47,7 +47,7 @@ void test_heapsort()
 	heapsort_destroy(heap);
 }
 
-#include "memorymgr.h"
+#include "MemoryMgr.h"
 void test_memoryslab()
 {
 	MemorySlab *mem_slab = memoryslab_create(4, 1);

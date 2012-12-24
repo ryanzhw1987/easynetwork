@@ -1,5 +1,5 @@
 /*
- * heapsort.h
+ * HeapSort.h
  *
  *  Created on: 2012-12-23
  *      Author: LiuYongJin

@@ -1,6 +1,6 @@
 all:test_all
 
-test_all:test_all.c heapsort.* memorymgr.*
+test_all:test_all.c HeapSort.* MemoryMgr.*
 	gcc $^ -lpthread -o $@ -g
 
 clean:
