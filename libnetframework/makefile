@@ -15,7 +15,9 @@ install:
 	mkdir ${LIB_INC} -p
 	cp *.h ${LIB_INC}
 	cp ${LIB_NAME} ${LIB_PATH}
+	ln -sf ${LIB_PATH}/${LIB_NAME} /usr/lib/${LIB_NAME}
 	cp ${SO_NAME} ${LIB_PATH}
+	ln -sf ${LIB_PATH}/${SO_NAME} /usr/lib/${SO_NAME}
 	mkdir ${LIB_INC}/AppTemplate -p
 	cp AppTemplate/*.h ${LIB_INC}/AppTemplate
 	cp AppTemplate/*.cpp ${LIB_INC}/AppTemplate
