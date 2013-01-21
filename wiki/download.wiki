@@ -1,4 +1,8 @@
 * !EasyNetwork源码：*
+ * [http://easynetwork.googlecode.com/files/libnetframework_20130121.tar libnetframework_20130121.tar]
+ 更新内容:
+  # 去掉utf-8 BOM。
+
  * [http://easynetwork.googlecode.com/files/libnetframework_20121126.tar libnetframework_20121126.tar]
  更新内容:
   # 解决NetInterface只发送部分数据时未回调接口的bug。
