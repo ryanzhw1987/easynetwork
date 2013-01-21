@@ -1,4 +1,4 @@
-﻿/*
+/*
  * DefaultProtocolFamily.h
  *
  *  Created on: 2012-10-18
