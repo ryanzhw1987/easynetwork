@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Thread.h
  *
  *  Created on: 2012-9-9

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * IOBuffer.cpp
  *
  *  Created on: 2012-9-8
