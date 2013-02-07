@@ -23,4 +23,4 @@
 
 <br><br>
 * larbin搜索爬虫源码分析
- * [http://easynetwork.googlecode.com/files/larbin-2.6.3.tar.gz.tar larbin源码注释]
+ * [http://easynetwork.googlecode.com/files/larbin-2.6.3.tar.gz larbin源码注释]
