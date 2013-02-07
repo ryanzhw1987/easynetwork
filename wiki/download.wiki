@@ -22,5 +22,5 @@
  * [http://easynetwork.googlecode.com/files/libslog.tar libslog.tar]
 
 <br><br>
-* larbin搜索爬虫源码分析
- * [http://easynetwork.googlecode.com/files/larbin-2.6.3.tar.gz larbin源码注释]
+* larbin搜索爬虫源码注释/分析
+ * [http://easynetwork.googlecode.com/files/larbin-2.6.3.tar.gz larbin-2.6.3.tar.gz]
