@@ -24,9 +24,5 @@
 <br><br>
 <hr>
 ==其他开源项目源码分析==
-* larbin搜索爬虫源码注释/分析：*
- * [http://easynetwork.googlecode.com/files/larbin-2.6.3.tar.gz larbin-2.6.3.tar.gz]
-<br><br>
-
-* axel多线程下载源码分析：*
- * [http://easynetwork.googlecode.com/files/axel-2.4.tar.gz axel-2.4.tar.gz]
+ # larbin搜索爬虫源码分析：[http://easynetwork.googlecode.com/files/larbin-2.6.3.tar.gz larbin-2.6.3.tar.gz]
+ # axel多线程下载源码分析：[http://easynetwork.googlecode.com/files/axel-2.4.tar.gz axel-2.4.tar.gz]
