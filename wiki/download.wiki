@@ -1,18 +1,18 @@
 * !EasyNetwork源码：*
  * [http://easynetwork.googlecode.com/files/libnetframework_20130121.tar libnetframework_20130121.tar]
- 更新内容:
+ 更新内容：
   # 去掉utf-8 BOM。
 
  * [http://easynetwork.googlecode.com/files/libnetframework_20121126.tar libnetframework_20121126.tar]
- 更新内容:
+ 更新内容：
   # 解决NetInterface只发送部分数据时未回调接口的bug。
 
  * [http://easynetwork.googlecode.com/files/libnetframework_20121124.tar libnetframework_20121124.tar]
- 更新内容:
+ 更新内容：
   # enetlib更新；
 
  * [http://easynetwork.googlecode.com/files/libnetframework_20121120.tar libnetframework_20121120.tar]
- 更新内容:
+ 更新内容：
   # enetlib工具添加生成协议族模板代码功能；
 
  * [http://easynetwork.googlecode.com/files/libnetframework_20121119.tar libnetframework_20121119.tar]
@@ -22,5 +22,5 @@
  * [http://easynetwork.googlecode.com/files/libslog.tar libslog.tar]
 
 <br><br>
-* larbin搜索爬虫源码注释/分析
+* larbin搜索爬虫源码注释/分析： *
  * [http://easynetwork.googlecode.com/files/larbin-2.6.3.tar.gz larbin-2.6.3.tar.gz]
