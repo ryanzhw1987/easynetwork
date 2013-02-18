@@ -17,8 +17,8 @@ struct _heap_
 	int capacity;    //堆当前容量
 	int size;        //堆元素个数
 	void **elements; //堆元素数组
-	ElementCompareFunc cmp_func;
-	ElementDestroyFunc des_func;
+	ElemCompare cmp_func;
+	ElemDestroy des_func;
 };
 
 static int _default_cmp(void *a, void *b)
@@ -46,7 +46,7 @@ static int _expand_capacity(Heap *heap)
 
 
 //创建堆
-Heap* heapsort_create(ElementCompareFunc cmp_func, ElementDestroyFunc des_func)
+Heap* heap_create(ElemCompare cmp_func, ElemDestroy des_func)
 {
 	Heap *heap = (Heap*)malloc(sizeof(Heap));
 	if(heap == NULL)
@@ -66,7 +66,7 @@ Heap* heapsort_create(ElementCompareFunc cmp_func, ElementDestroyFunc des_func)
 }
 
 //销毁堆
-void heapsort_destroy(Heap *heap)
+void heap_destroy(Heap *heap)
 {
 	if(heap == NULL)
 		return;
@@ -81,13 +81,13 @@ void heapsort_destroy(Heap *heap)
 }
 
 //堆元素个数
-int heapsort_count(Heap *heap)
+int heap_count(Heap *heap)
 {
 	return heap==NULL?0:heap->size;
 }
 
 //插入元素,成功返回0,失败返回-1
-int heapsort_insert(Heap *heap, void *element)
+int heap_insert(Heap *heap, void *element)
 {
 	if(heap == NULL)
 		return -1;
@@ -113,7 +113,7 @@ int heapsort_insert(Heap *heap, void *element)
 }
 
 //获取堆顶元素
-void* heapsort_top(Heap *heap)
+void* heap_top(Heap *heap)
 {
 	if(heap==NULL || heap->size<=0)
 		return NULL;
@@ -122,7 +122,7 @@ void* heapsort_top(Heap *heap)
 }
 
 //删除堆顶元素
-void heapsort_pop(Heap *heap)
+void heap_pop(Heap *heap)
 {
 	if(heap==NULL || heap->size<=0)
 		return;
@@ -149,7 +149,7 @@ void heapsort_pop(Heap *heap)
 }
 
 //清除堆
-void heapsort_clear(Heap *heap)
+void heap_clear(Heap *heap)
 {
 	if(heap == NULL)
 		return;
@@ -158,3 +158,4 @@ void heapsort_clear(Heap *heap)
 			heap->des_func(heap->elements[heap->size]);
 	heap->size = 0;
 }
+
