@@ -13,9 +13,9 @@ typedef struct _heap_ Heap;
 
 //比较函数指针.返回值:-1(a小于b); 0(a等于b); 1(a大于b)
 //如果a不大于b,则a排列在b的前面
-typedef int (*ElementCompareFunc)(void *element_a, void *element_b);
+typedef int (*ElemCompare)(void *element_a, void *element_b);
 //元素销毁函数指针
-typedef void (*ElementDestroyFunc)(void *element);
+typedef void (*ElemDestroy)(void *element);
 
 
 #ifdef __cplusplus
@@ -23,24 +23,13 @@ extern "C"
 {
 #endif
 
-
-
-//创建堆
-Heap* heapsort_create(ElementCompareFunc cmp_func, ElementDestroyFunc des_func);
-//销毁堆
-void heapsort_destroy(Heap *heap);
-//堆元素个数
-int heapsort_count(Heap *heap);
-//插入元素,成功返回0,失败返回-1
-int heapsort_insert(Heap *heap, void *element);
-//获取堆顶元素
-void* heapsort_top(Heap *heap);
-//删除堆顶元素
-void heapsort_pop(Heap *heap);
-//清除堆
-void heapsort_clear(Heap *heap);
-
-
+Heap* heap_create(ElemCompare cmp_func, ElemDestroy des_func);   //创建堆
+void heap_destroy(Heap *heap);                                   //销毁堆
+int heap_count(Heap *heap);                                      //堆元素个数
+int heap_insert(Heap *heap, void *element);                      //插入元素,成功返回0,失败返回-1
+void* heap_top(Heap *heap);                                      //获取堆顶元素
+void heap_pop(Heap *heap);                                       //删除堆顶元素
+void heap_clear(Heap *heap);                                     //清除堆
 
 #ifdef __cplusplus
 }
